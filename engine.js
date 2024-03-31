@@ -4,6 +4,7 @@ function game(w = 320, h = 240, dom){
     this.dom.setAttribute('width', w);
     this.dom.setAttribute('height', h);
     
+    
     // CONTEXT
     this.ctx = this.dom.getContext('2d');
     this.ctx.imageSmoothingEnabled = false;
@@ -15,7 +16,6 @@ function game(w = 320, h = 240, dom){
     // LOADER
     this.load = {
         todo: [], data: [], done: [],
-        time: new Date(),
         get: x=>this.load.data[this.load.todo.indexOf(x)],
         files: (...todo) => {
             this.load.todo = todo;
@@ -68,7 +68,6 @@ function game(w = 320, h = 240, dom){
             };
             check();
         },
-        endloop: ()=>clearInterval(this.load.loop)
     };
 
     // Scene
@@ -81,28 +80,50 @@ function game(w = 320, h = 240, dom){
 
     // Loop
     this.time = new Date();
+    this.timenew = new Date();
     this.looper = undefined;
     this.loop = () => {
-        if (this.active_scene != undefined) this.scenes[this.active_scene]((new Date()) - this.time, this.draw);
+        if (this.active_scene != undefined) this.scenes[this.active_scene]((new Date()) - this.time, (new Date()) - this.timenew);
+        Object.keys(this.keydown).forEach(k => {
+            if (this.events.hasOwnProperty(k)) this.events[k](this.keydown[k]);
+        });
+        this.timenew = new Date();
     };
 
     // Event
-    this.on = function(e) {
-        document.addEventListener('keypress', key=>{
-            
-        })
+    this.events = {};
+    this.keydown = {};
+    this.on = function(e, f) {
+        this.events[e] = f;
+    };
+    
+    // Entity
+    this.entity = (t, d={}) => {
+        if (!entities.hasOwnProperty(t)) throw `No such entity "${t}"`;
+        var data = {...entities[t].default, ...d};
+        data.run = ()=>{
+            data = entities[t].run(data);
+            this.draw(t, ...data);
+        };
+        return data;
     };
 
     // Renderer
-    this.sprite = (img,x,y,cx,cy,cw,ch) => {
+    this.sprite = (img,x,y,cx,cy,cw,ch,fx,fy) => {
+        if(fx || fy) {
+            this.ctx.save();
+            //this.ctx.translate(this.w, 0);
+            this.ctx.scale(-1, 1);
+        }
         this.ctx.drawImage(
             this.load.get(img),
             cx,cy,cw,ch,
-            x*this.z,
-            y*this.z,
+            this.z*(fx? -cw-x : x),//-(fx ? cw*this.z:0),
+            this.z*(fy? -ch-y : y),
             cw*this.z,
             ch*this.z
         );
+        if(fx || fy) this.ctx.restore();
         //this.ctx.strokeStyle='red';this.lineWidth=0.5;this.ctx.strokeRect(x*this.z,y*this.z,cw*this.z,ch*this.z);
     };
     this.draw = (type, data={}) => {
@@ -158,5 +179,11 @@ function game(w = 320, h = 240, dom){
     this.render = p => {
         if (p == undefined) p = document.body;
         p.appendChild(this.dom);
+
+        p.addEventListener('keydown', key=>this.keydown[key.key] = {alt:key.altKey, ctrl:key.ctrlKey});
+        p.addEventListener('keyup', key=>delete this.keydown[key.key]);
+        /*p.addEventListener('keypress', key=>{
+            if (this.events.hasOwnProperty(key.key)) this.events[key.key]();
+        })*/
     };
 }
