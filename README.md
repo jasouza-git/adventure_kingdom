@@ -16,8 +16,10 @@ A game for the hackathon by CPU CSS of April 2024 themed Arcade
         <li>spirtes.png</li>
     </ul>
 </details>
-<details>
+<details open>
     <summary><code>/plan</code> - Contains all the game plans or ideas</summary>
+  	<h3>Plan Documentations</h3>
+  <p><a href="./plan/0.-Plans-Overview.md">Plans Overview</a></p>
 </details>
 <details open>
     <summary><code>/engine.js</code> - Contains the <code>game</code> class nessary for executing the game</summary>
