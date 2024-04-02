@@ -17,8 +17,8 @@ interface engine_type {
 interface entities_type {
     [entity_id:string]:{
         default:{[prop:string]:any},
-        render?:(data:{[prop:string]:any}, engine:engine_type)=>void,
-        run?:(data:{[prop:string]:any},dt:number)=>{[prop:string]:any}
+        update?:(data:{[prop:string]:any},dt:number , engine:engine_type)=>void,
+        create?:(args:{[prop:string]:any})=>{[prop:string]:any}
     }
 }
 type loadedfile_type = HTMLImageElement|String;

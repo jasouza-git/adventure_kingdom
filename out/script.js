@@ -1,10 +1,7 @@
 var entities = {
     pinoy: {
         default: { x: 0, y: 0, f: 0, g: 1, m: [0, 0] },
-        render: function (d, o) {
-            o.sprite('MC.png', d.x, d.y, Math.abs(d.m[1]) > 0.5 ? d.f % 3 % 2 * 32 : Math.abs(d.m[0]) > 0.5 ? (2 + d.f) % 3 * 32 : d.f % 2 * 32, Math.abs(d.m[1]) > 0.5 ? 64 : Math.abs(d.m[0]) > 0.5 ? Math.floor((2 + d.f) / 3) * 32 : 0, 32, 32, d.m[0] < 0);
-        },
-        run: function (d, dt) {
+        update: function (d, dt, o) {
             d.m[0] -= d.m[0] * dt / 50;
             if (!d.g)
                 d.m[1] -= ((d.m[1] > 1 ? 10 : 20) + d.m[1]) * dt / 100;
@@ -13,12 +10,39 @@ var entities = {
                 d.y = 200;
                 d.m[1] = 0;
             }
-            return d;
+            o.sprite('MC.png', d.x, d.y, Math.abs(d.m[1]) > 0.5 ? d.f % 3 % 2 * 32 : Math.abs(d.m[0]) > 0.5 ? (2 + d.f) % 3 * 32 : d.f % 2 * 32, Math.abs(d.m[1]) > 0.5 ? 64 : Math.abs(d.m[0]) > 0.5 ? Math.floor((2 + d.f) / 3) * 32 : 0, 32, 32, d.m[0] < 0);
+        }
+    },
+    knight: {
+        default: { x: 0, y: 0, f: 0, s: [
+                0,
+                0,
+                0,
+                0,
+                0,
+            ] },
+        update: function (d, dt, o) {
+            o.sprite('sprites.png', d.x, d.y + d.s[2] * 1.2, 32 + 4 * d.s[0], 0, 4, 5);
+            o.sprite('sprites.png', d.x + 6 - d.s[3], d.y + 14, 36, 20, 4, 3);
+            o.sprite('sprites.png', d.x + 2 + d.s[3], d.y + 14 - Math.min(d.s[3] * (4 - d.s[3]) / 3, 1), 36, 20, 4, 3);
+            o.sprite('sprites.png', d.x + 8 - Math.sin(d.s[4] * Math.PI / 2) * 2, d.y + 10, 33, 20, 3, 3);
+            o.sprite('sprites.png', d.x + 2, d.y + 11, 34, 17, 7, 3);
+            o.sprite('sprites.png', d.x + Math.sin(d.s[4] * Math.PI / 2) * 2, d.y + 10, 33, 20, 3, 3);
+            o.sprite('sprites.png', d.x, d.y + 6 + d.s[2] * 0.7, 32, 12, 11, 5);
+            o.sprite('sprites.png', d.x + 2, d.y + 1 + d.s[2], 32 + 6 * d.s[1], 5, 7, 7);
+        }
+    },
+    dirt: {
+        default: { x: 0, y: 0, w: 0, h: 0 },
+        update: function (d, dt, o) {
+            for (var i = 0; i < d.w; i++)
+                for (var j = 0; j < d.h; j++)
+                    o.sprite('sprites.png', d.x + i * 8, d.y + j * 8, i == 0 ? 0 : i + 1 >= d.w ? 8 : 4, j == 0 ? 0 : j + 1 >= d.h ? 12 : 8, 8, 8);
         }
     }
 };
 var engine = (function () {
-    function engine(w, h, dom) {
+    function engine(width, height, dom) {
         this.fps = 30;
         this.loaded = {};
         this.evented = {};
@@ -26,9 +50,10 @@ var engine = (function () {
         this.scenes = {};
         this.active_scene = '';
         this.path = '';
+        this.sprite_boxed = false;
         this.dom = dom ? dom : document.createElement('canvas');
-        this.w = w ? w : 320;
-        this.h = h ? h : 240;
+        this.w = width ? width : 320;
+        this.h = height ? height : 240;
         this.dom.setAttribute('width', String(this.w));
         this.dom.setAttribute('height', String(this.h));
         this.z = this.w / 320;
@@ -144,17 +169,22 @@ var engine = (function () {
             this.ctx.save();
             this.ctx.scale(-1, 1);
         }
-        this.ctx.drawImage(this.loaded[img], cx, cy, cw, ch, this.z * (fx ? -cw - x : x), this.z * (fy ? -ch - y : y), cw * this.z, ch * this.z);
+        this.ctx.drawImage(this.loaded[img], cx, cy, cw, ch, Math.floor(this.z * (fx ? -cw - x : x)), Math.floor(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
         if (fx || fy)
             this.ctx.restore();
+        if (this.sprite_boxed) {
+            this.ctx.lineWidth = this.z;
+            this.ctx.strokeStyle = '#FF0000';
+            this.ctx.strokeRect(Math.floor(this.z * (fx ? -cw - x : x)), Math.floor(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
+        }
     };
     engine.prototype.draw = function (type, data) {
         if (data == undefined)
             data = {};
         if (entities != undefined && entities.hasOwnProperty(type)) {
             data = {...entities[type].default, ...data}
-            if (entities[type].hasOwnProperty('render'))
-                entities[type].render(data, this);
+            if (entities[type].hasOwnProperty('update'))
+                entities[type].update(data, 0, this);
             return;
         }
     };
@@ -167,12 +197,35 @@ var engine = (function () {
         p.addEventListener('keyup', function (key) { return delete _this.evented[key.key]; });
     };
     ;
+    engine.prototype.entity = function (type) {
+        var arg = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            arg[_i - 1] = arguments[_i];
+        }
+        if (!entities.hasOwnProperty(type))
+            throw "Error: No such entity \"".concat(type, "\"");
+        var out = { '__type__': type };
+        if (entities[type].hasOwnProperty('create'))
+            out = entities[type].create(arg);
+        out = {...out, ...entities[type].default}
+        return out;
+    };
+    engine.prototype.add = function (entity) {
+        if (!entities.hasOwnProperty(entity['__type__']))
+            throw "Error: No such entity \"".concat(entity['__type__'], "\"");
+        entities[entity['__type__']].update(entity, this.time_last, this);
+    };
     return engine;
 }());
-var main = new engine();
-main.load('MC.png');
+var main = new engine(640, 480);
+var player = main.entity('knight');
+main.z = 4;
+main.load('MC.png', 'sprites.png');
 main.scene('menu', function (dt0, dt1) {
-    main.draw('pinoy', { d: dt0 / 1000, m: [1, 0] });
-    console.log(dt0);
+    main.ctx.clearRect(0, 0, main.w * main.z, main.h * main.z);
+    dt0 *= 1.6;
+    main.draw('knight', { x: (dt0 / 50) % 100, y: 60, s: [0, 0, (Math.sin(dt0 / 50) + 1) / 2, (dt0 / 50) % 4, (dt0 / 150) % 2] });
+    main.draw('dirt', { y: 76, w: 14, h: 2 });
+    main.add(player);
 });
 main.render();

@@ -7,11 +7,11 @@ class engine {
     public h:number;                                                    // Height
     public z:number;                                                    // Size of 1 pixel
     public fps:number = 30;                                             // Frames per second
-    public constructor(w?:number, h?:number, dom?:HTMLCanvasElement) {
+    public constructor(width?:number, height?:number, dom?:HTMLCanvasElement) {
         // Initalize Canvas
         this.dom = dom ? dom : document.createElement('canvas'); 
-        this.w = w ? w : 320;
-        this.h = h ? h : 240;
+        this.w = width ? width : 320;
+        this.h = height ? height : 240;
         this.dom.setAttribute('width', String(this.w));
         this.dom.setAttribute('height', String(this.h));
         this.z = this.w/320;
@@ -124,6 +124,7 @@ class engine {
     }
 
     // Drawing
+    public sprite_boxed:boolean = false;
     public sprite(img:string,
         x:number,y:number,
         cx:number,cy:number,cw:number,ch:number,
@@ -136,19 +137,29 @@ class engine {
         this.ctx.drawImage(
             this.loaded[img] as HTMLImageElement,
             cx,cy,cw,ch,
-            this.z*(fx? -cw-x : x),
-            this.z*(fy? -ch-y : y),
+            Math.floor(this.z*(fx? -cw-x : x)),
+            Math.floor(this.z*(fy? -ch-y : y)),
             cw*this.z,
             ch*this.z
         );
-        if(fx || fy) this.ctx.restore();
+        if (fx || fy) this.ctx.restore();
+        if (this.sprite_boxed) {
+            this.ctx.lineWidth = this.z;
+            this.ctx.strokeStyle = '#FF0000';
+            this.ctx.strokeRect(
+                Math.floor(this.z*(fx? -cw-x : x)),
+                Math.floor(this.z*(fy? -ch-y : y)),
+                cw*this.z,
+                ch*this.z
+            );
+        }
     }
     public draw(type:string, data?:{[prop:string]:any}) {
         if (data == undefined) data = {};
         if (entities != undefined && entities.hasOwnProperty(type)) {
             data = {...entities[type].default, ...data};
             // @ts-ignore
-            if (entities[type].hasOwnProperty('render')) entities[type].render(data, this);
+            if (entities[type].hasOwnProperty('update')) entities[type].update(data, 0, this);
             return;
         }
     }
@@ -158,5 +169,20 @@ class engine {
         p.addEventListener('keydown', key=>this.evented[key.key] = {alt:key.altKey, ctrl:key.ctrlKey});
         p.addEventListener('keyup', key=>delete this.evented[key.key]);
     };
+
+    // Entity
+    public entity(type:string, ...arg:any) : {[index:string]:any} {
+        if (!entities.hasOwnProperty(type)) throw `Error: No such entity "${type}"`;
+        let out = {'__type__':type};
+        // @ts-ignore
+        if (entities[type].hasOwnProperty('create')) out = entities[type].create(arg);
+        out = {...out, ...entities[type].default};
+        return out;
+    }
+    public add(entity:{[index:string]:any}) {
+        if (!entities.hasOwnProperty(entity['__type__'])) throw `Error: No such entity "${entity['__type__']}"`;
+        // @ts-ignore
+        entities[entity['__type__']].update(entity, this.time_last, this);
+    }
 }
 export {engine};
