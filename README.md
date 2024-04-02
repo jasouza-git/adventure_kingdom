@@ -6,6 +6,13 @@ A game for the hackathon by CPU CSS of April 2024 themed Arcade
  - [ ] Game plan
 
 ## Code Documentation
+<style>
+details {
+    padding-left: 10px;
+    border-left: 2px solid #fff2;
+    margin-bottom: 20px;
+}
+</style>
 <details>
     <summary><code>/assets</code> - Contains all the game assets</summary>
     <h3>Images</h3>
@@ -16,8 +23,10 @@ A game for the hackathon by CPU CSS of April 2024 themed Arcade
         <li>spirtes.png</li>
     </ul>
 </details>
-<details>
+<details open>
     <summary><code>/plan</code> - Contains all the game plans or ideas</summary>
+  	<h3>Plan Documentations</h3>
+    <p><a href="./plan/0.-Plans-Overview.md">Plans Overview</a></p>
 </details>
 <details open>
     <summary><code>/engine.js</code> - Contains the <code>game</code> class nessary for executing the game</summary>

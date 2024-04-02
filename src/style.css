@@ -1,0 +1,17 @@
+body {
+    background-color: #000;
+}
+canvas {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+    z-index: 1;
+}
+h1 {
+    z-index: 2;
+    opacity: 0;
+}
