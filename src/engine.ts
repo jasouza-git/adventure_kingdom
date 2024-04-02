@@ -84,7 +84,7 @@ class engine {
     private path:string = '';                                           // Current path of action (scene)
     private time_init:Date;                                             // Time since first frame
     private time_last:Date;                                             // Time since last frame
-    private check_event(event:string, action:action_type) {             // Check if event occured then active action
+    private check_event(event:string, action?:action_type) : boolean {             // Check if event occured then active action
         let events:string[] = event.split(',');
         let index:number = -1;
         for (let i = 0; i < Object.keys(this.evented).length; i++) {
@@ -93,7 +93,8 @@ class engine {
                 break;
             }
         }
-        if (index != -1) action(this.evented[index]);
+        if (index != -1 && action != undefined) action(this.evented[index]);
+        return index != -1;
     }
     private loop():void {                                               // Loop interval to trigger event check and scene
         let now:Date = new Date();
@@ -103,6 +104,7 @@ class engine {
             this.path = '';
         }
         Object.keys(this.events).forEach(e => this.events[e].forEach(a => this.check_event(e, a)));
+        this.time_last = new Date();
     }
     public start_loop():void {                                          // Start looper
         this.time_init = new Date();
@@ -116,11 +118,13 @@ class engine {
         if (scene == undefined || this.active_scene.length == 0) this.active_scene = id;
         if (scene != undefined) this.scenes[id] = scene;
     }
-    public on(event:string, action:action_type) {                       // Set/Activate event
+    public on(event:string, action?:action_type) : boolean {                       // Set/Activate event
         if (this.path.length == 0) {
+            if(action == undefined) throw `Error: Action in "engine.on" must be decleared if not inside scene`;
             if(!this.events.hasOwnProperty(event)) this.events[event] = [];
             this.events[event].push(action);
-        } else this.check_event(event, action);
+            return false;
+        } else return this.check_event(event, action);
     }
 
     // Drawing
@@ -159,7 +163,7 @@ class engine {
         if (entities != undefined && entities.hasOwnProperty(type)) {
             data = {...entities[type].default, ...data};
             // @ts-ignore
-            if (entities[type].hasOwnProperty('update')) entities[type].update(data, 0, this);
+            if (entities[type].hasOwnProperty('update')) entities[type].update(data, this, 0, 0);
             return;
         }
     }
@@ -173,16 +177,16 @@ class engine {
     // Entity
     public entity(type:string, ...arg:any) : {[index:string]:any} {
         if (!entities.hasOwnProperty(type)) throw `Error: No such entity "${type}"`;
-        let out = {'__type__':type};
+        let out = {};
         // @ts-ignore
         if (entities[type].hasOwnProperty('create')) out = entities[type].create(arg);
-        out = {...out, ...entities[type].default};
+        out = {'__type__':type, ...entities[type].default, ...out};
         return out;
     }
     public add(entity:{[index:string]:any}) {
         if (!entities.hasOwnProperty(entity['__type__'])) throw `Error: No such entity "${entity['__type__']}"`;
         // @ts-ignore
-        entities[entity['__type__']].update(entity, this.time_last, this);
+        entities[entity['__type__']].update(entity, this, (new Date()).getTime()-this.time_init.getTime(), (new Date()).getTime()-this.time_last.getTime());
     }
 }
 export {engine};

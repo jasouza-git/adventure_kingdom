@@ -17,7 +17,7 @@ interface engine_type {
 interface entities_type {
     [entity_id:string]:{
         default:{[prop:string]:any},
-        update?:(data:{[prop:string]:any},dt:number , engine:engine_type)=>void,
+        update?:(data:{[prop:string]:any}, engine:engine_type, dt_init:number, dt_last:number)=>void,
         create?:(args:{[prop:string]:any})=>{[prop:string]:any}
     }
 }

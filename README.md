@@ -68,7 +68,7 @@ details {
     <table>
         <tr><th>Property</th><th>Required?</th><th>Type</th><th>Description</th><tr>
         <tr><td>default</td><td>true</td><td><code>{[key:string]:any}</code></td><td>The default parameters of an entity</td><tr>
-        <tr><td>render</td><td>false</td><td><code>(data:{[key:string]:any}, dt:number, game:engine_type)=>void</code></td><td>Updates the entity every loop from drawing it to coding behaviors where <code>data</code> is the entity's parameter, <code>dt</code> is the number of miliseconds since last updated, and <code>game</code> is the game session the entity is on</td><tr>
+        <tr><td>render</td><td>false</td><td><code>(data:{[key:string]:any}, game:engine_type, t:number, dt:number)=>void</code></td><td>Updates the entity every loop from drawing it to coding behaviors where <code>data</code> is the entity's parameter, <code>game</code> is the game session the entity is on, <code>t</code> is the number of miliseconds since first frame, and <code>dt</code> is the number of miliseconds since last updated</td><tr>
         <tr><td>create</td><td>false</td><td><code>(args:{[prop:string]:any})=>{[prop:string]:any}</code></td><td>Creates parameters for newly created entities</td><tr>
     </table>
     <pre><code class="lang-javascript"><span class="hljs-built_in">import</span> {entities_type} <span class="hljs-built_in">from</span> <span class="hljs-string">"./types.ts"</span>;
@@ -78,7 +78,7 @@ details {
         <span class="hljs-comment">// Default parameters of the titlecard entity</span>
         default: {size: <span class="hljs-number">0.5</span>},
         <span class="hljs-comment">// Update the entity by adding the shrinking behavior and drawing it</span>
-        update: (d, dt, o) => {
+        update: (d, o, t, dt) => {
             <span class="hljs-comment">// Decrease size exponentally by 50% every second</span>
             <span class="hljs-built_in">d</span>.size *= <span class="hljs-number">0.5</span>*(<span class="hljs-number">1</span>-dt/<span class="hljs-number">1000</span>);
             <span class="hljs-comment">// Draw a sprite</span>
