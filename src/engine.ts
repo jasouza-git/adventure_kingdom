@@ -12,7 +12,9 @@ class engine {
         this.dom = dom ? dom : document.createElement('canvas'); 
         this.w = w ? w : 320;
         this.h = h ? h : 240;
-        this.z = w ? w/320 : 2;
+        this.dom.setAttribute('width', String(this.w));
+        this.dom.setAttribute('height', String(this.h));
+        this.z = this.w/320;
         this.ctx = this.dom.getContext('2d') as CanvasRenderingContext2D;
         this.ctx.imageSmoothingEnabled = false;
     }
@@ -36,7 +38,7 @@ class engine {
         let loaded : number[] = [];
 
         // Loading Menu
-        this.ctx.lineWidth = this.z;
+        this.ctx.lineWidth = this.z/2;
         this.ctx.strokeStyle = this.ctx.fillStyle = '#FFFFFF';
         this.ctx.strokeRect(this.w*0.25, this.h*0.45, this.w*0.5, this.h*0.1);
 
@@ -75,9 +77,9 @@ class engine {
 
     // Render
     private looper:number;                                              // Interval to loop
-    private evented:{[event:string]:any};                               // Recorded events
-    private events:{[event:string]:action_type[]};                      // Global event listeners
-    private scenes:{[scene:string]:scene_type};                         // Scenes
+    private evented:{[event:string]:any} = {};                          // Recorded events
+    private events:{[event:string]:action_type[]} = {};                 // Global event listeners
+    private scenes:{[scene:string]:scene_type} = {};                    // Scenes
     private active_scene:string = '';                                   // Active Scene
     private path:string = '';                                           // Current path of action (scene)
     private time_init:Date;                                             // Time since first frame
@@ -105,7 +107,7 @@ class engine {
     public start_loop():void {                                          // Start looper
         this.time_init = new Date();
         this.time_last = new Date();
-        this.looper = setInterval(this.loop, 1000/this.fps);
+        this.looper = setInterval(this.loop.bind(this), 1000/this.fps);
     }
     public stop_loop():void {                                           // Stop looper
         clearInterval(this.looper);
