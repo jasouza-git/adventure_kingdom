@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/macos,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,windows
 
+### NODEJS ###
+node_modules
+
 ### macOS ###
 # General
 .DS_Store

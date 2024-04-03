@@ -1,12 +1,313 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Adventure Kingdom</title>
-        <link rel="stylesheet" href="style.css"></link>
-    </head>
-    <body>
-        <script src="engine.js"></script>
-        <script src="entities.js"></script>
-        <script src="game.js"></script>
-    </body>
-</html>
+<!DOCTYPE html><html><head><title>Adventure Kingdom</title><style>body {background-color: #000;}canvas {position: fixed;left: 0;top: 0;width: 100%;height: 100%;object-fit: contain;image-rendering: pixelated;z-index: 1;}h1 {z-index: 2;opacity: 0;}</style></head><body><script>var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+var entities = {
+    // Pinoy Entitiy
+    pinoy: {
+        default: { x: 0, y: 0, f: 0, g: 1, m: [0, 0] },
+        update: function (d, o, t, dt) {
+            d.m[0] -= d.m[0] * dt / 50;
+            //d.y -= d.m[1]*dt/100;
+            if (!d.g)
+                d.m[1] -= ((d.m[1] > 1 ? 10 : 20) + d.m[1]) * dt / 100;
+            if (d.y > 200) {
+                d.g = 1;
+                d.y = 200;
+                d.m[1] = 0;
+            }
+            o.sprite('MC.png', d.x, d.y, Math.abs(d.m[1]) > 0.5 ? d.f % 3 % 2 * 32 : Math.abs(d.m[0]) > 0.5 ? (2 + d.f) % 3 * 32 : d.f % 2 * 32, Math.abs(d.m[1]) > 0.5 ? 64 : Math.abs(d.m[0]) > 0.5 ? Math.floor((2 + d.f) / 3) * 32 : 0, 32, 32, d.m[0] < 0);
+        }
+    },
+    // Knight 
+    knight: {
+        default: { x: 0, y: 0, f: 0, m: [0, 0], right: true, crouch: false,
+            w: 0, // From 0 - 90
+            s: [
+                0, // Hair [red, blue]
+                0, // Head [normal, duck]
+                0, // Neck [normal, bend]
+                0, // Walking animation [4 frames]
+                0, // Hand swing [2 frames]
+            ]
+        },
+        update: function (d, o, t, dt) {
+            // Movement
+            var dfx = 50 * Math.sin(d.w / 240 * Math.PI) * (d.w < 120 ? -1 : 1) / (100 * Math.abs(d.m[0]) + 1);
+            d.w = (d.w + Math.abs(d.m[0]) * dt + dfx) % 240;
+            d.s = [
+                0,
+                d.crouch ? 1 : 0,
+                (Math.sin(d.w / 120 * Math.PI) + 1) / 2,
+                (d.w / 60) % 4,
+                (d.w / 120) % 2
+            ];
+            d.x += d.m[0] * dt / 60;
+            console.log(d);
+            d.right = d.m[0] == 0 ? d.right : d.m[0] > 0;
+            var c = d.m[0] < 0 || !d.right ? 1 : 0;
+            // Hair
+            o.sprite('sprites.png', d.x + 7 * c, d.y + d.s[2] * 1.3, 32 + 4 * d.s[0], 0, 4, 5, c == 1);
+            // Leg Left
+            o.sprite('sprites.png', d.x + 6 - d.s[3] * (1 - 2 * c) - c * 5, d.y + 14, 36, 20, 4, 3, c == 1);
+            // Leg Right
+            o.sprite('sprites.png', d.x + 2 + d.s[3] * (1 - 2 * c) + c * 3, d.y + 14 - Math.min(d.s[3] * (4 - d.s[3]) / 3, 1), 36, 20, 4, 3, c == 1);
+            // Hand Left
+            o.sprite('sprites.png', d.x + 8 - Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) - c * 8, d.y + 10, 33, 20, 3, 3);
+            // Body
+            o.sprite('sprites.png', d.x + 2, d.y + 11, 34, 17, 7, 3, c == 1);
+            // Hand Right
+            o.sprite('sprites.png', d.x + Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) + c * 8, d.y + 10, 33, 20, 3, 3);
+            // Chest
+            o.sprite('sprites.png', d.x, d.y + 6 + d.s[2] * 0.7, 32, 12, 11, 5, c == 1);
+            // Head
+            o.sprite('sprites.png', d.x + 2, d.y + 1 + d.s[2], 32 + 6 * d.s[1], 5, 7, 7, c == 1);
+        }
+    },
+    // Dirt Entity
+    dirt: {
+        default: { x: 0, y: 0, w: 0, h: 0 },
+        update: function (d, o, t, dt) {
+            for (var i = 0; i < d.w; i++)
+                for (var j = 0; j < d.h; j++)
+                    o.sprite('sprites.png', d.x + i * 8, d.y + j * 8, i == 0 ? 0 : i + 1 >= d.w ? 8 : 4, j == 0 ? 0 : j + 1 >= d.h ? 12 : 8, 8, 8);
+        }
+    },
+    liquid: {
+        default: { x: 0, y: 0, w: 0, h: 0, lava: false },
+        update: function (d, o, t, dt) {
+            var f = Math.floor(t / 200) % 4;
+            for (var i = 0; i < d.w; i++)
+                for (var j = 0; j < d.h * 2 - 1; j++)
+                    o.sprite('sprites.png', d.x + i * 8, d.y + 4 * j, (i + f + j) % 2 * 8 + (d.lava ? 16 : 0), 35 + Math.floor((i + f + j) / 2) % 2 * 8, 8, 8);
+        },
+        create: function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            return args[0][0];
+        }
+    }
+};
+var engine = /** @class */ (function () {
+    function engine(width, height, dom) {
+        this.fps = 30; // Frames per second
+        // Loader
+        this.loaded = {}; // Loaded data in cache
+        this.evented = {}; // Recorded events
+        this.events = {}; // Global event listeners
+        this.scenes = {}; // Scenes
+        this.active_scene = ''; // Active Scene
+        this.path = ''; // Current path of action (scene)
+        // Drawing
+        this.sprite_boxed = false;
+        // Initalize Canvas
+        this.dom = dom ? dom : document.createElement('canvas');
+        this.w = width ? width : 320;
+        this.h = height ? height : 240;
+        this.dom.setAttribute('width', String(this.w));
+        this.dom.setAttribute('height', String(this.h));
+        this.z = this.w / 320;
+        this.ctx = this.dom.getContext('2d');
+        this.ctx.imageSmoothingEnabled = false;
+    }
+    engine.prototype.loadcheck = function (percent) {
+        var _this = this;
+        this.ctx.fillRect(this.w * 0.25 + 2 * this.z, this.h * 0.45 + 2 * this.z, percent * (this.w * 0.5 - 4 * this.z), percent * (this.h * 0.1 - 4 * this.z));
+        if (percent < 1)
+            return;
+        var check = function () {
+            for (var i = 0; i < Object.keys(_this.loaded).length; i++)
+                if (Object.keys(_this.loaded)[i].slice(-4) == '.ttf' && !document.fonts.check("20px ".concat(Object.keys(_this.loaded)[i].slice(0, -4)))) {
+                    setTimeout(check, 10);
+                    return;
+                }
+            _this.start_loop();
+        };
+        check();
+    };
+    engine.prototype.load = function () {
+        var _this = this;
+        var files = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            files[_i] = arguments[_i];
+        }
+        var loaded = [];
+        // Loading Menu
+        this.ctx.lineWidth = this.z / 2;
+        this.ctx.strokeStyle = this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.strokeRect(this.w * 0.25, this.h * 0.45, this.w * 0.5, this.h * 0.1);
+        // Loading Files
+        files.forEach(function (file, i) {
+            if (file.slice(-4) == '.png') {
+                _this.loaded[file] = new Image();
+                _this.loaded[file].src = '/asset/' + file;
+                _this.loaded[file].onload = function () {
+                    loaded[i] = 4;
+                    _this.loadcheck(loaded.reduce(function (pre, cur) { return pre + cur; }) / files.length / 4);
+                };
+            }
+            else if (file.slice(-4) == '.ttf') {
+                loaded[i] = 0;
+                _this.loaded[file] = '';
+                var h_1 = new XMLHttpRequest();
+                h_1.open('GET', '/asset/' + file);
+                h_1.responseType = 'blob';
+                h_1.onreadystatechange = function () {
+                    loaded[i] = h_1.readyState;
+                    _this.loadcheck(loaded.reduce(function (pre, cur) { return pre + cur; }) / files.length / 4);
+                    if (h_1.readyState != 4 || h_1.status != 200)
+                        return;
+                    _this.loaded[file] = URL.createObjectURL(h_1.response);
+                    var d = document.createElement('h1');
+                    d.style.font = "20px ".concat(file.slice(0, -4));
+                    d.innerHTML = file.slice(0, -4);
+                    var s = document.createElement('style');
+                    s.innerHTML += "@font-face {font-family:\"".concat(file.slice(0, -4), "\";src:url(\"").concat(_this.loaded[file], "\") format(\"truetype\");}");
+                    document.head.appendChild(s);
+                    document.body.appendChild(d);
+                };
+            }
+        });
+    };
+    engine.prototype.check_event = function (event, action) {
+        var events = event.split(',');
+        var index = -1;
+        for (var i = 0; i < Object.keys(this.evented).length; i++) {
+            if (events.indexOf(Object.keys(this.evented)[i]) != -1) {
+                index = i;
+                break;
+            }
+        }
+        if (index != -1 && action != undefined)
+            action(this.evented[index]);
+        return index != -1;
+    };
+    engine.prototype.loop = function () {
+        var _this = this;
+        var now = new Date();
+        if (this.active_scene.length != 0) {
+            this.path = this.active_scene;
+            this.scenes[this.active_scene](now.getTime() - this.time_init.getTime(), now.getTime() - this.time_last.getTime());
+            this.path = '';
+        }
+        Object.keys(this.events).forEach(function (e) { return _this.events[e].forEach(function (a) { return _this.check_event(e, a); }); });
+        this.time_last = new Date();
+    };
+    engine.prototype.start_loop = function () {
+        this.time_init = new Date();
+        this.time_last = new Date();
+        this.looper = setInterval(this.loop.bind(this), 1000 / this.fps);
+    };
+    engine.prototype.stop_loop = function () {
+        clearInterval(this.looper);
+    };
+    engine.prototype.scene = function (id, scene) {
+        if (scene == undefined || this.active_scene.length == 0)
+            this.active_scene = id;
+        if (scene != undefined)
+            this.scenes[id] = scene;
+    };
+    engine.prototype.on = function (event, action) {
+        if (this.path.length == 0) {
+            if (action == undefined)
+                throw "Error: Action in \"engine.on\" must be decleared if not inside scene";
+            if (!this.events.hasOwnProperty(event))
+                this.events[event] = [];
+            this.events[event].push(action);
+            return false;
+        }
+        else
+            return this.check_event(event, action);
+    };
+    engine.prototype.sprite = function (img, x, y, cx, cy, cw, ch, fx, fy) {
+        if (!this.loaded.hasOwnProperty(img))
+            throw "Error: File ".concat(img, " is not loaded");
+        if (fx || fy) {
+            this.ctx.save();
+            this.ctx.scale(-1, 1);
+        }
+        this.ctx.drawImage(this.loaded[img], cx, cy, cw, ch, Math.floor(this.z * (fx ? -cw - x : x)), Math.floor(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
+        if (fx || fy)
+            this.ctx.restore();
+        if (this.sprite_boxed) {
+            this.ctx.lineWidth = this.z;
+            this.ctx.strokeStyle = '#FF0000';
+            this.ctx.strokeRect(Math.floor(this.z * (fx ? -cw - x : x)), Math.floor(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
+        }
+    };
+    engine.prototype.draw = function (type, data) {
+        if (data == undefined)
+            data = {};
+        if (entities != undefined && entities.hasOwnProperty(type)) {
+            data = __assign(__assign({}, entities[type].default), data);
+            // @ts-ignore
+            if (entities[type].hasOwnProperty('update'))
+                entities[type].update(data, this, 0, 0);
+            return;
+        }
+    };
+    engine.prototype.render = function (p) {
+        var _this = this;
+        if (p == undefined)
+            p = document.body;
+        p.appendChild(this.dom);
+        p.addEventListener('keydown', function (key) { return _this.evented[key.key] = { alt: key.altKey, ctrl: key.ctrlKey }; });
+        p.addEventListener('keyup', function (key) { return delete _this.evented[key.key]; });
+    };
+    ;
+    // Entity
+    engine.prototype.entity = function (type) {
+        var arg = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            arg[_i - 1] = arguments[_i];
+        }
+        if (!entities.hasOwnProperty(type))
+            throw "Error: No such entity \"".concat(type, "\"");
+        var out = {};
+        // @ts-ignore
+        if (entities[type].hasOwnProperty('create'))
+            out = entities[type].create(arg);
+        out = __assign(__assign({ '__type__': type }, entities[type].default), out);
+        return out;
+    };
+    engine.prototype.add = function (entity) {
+        if (!entities.hasOwnProperty(entity['__type__']))
+            throw "Error: No such entity \"".concat(entity['__type__'], "\"");
+        // @ts-ignore
+        entities[entity['__type__']].update(entity, this, (new Date()).getTime() - this.time_init.getTime(), (new Date()).getTime() - this.time_last.getTime());
+    };
+    return engine;
+}());
+var main = new engine(640, 480);
+var player = main.entity('knight');
+var water = main.entity('liquid', { x: 13 * 8, y: 76, w: 6, h: 2, lava: true });
+player.y = 60;
+main.z = 4;
+main.load('MC.png', 'sprites.png');
+main.scene('menu', function (t, dt) {
+    main.ctx.clearRect(0, 0, main.w * main.z, main.h * main.z);
+    //main.draw('knight', {x:(dt0/31)%100, y:60, s:[0,0,(Math.sin(dt0/31)+1)/2,(dt0/31)%4,(dt0/93)%2]});
+    main.add(water);
+    main.draw('dirt', { y: 76, w: 14, h: 2 });
+    main.add(player);
+    //if(main.on('w')) player.crouch = true;
+    //else player.m[1] -= player.m[1]*dt/100;
+    if (main.on('d'))
+        player.m[0] += (1.5 - player.m[0]) * dt / 100;
+    else if (main.on('a'))
+        player.m[0] -= (1.5 + player.m[0]) * dt / 100;
+    else
+        player.m[0] -= player.m[0] * dt / 100;
+    console.log(player.m);
+});
+main.render();
+</script></body></html>
