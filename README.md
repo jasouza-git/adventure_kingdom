@@ -13,15 +13,10 @@ details {
     margin-bottom: 20px;
 }
 </style>
-<details>
+<details open>
     <summary><code>/assets</code> - Contains all the game assets</summary>
-    <h3>Images</h3>
-    <ul>
-        <li>Aswang.png</li>
-        <li>MC.png</li>
-        <li>Rise_of_the_Aswang_King.png</li>
-        <li>spirtes.png</li>
-    </ul>
+    <h3>Asset Todos</h3>
+    <p><a href="./plan/2.-asset-todos.md">Todos</a></p>
 </details>
 <details open>
     <summary><code>/plan</code> - Contains all the game plans or ideas</summary>
