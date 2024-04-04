@@ -1,4 +1,4 @@
-import {entities_type, loadedfile_type, action_type, scene_type} from "./types.ts";
+import {loadedfile_type, action_type, scene_type} from "./types.ts";
 import {entities} from "./entities.ts";
 class engine {
     public dom:HTMLCanvasElement;                                       // Canvas
@@ -7,14 +7,14 @@ class engine {
     public h:number;                                                    // Height
     public z:number;                                                    // Size of 1 pixel
     public fps:number = 30;                                             // Frames per second
-    public constructor(width?:number, height?:number, dom?:HTMLCanvasElement) {
+    public constructor(pixel?:number, width?:number, height?:number, dom?:HTMLCanvasElement) {
         // Initalize Canvas
-        this.dom = dom ? dom : document.createElement('canvas'); 
-        this.w = width ? width : 320;
-        this.h = height ? height : 240;
-        this.dom.setAttribute('width', String(this.w));
-        this.dom.setAttribute('height', String(this.h));
-        this.z = this.w/320;
+        this.z = pixel || 1;
+        this.dom = dom || document.createElement('canvas'); 
+        this.w = width || 320;
+        this.h = height || 240;
+        this.dom.setAttribute('width', String(this.w*this.z));
+        this.dom.setAttribute('height', String(this.h*this.z));
         this.ctx = this.dom.getContext('2d') as CanvasRenderingContext2D;
         this.ctx.imageSmoothingEnabled = false;
     }
@@ -22,7 +22,7 @@ class engine {
     // Loader
     private loaded:{[index:string]:loadedfile_type} = {};               // Loaded data in cache
     private loadcheck(percent:number):void {                            // Check if finished loading
-        this.ctx.fillRect(this.w*0.25+2*this.z, this.h*0.45+2*this.z, percent*(this.w*0.5-4*this.z), percent*(this.h*0.1-4*this.z));
+        this.ctx.fillRect((this.w*0.25+2)*this.z, (this.h*0.45+2)*this.z, percent*(this.w*0.5-4)*this.z, percent*(this.h*0.1-4)*this.z);
         if (percent < 1) return;
         var check = ()=>{
             for(var i = 0; i < Object.keys(this.loaded).length; i++)
@@ -38,9 +38,9 @@ class engine {
         let loaded : number[] = [];
 
         // Loading Menu
-        this.ctx.lineWidth = this.z/2;
+        this.ctx.lineWidth = this.z;
         this.ctx.strokeStyle = this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.strokeRect(this.w*0.25, this.h*0.45, this.w*0.5, this.h*0.1);
+        this.ctx.strokeRect(this.w*this.z*0.25, this.h*this.z*0.45, this.w*this.z*0.5, this.h*this.z*0.1);
 
         // Loading Files
         files.forEach((file:string, i:number)=>{
@@ -129,6 +129,7 @@ class engine {
 
     // Drawing
     public sprite_boxed:boolean = false;
+    public hitbox_boxed:boolean = false;
     public sprite(img:string,
         x:number,y:number,
         cx:number,cy:number,cw:number,ch:number,
@@ -141,14 +142,14 @@ class engine {
         this.ctx.drawImage(
             this.loaded[img] as HTMLImageElement,
             cx,cy,cw,ch,
-            Math.floor(this.z*(fx? -cw-x : x)),
-            Math.floor(this.z*(fy? -ch-y : y)),
+            Math.round(this.z*(fx? -cw-x : x)),
+            Math.round(this.z*(fy? -ch-y : y)),
             cw*this.z,
             ch*this.z
         );
         if (fx || fy) this.ctx.restore();
         if (this.sprite_boxed) {
-            this.ctx.lineWidth = this.z;
+            this.ctx.lineWidth = 1;
             this.ctx.strokeStyle = '#FF0000';
             this.ctx.strokeRect(
                 Math.floor(this.z*(fx? -cw-x : x)),
@@ -179,14 +180,67 @@ class engine {
         if (!entities.hasOwnProperty(type)) throw `Error: No such entity "${type}"`;
         let out = {};
         // @ts-ignore
-        if (entities[type].hasOwnProperty('create')) out = entities[type].create(arg);
+        if (entities[type].hasOwnProperty('create')) out = entities[type].create(this, ...arg);
+        else out = arg[0];
         out = {'__type__':type, ...entities[type].default, ...out};
         return out;
     }
-    public add(entity:{[index:string]:any}) {
+    public entities(type:string, len:number, ...arg:any) : {[index:string]:any}[] {
+        let out:{[index:string]:any}[] = [];
+        for (let i = 0; i < len; i++) out.push(this.entity(type, ...arg));
+        return out;
+    }
+    private add_single(entity:{[index:string]:any}) {
         if (!entities.hasOwnProperty(entity['__type__'])) throw `Error: No such entity "${entity['__type__']}"`;
         // @ts-ignore
         entities[entity['__type__']].update(entity, this, (new Date()).getTime()-this.time_init.getTime(), (new Date()).getTime()-this.time_last.getTime());
+        if (this.hitbox_boxed && entity.hitbox) {
+            this.ctx.lineWidth = 1;
+            // @ts-ignore
+            for (let i = 0; i < entity.hitbox.length; i += 5) {
+                this.ctx.strokeStyle = '#FFFF00';
+                this.ctx.strokeRect(
+                    entity.hitbox[i+1]*this.z, entity.hitbox[i+2]*this.z,
+                    entity.hitbox[i+3]*this.z, entity.hitbox[i+4]*this.z
+                );
+                this.ctx.strokeStyle = '#FF0000';
+                this.ctx.beginPath();
+                this.ctx.moveTo(entity.hitbox[i+1]*this.z, entity.hitbox[i+2]*this.z);
+                // @ts-ignore
+                for (let j = 0; j < 4; j++) this.ctx[entity.hitbox[i]>>>j&1 ? 'lineTo' : 'moveTo']((entity.hitbox[i+1]+entity.hitbox[i+3]*(j<2?1:0))*this.z, (entity.hitbox[i+2]+entity.hitbox[i+4]*(j==1||j==2?1:0))*this.z);
+                this.ctx.stroke();
+            }
+        }
+    }
+    public add(...entities:({[index:string]:any}|{[index:string]:any}[])[]) {
+        entities.forEach(entity => {
+            if (Array.isArray(entity)) {
+                entity.forEach(e=>this.add_single(e));
+            } else this.add_single(entity);
+        });
+    }
+    /*
+    public collide(entity:{[index:string]:any}, collider:{[index:string]:any}, d?:number):boolean {
+        d = d || 15;
+
+    }*/
+    public physics(entity:{[index:string]:any}, d?:number):boolean {
+        let collide:boolean = false;
+        d = d == undefined ? 15 : d;
+        //console.log((d&4)==4)
+        entity.collide.forEach(collider => {
+            // @ts-ignore
+            if (entity.hitbox[0]&4 && collider.hitbox[0]&1 && (d&4) == 4 &&
+                entity.hitbox[2]+entity.hitbox[4] >= collider.hitbox[2] &&
+                entity.hitbox[2]+entity.hitbox[4] < collider.hitbox[2]+collider.hitbox[4] &&
+                entity.hitbox[1] < collider.hitbox[1]+collider.hitbox[3] &&
+                entity.hitbox[1]+entity.hitbox[3] > collider.hitbox[1]
+            ){
+                entity.hitbox[2] = entity.y = collider.hitbox[2]-entity.hitbox[4];
+                collide=true;
+            }
+        });
+        return collide;
     }
 }
 export {engine};
