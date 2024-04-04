@@ -3,7 +3,7 @@ A game for the hackathon by CPU CSS of April 2024 themed Arcade
 
 ## Need list
  - [ ] Background tiles
- - [ ] Game plan
+ - [x] Game plan
 
 ## Code Documentation
 <style>
