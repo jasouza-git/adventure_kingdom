@@ -1,7 +1,7 @@
 const ts = require('typescript');
 const fs = require('fs');
 
-let files = ['types', 'entities', 'engine', 'game'];
+let files = ['types', 'algorithms', 'entities', 'engine', 'game'];
 let cont = [];
 
 async function watch() {

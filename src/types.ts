@@ -12,13 +12,15 @@ interface engine_type {
     on:(event:string, action:(...arg:any[])=>any)=>void,
     sprite:(img:string,x:number,y:number,cx:number,cy:number,cw:number,ch:number,fx?:boolean,fy?:boolean)=>void,
     draw:(type:string, data:undefined|{[prop:string]:any})=>void,
-    render:(p?:HTMLElement)=>void
+    render:(p?:HTMLElement)=>void,
+    physics:(entity:{[index:string]:any}, d?:number)=>boolean
 }
 interface entities_type {
     [entity_id:string]:{
         default:{[prop:string]:any},
         update?:(data:{[prop:string]:any}, engine:engine_type, dt_init:number, dt_last:number)=>void,
-        create?:(args:{[prop:string]:any})=>{[prop:string]:any}
+        render?:(data:{[prop:string]:any}, engine:engine_type, dt_init:number, dt_last:number)=>void,
+        create?:(engine:engine_type, args:{[prop:string]:any})=>{[prop:string]:any}
     }
 }
 type loadedfile_type = HTMLImageElement|String;

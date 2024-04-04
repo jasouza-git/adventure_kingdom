@@ -9,6 +9,52 @@
     };
     return __assign.apply(this, arguments);
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+var algo = {
+    // Catalan Number, Dyck Word, Random Generation
+    cdr: function (length) {
+        if (length < 2)
+            return length;
+        var o = 0, x = 0, y = 0;
+        for (var i = 0; i < 2 * length; i++) {
+            if (x >= length)
+                break;
+            if (x == y || Math.random() < 0.5) {
+                o += Math.pow(2, i);
+                x++;
+            }
+            else
+                y++;
+        }
+        return o;
+    }, //cdr_it(s, z, (p, ht)
+    cdr_it: function (seed, length, loop) {
+        loop(3, 0, 0, true);
+        var h = 1;
+        for (var i = 1; i < length - 1; i++) {
+            var p = seed & 3;
+            seed = seed >> 2;
+            if (p == 0)
+                h--;
+            loop(p, h, i, false);
+            if (p == 3)
+                h++;
+        }
+        loop(0, 0, length - 1, true);
+    },
+    gravity: function (vector, delta_time) {
+        vector[1] -= (9 + vector[1]) * delta_time / 500;
+        return vector[1] * delta_time / 60;
+    }
+};
 var entities = {
     // Pinoy Entitiy
     pinoy: {
@@ -28,7 +74,7 @@ var entities = {
     },
     // Knight 
     knight: {
-        default: { x: 0, y: 0, f: 0, m: [0, 0], right: true, crouch: false,
+        default: { x: 0, y: 0, f: 0, m: [0, -9], right: true, crouch: false, on_ground: false, jumping: false,
             w: 0, // From 0 - 90
             s: [
                 0, // Hair [red, blue]
@@ -36,69 +82,119 @@ var entities = {
                 0, // Neck [normal, bend]
                 0, // Walking animation [4 frames]
                 0, // Hand swing [2 frames]
-            ]
+            ],
+            hitbox: [], collide: []
+        },
+        render: function (d, o, t, dt) {
+            var c = d.m[0] < 0 || !d.right ? 1 : 0;
+            // Hair
+            o.sprite('sprites.png', d.x + 7 * c, d.y + d.s[2] * 1.8 + 2 * d.s[1] * d.s[1] - (1 - Math.abs(d.m[1]) / 9), 32 + 4 * d.s[0], 0, 4, 5, c == 1);
+            // Leg Left
+            o.sprite('sprites.png', d.x + 6 - d.s[3] * (1 - 2 * c) - c * 5 + (1 - Math.abs(d.m[1]) / 9) * (1 - 2 * c), d.y + 14, 36, 20, 4, 3, c == 1);
+            // Leg Right
+            o.sprite('sprites.png', d.x + 2 + d.s[3] * (1 - 2 * c) + c * 3 - (1 - Math.abs(d.m[1]) / 9) * (1 - 2 * c), d.y + 14 - Math.min(d.s[3] * (4 - d.s[3]) / 3, 1), 36, 20, 4, 3, c == 1);
+            // Hand Left
+            o.sprite('sprites.png', d.x + 8 - Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) - c * 8 + d.s[1] - 2 * d.s[1] * c, d.y + 10 + d.s[1] * d.s[1] - d.s[1], 33, 20, 3, 3);
+            // Body
+            o.sprite('sprites.png', d.x + 2, d.y + 11 + d.s[1] * 0.5, 34, 17, 7, 3, c == 1);
+            // Hand Right
+            o.sprite('sprites.png', d.x + Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) + c * 8 - d.s[1] + 2 * d.s[1] * c, d.y + 10 + d.s[1] * d.s[1] - d.s[1], 33, 20, 3, 3);
+            // Chest
+            o.sprite('sprites.png', d.x, d.y + 6 + d.s[2] * 0.7 + d.s[1], 32, 12, 11, 5, c == 1);
+            // Head
+            o.sprite('sprites.png', d.x + 2, d.y + 1 + d.s[2] + 2 * d.s[1] - (1 - Math.abs(d.m[1]) / 9), 32 + 6 * Math.round(d.s[1]), 5, 7, 7, c == 1);
         },
         update: function (d, o, t, dt) {
             // Movement
             var dfx = 50 * Math.sin(d.w / 240 * Math.PI) * (d.w < 120 ? -1 : 1) / (100 * Math.abs(d.m[0]) + 1);
-            d.w = (d.w + Math.abs(d.m[0]) * dt + dfx) % 240;
+            d.w = (d.w + Math.min(Math.abs(d.m[0]), 1) * dt + dfx) % 240;
             d.s = [
                 0,
-                d.crouch ? 1 : 0,
-                (Math.sin(d.w / 120 * Math.PI) + 1) / 2,
+                d.crouch,
+                (Math.sin((d.w - 60) / 120 * Math.PI) + 1) / 2,
                 (d.w / 60) % 4,
                 (d.w / 120) % 2
             ];
-            d.x += d.m[0] * dt / 60;
-            console.log(d);
+            d.x += d.m[0] * dt / 60 * (2 - d.s[1]) / 2;
+            d.on_ground = o.physics(d, d.m[1] > 0 || (d.s[1] > 0.5 && !d.jumping) ? 1 : 4);
+            if (!d.on_ground)
+                d.y -= algo.gravity(d.m, dt);
+            //o.physics(d, d.m[1] > 0 ? 1 : 4)
+            //d.y = Math.min(d.y, 88);
             d.right = d.m[0] == 0 ? d.right : d.m[0] > 0;
             var c = d.m[0] < 0 || !d.right ? 1 : 0;
             // Hair
-            o.sprite('sprites.png', d.x + 7 * c, d.y + d.s[2] * 1.3, 32 + 4 * d.s[0], 0, 4, 5, c == 1);
+            o.sprite('sprites.png', d.x + 7 * c, d.y + d.s[2] * 1.8 + 2 * d.s[1] * d.s[1] - (1 - Math.abs(d.m[1]) / 9), 32 + 4 * d.s[0], 0, 4, 5, c == 1);
             // Leg Left
-            o.sprite('sprites.png', d.x + 6 - d.s[3] * (1 - 2 * c) - c * 5, d.y + 14, 36, 20, 4, 3, c == 1);
+            o.sprite('sprites.png', d.x + 6 - d.s[3] * (1 - 2 * c) - c * 5 + (1 - Math.abs(d.m[1]) / 9) * (1 - 2 * c), d.y + 14, 36, 20, 4, 3, c == 1);
             // Leg Right
-            o.sprite('sprites.png', d.x + 2 + d.s[3] * (1 - 2 * c) + c * 3, d.y + 14 - Math.min(d.s[3] * (4 - d.s[3]) / 3, 1), 36, 20, 4, 3, c == 1);
+            o.sprite('sprites.png', d.x + 2 + d.s[3] * (1 - 2 * c) + c * 3 - (1 - Math.abs(d.m[1]) / 9) * (1 - 2 * c), d.y + 14 - Math.min(d.s[3] * (4 - d.s[3]) / 3, 1), 36, 20, 4, 3, c == 1);
             // Hand Left
-            o.sprite('sprites.png', d.x + 8 - Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) - c * 8, d.y + 10, 33, 20, 3, 3);
+            o.sprite('sprites.png', d.x + 8 - Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) - c * 8 + d.s[1] - 2 * d.s[1] * c, d.y + 10 + d.s[1] * d.s[1] - d.s[1], 33, 20, 3, 3);
             // Body
-            o.sprite('sprites.png', d.x + 2, d.y + 11, 34, 17, 7, 3, c == 1);
+            o.sprite('sprites.png', d.x + 2, d.y + 11 + d.s[1] * 0.5, 34, 17, 7, 3, c == 1);
             // Hand Right
-            o.sprite('sprites.png', d.x + Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) + c * 8, d.y + 10, 33, 20, 3, 3);
+            o.sprite('sprites.png', d.x + Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) + c * 8 - d.s[1] + 2 * d.s[1] * c, d.y + 10 + d.s[1] * d.s[1] - d.s[1], 33, 20, 3, 3);
             // Chest
-            o.sprite('sprites.png', d.x, d.y + 6 + d.s[2] * 0.7, 32, 12, 11, 5, c == 1);
+            o.sprite('sprites.png', d.x, d.y + 6 + d.s[2] * 0.7 + d.s[1], 32, 12, 11, 5, c == 1);
             // Head
-            o.sprite('sprites.png', d.x + 2, d.y + 1 + d.s[2], 32 + 6 * d.s[1], 5, 7, 7, c == 1);
+            o.sprite('sprites.png', d.x + 2, d.y + 1 + d.s[2] + 2 * d.s[1] - (1 - Math.abs(d.m[1]) / 9), 32 + 6 * Math.round(d.s[1]), 5, 7, 7, c == 1);
+            // Hitbox
+            d.hitbox = [15,
+                d.x, d.y,
+                11, 16
+            ];
         }
     },
     // Dirt Entity
     dirt: {
-        default: { x: 0, y: 0, w: 0, h: 0 },
+        default: { x: 0, y: 0, w: 0, h: 0, hitbox: [] },
         update: function (d, o, t, dt) {
             for (var i = 0; i < d.w; i++)
                 for (var j = 0; j < d.h; j++)
                     o.sprite('sprites.png', d.x + i * 8, d.y + j * 8, i == 0 ? 0 : i + 1 >= d.w ? 8 : 4, j == 0 ? 0 : j + 1 >= d.h ? 12 : 8, 8, 8);
+        },
+        create: function (o, a) {
+            return __assign({ hitbox: [1, a.x + 4, a.y, a.w * 8 - 8, 8] }, a);
         }
     },
     liquid: {
         default: { x: 0, y: 0, w: 0, h: 0, lava: false },
         update: function (d, o, t, dt) {
-            var f = Math.floor(t / 200) % 4;
+            var f = Math.floor(t / 200 * (d.lava ? 1 : 1.5)) % 4;
             for (var i = 0; i < d.w; i++)
-                for (var j = 0; j < d.h * 2 - 1; j++)
+                for (var j = 1; j < d.h * 2 - 1; j++)
                     o.sprite('sprites.png', d.x + i * 8, d.y + 4 * j, (i + f + j) % 2 * 8 + (d.lava ? 16 : 0), 35 + Math.floor((i + f + j) / 2) % 2 * 8, 8, 8);
-        },
-        create: function () {
-            var args = [];
-            for (var _i = 0; _i < arguments.length; _i++) {
-                args[_i] = arguments[_i];
+        }
+    },
+    eud: {
+        default: { x: 0, y: 0, w: 0, h: 0, seed: 0, s: 0, t: 0, hp: 0 },
+        update: function (d, o, t, dt) {
+            if (d.t == 0) {
+                d.x += d.s * dt / 1000;
+                if (d.x > o.w)
+                    d.x = -d.w * 8;
             }
-            return args[0][0];
+            algo.cdr_it(d.seed, d.w, function (p, h, x, e) {
+                var m = Math.abs(2 * p - 3) == 1 ? 4 : 0;
+                for (var j = 0; j < h + d.hp; j++)
+                    o.sprite('sprites.png', d.x + x * 8, d.y - j * 8 - 8, 8, 63 - 8 - (j == 0 ? 0 : 1) + d.t * 12, 8, 8);
+                o.sprite('sprites.png', d.x + x * 8, d.y - (h + d.hp) * 8 + (m == 4 ? 5 : 0) - 8, [16, 8, 8, 0][p], 55 - m - (m == 0 ? 1 : 0) + d.t * 12 + (e ? 1 : 0), 8, 8 - (m == 4 ? 5 : 0));
+            });
+        },
+        create: function (o, arg) {
+            var w = arg != undefined && arg.w ? arg.w : Math.floor(Math.random() * 12) + 2;
+            var h = 0;
+            var s = algo.cdr(w - 2);
+            algo.cdr_it(s, w, function (p, ht) { return h = Math.max(ht, h); });
+            var x = Math.floor(Math.pow(Math.random(), 3) * (o.w / o.z + w * 8)) - w * 4;
+            var y = Math.floor(Math.pow(Math.random(), 3) * (o.h / o.z - h * 24)) + (h + 1) * 8;
+            return __assign({ x: x, y: y, w: w, h: h + 1, seed: s, s: Math.random() * 5 + 1 }, arg);
         }
     }
 };
 var engine = /** @class */ (function () {
-    function engine(width, height, dom) {
+    function engine(pixel, width, height, dom) {
         this.fps = 30; // Frames per second
         // Loader
         this.loaded = {}; // Loaded data in cache
@@ -109,19 +205,20 @@ var engine = /** @class */ (function () {
         this.path = ''; // Current path of action (scene)
         // Drawing
         this.sprite_boxed = false;
+        this.hitbox_boxed = false;
         // Initalize Canvas
-        this.dom = dom ? dom : document.createElement('canvas');
-        this.w = width ? width : 320;
-        this.h = height ? height : 240;
-        this.dom.setAttribute('width', String(this.w));
-        this.dom.setAttribute('height', String(this.h));
-        this.z = this.w / 320;
+        this.z = pixel || 1;
+        this.dom = dom || document.createElement('canvas');
+        this.w = width || 320;
+        this.h = height || 240;
+        this.dom.setAttribute('width', String(this.w * this.z));
+        this.dom.setAttribute('height', String(this.h * this.z));
         this.ctx = this.dom.getContext('2d');
         this.ctx.imageSmoothingEnabled = false;
     }
     engine.prototype.loadcheck = function (percent) {
         var _this = this;
-        this.ctx.fillRect(this.w * 0.25 + 2 * this.z, this.h * 0.45 + 2 * this.z, percent * (this.w * 0.5 - 4 * this.z), percent * (this.h * 0.1 - 4 * this.z));
+        this.ctx.fillRect((this.w * 0.25 + 2) * this.z, (this.h * 0.45 + 2) * this.z, percent * (this.w * 0.5 - 4) * this.z, percent * (this.h * 0.1 - 4) * this.z);
         if (percent < 1)
             return;
         var check = function () {
@@ -142,9 +239,9 @@ var engine = /** @class */ (function () {
         }
         var loaded = [];
         // Loading Menu
-        this.ctx.lineWidth = this.z / 2;
+        this.ctx.lineWidth = this.z;
         this.ctx.strokeStyle = this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.strokeRect(this.w * 0.25, this.h * 0.45, this.w * 0.5, this.h * 0.1);
+        this.ctx.strokeRect(this.w * this.z * 0.25, this.h * this.z * 0.45, this.w * this.z * 0.5, this.h * this.z * 0.1);
         // Loading Files
         files.forEach(function (file, i) {
             if (file.slice(-4) == '.png') {
@@ -235,11 +332,11 @@ var engine = /** @class */ (function () {
             this.ctx.save();
             this.ctx.scale(-1, 1);
         }
-        this.ctx.drawImage(this.loaded[img], cx, cy, cw, ch, Math.floor(this.z * (fx ? -cw - x : x)), Math.floor(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
+        this.ctx.drawImage(this.loaded[img], cx, cy, cw, ch, Math.round(this.z * (fx ? -cw - x : x)), Math.round(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
         if (fx || fy)
             this.ctx.restore();
         if (this.sprite_boxed) {
-            this.ctx.lineWidth = this.z;
+            this.ctx.lineWidth = 1;
             this.ctx.strokeStyle = '#FF0000';
             this.ctx.strokeRect(Math.floor(this.z * (fx ? -cw - x : x)), Math.floor(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
         }
@@ -266,6 +363,7 @@ var engine = /** @class */ (function () {
     ;
     // Entity
     engine.prototype.entity = function (type) {
+        var _a;
         var arg = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             arg[_i - 1] = arguments[_i];
@@ -275,39 +373,126 @@ var engine = /** @class */ (function () {
         var out = {};
         // @ts-ignore
         if (entities[type].hasOwnProperty('create'))
-            out = entities[type].create(arg);
+            out = (_a = entities[type]).create.apply(_a, __spreadArray([this], arg, false));
+        else
+            out = arg[0];
         out = __assign(__assign({ '__type__': type }, entities[type].default), out);
         return out;
     };
-    engine.prototype.add = function (entity) {
+    engine.prototype.entities = function (type, len) {
+        var arg = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            arg[_i - 2] = arguments[_i];
+        }
+        var out = [];
+        for (var i = 0; i < len; i++)
+            out.push(this.entity.apply(this, __spreadArray([type], arg, false)));
+        return out;
+    };
+    engine.prototype.add_single = function (entity) {
         if (!entities.hasOwnProperty(entity['__type__']))
             throw "Error: No such entity \"".concat(entity['__type__'], "\"");
         // @ts-ignore
         entities[entity['__type__']].update(entity, this, (new Date()).getTime() - this.time_init.getTime(), (new Date()).getTime() - this.time_last.getTime());
+        if (this.hitbox_boxed && entity.hitbox) {
+            this.ctx.lineWidth = 1;
+            // @ts-ignore
+            for (var i = 0; i < entity.hitbox.length; i += 5) {
+                this.ctx.strokeStyle = '#FFFF00';
+                this.ctx.strokeRect(entity.hitbox[i + 1] * this.z, entity.hitbox[i + 2] * this.z, entity.hitbox[i + 3] * this.z, entity.hitbox[i + 4] * this.z);
+                this.ctx.strokeStyle = '#FF0000';
+                this.ctx.beginPath();
+                this.ctx.moveTo(entity.hitbox[i + 1] * this.z, entity.hitbox[i + 2] * this.z);
+                // @ts-ignore
+                for (var j = 0; j < 4; j++)
+                    this.ctx[entity.hitbox[i] >>> j & 1 ? 'lineTo' : 'moveTo']((entity.hitbox[i + 1] + entity.hitbox[i + 3] * (j < 2 ? 1 : 0)) * this.z, (entity.hitbox[i + 2] + entity.hitbox[i + 4] * (j == 1 || j == 2 ? 1 : 0)) * this.z);
+                this.ctx.stroke();
+            }
+        }
+    };
+    engine.prototype.add = function () {
+        var _this = this;
+        var entities = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            entities[_i] = arguments[_i];
+        }
+        entities.forEach(function (entity) {
+            if (Array.isArray(entity)) {
+                entity.forEach(function (e) { return _this.add_single(e); });
+            }
+            else
+                _this.add_single(entity);
+        });
+    };
+    /*
+    public collide(entity:{[index:string]:any}, collider:{[index:string]:any}, d?:number):boolean {
+        d = d || 15;
+
+    }*/
+    engine.prototype.physics = function (entity, d) {
+        var collide = false;
+        d = d == undefined ? 15 : d;
+        //console.log((d&4)==4)
+        entity.collide.forEach(function (collider) {
+            // @ts-ignore
+            if (entity.hitbox[0] & 4 && collider.hitbox[0] & 1 && (d & 4) == 4 &&
+                entity.hitbox[2] + entity.hitbox[4] >= collider.hitbox[2] &&
+                entity.hitbox[2] + entity.hitbox[4] < collider.hitbox[2] + collider.hitbox[4] &&
+                entity.hitbox[1] < collider.hitbox[1] + collider.hitbox[3] &&
+                entity.hitbox[1] + entity.hitbox[3] > collider.hitbox[1]) {
+                entity.hitbox[2] = entity.y = collider.hitbox[2] - entity.hitbox[4];
+                collide = true;
+            }
+        });
+        return collide;
     };
     return engine;
 }());
-var main = new engine(640, 480);
-var player = main.entity('knight');
-var water = main.entity('liquid', { x: 13 * 8, y: 76, w: 6, h: 2, lava: true });
-player.y = 60;
-main.z = 4;
-main.load('MC.png', 'sprites.png');
+var main = new engine(4, 160, 120);
+//main.sprite_boxed = true;
+//main.hitbox_boxed = true;
+var player = main.entity('knight', { y: 88 });
+var clouds = main.entities('eud', Math.random() * 10);
+var back = main.entities('eud', 5, { x: -8 * 3, y: main.h, w: main.w / 8 + 4, t: 1, hp: Math.floor(Math.random() * 3 + 2) });
+var water = main.entity('liquid', { x: 13 * 8, y: 104, w: 7, h: 2, lava: false });
+var dirts = [
+    main.entity('dirt', { x: 0, y: 104, w: 14, h: 2 }),
+    main.entity('dirt', { x: 13 * 8 - 2 * 8, y: 104 - 8 * 3, w: 9, h: 5 })
+];
+player.collide = dirts;
+main.load('sprites.png');
 main.scene('menu', function (t, dt) {
-    main.ctx.clearRect(0, 0, main.w * main.z, main.h * main.z);
-    //main.draw('knight', {x:(dt0/31)%100, y:60, s:[0,0,(Math.sin(dt0/31)+1)/2,(dt0/31)%4,(dt0/93)%2]});
-    main.add(water);
-    main.draw('dirt', { y: 76, w: 14, h: 2 });
-    main.add(player);
-    //if(main.on('w')) player.crouch = true;
-    //else player.m[1] -= player.m[1]*dt/100;
-    if (main.on('d'))
-        player.m[0] += (1.5 - player.m[0]) * dt / 100;
-    else if (main.on('a'))
-        player.m[0] -= (1.5 + player.m[0]) * dt / 100;
+    main.ctx.fillStyle = 'skyblue';
+    main.ctx.fillRect(0, 0, main.w * main.z, main.h * main.z);
+    main.add(clouds, back);
+    main.ctx.globalAlpha = 0.4;
+    main.ctx.fillStyle = '#DDDDDD';
+    main.ctx.fillRect(0, 0, main.w * main.z, main.h * main.z);
+    main.ctx.globalAlpha = 1;
+    main.add(dirts[1], water, dirts[0], player);
+    if (player.crouched)
+        player.crouch += (1 - player.crouch) * dt / 100;
+    else
+        player.crouch -= player.crouch * dt / 100;
+    if (main.on('w, ,ArrowUp')) {
+        player.crouched = true;
+        player.jumping = true;
+    }
+    else if (main.on('s,ArrowDown')) {
+        player.crouched = true;
+        player.jumping = false;
+    }
+    else {
+        if (player.crouched && player.on_ground && player.jumping)
+            player.m[1] = 12;
+        player.crouched = player.jumping = false;
+    }
+    if (main.on('d,ArrowRight'))
+        player.m[0] += (3 - player.m[0]) * dt / 100;
+    else if (main.on('a,ArrowLeft'))
+        player.m[0] -= (3 + player.m[0]) * dt / 100;
     else
         player.m[0] -= player.m[0] * dt / 100;
-    console.log(player.m);
 });
 main.render();
 </script></body></html>
