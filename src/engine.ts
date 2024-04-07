@@ -6,7 +6,8 @@ class engine {
     public w:number;                                                    // Width
     public h:number;                                                    // Height
     public z:number;                                                    // Size of 1 pixel
-    public fps:number = 30;                                             // Frames per second
+    public fps:number = 60;                                             // Frames per second
+    public camera:number[] = [0, 0];
     public constructor(pixel?:number, width?:number, height?:number, dom?:HTMLCanvasElement) {
         // Initalize Canvas
         this.z = pixel || 1;
@@ -93,8 +94,10 @@ class engine {
                 break;
             }
         }
-        if (index != -1 && action != undefined) action(this.evented[index]);
-        return index != -1;
+        if (index != -1 && action != undefined) {
+            action(this.evented[Object.keys(this.evented)[index]]);
+            this.evented[Object.keys(this.evented)[index]]['init'] = false;
+        }return index != -1;
     }
     private loop():void {                                               // Loop interval to trigger event check and scene
         let now:Date = new Date();
@@ -103,7 +106,10 @@ class engine {
             this.scenes[this.active_scene](now.getTime() - this.time_init.getTime(), now.getTime() - this.time_last.getTime());
             this.path = '';
         }
-        Object.keys(this.events).forEach(e => this.events[e].forEach(a => this.check_event(e, a)));
+        Object.keys(this.events).forEach(e => {
+            this.events[e].forEach(a => this.check_event(e, a));
+            if (this.events[e].hasOwnProperty('init')) this.events[e]['init'] = false;
+        });
         this.time_last = new Date();
     }
     public start_loop():void {                                          // Start looper
@@ -124,7 +130,8 @@ class engine {
             if(!this.events.hasOwnProperty(event)) this.events[event] = [];
             this.events[event].push(action);
             return false;
-        } else return this.check_event(event, action);
+        }
+        return this.check_event(event, action);
     }
 
     // Drawing
@@ -142,8 +149,8 @@ class engine {
         this.ctx.drawImage(
             this.loaded[img] as HTMLImageElement,
             cx,cy,cw,ch,
-            Math.round(this.z*(fx? -cw-x : x)),
-            Math.round(this.z*(fy? -ch-y : y)),
+            Math.round((fx ? -cw-x+this.camera[0] : x-this.camera[0])*this.z),
+            Math.round((fy ? -ch-y+this.camera[1] : y-this.camera[1])*this.z),
             cw*this.z,
             ch*this.z
         );
@@ -152,16 +159,54 @@ class engine {
             this.ctx.lineWidth = 1;
             this.ctx.strokeStyle = '#FF0000';
             this.ctx.strokeRect(
-                Math.floor(this.z*(fx? -cw-x : x)),
-                Math.floor(this.z*(fy? -ch-y : y)),
+                Math.round((fx ? -cw-x+this.camera[0] : x-this.camera[0])*this.z),
+                Math.round((fy ? -ch-y+this.camera[1] : y-this.camera[1])*this.z),
                 cw*this.z,
                 ch*this.z
             );
         }
     }
+    public sprites(img:string, pos:number[], ...args:any[]) {
+        if(!this.loaded.hasOwnProperty(img)) throw `Error: File ${img} is not loaded`;
+        let data = [0, 0, 0, 0, 0, 0, 0, 0];
+        args.forEach(arg => {
+            data = arg = [...arg, ...data.slice(arg.length)];
+            arg[0] += pos[0];
+            arg[1] += pos[1];
+            if(arg[6] || arg[7]) {
+                this.ctx.save();
+                this.ctx.scale(-1, 1);
+            }
+            let dime = [
+                Math.round((arg[6] ? -arg[4]-arg[0]+this.camera[0] : arg[0]-this.camera[0])*this.z),
+                Math.round((arg[7] ? -arg[5]-arg[1]+this.camera[1] : arg[1]-this.camera[1])*this.z),
+                arg[4]*this.z,
+                arg[5]*this.z
+            ];
+            this.ctx.drawImage(
+                this.loaded[img] as HTMLImageElement,
+                data[2], data[3], data[4], data[5],
+                dime[0], dime[1], dime[2], dime[3]
+            );
+            if (data[6] || data[7]) this.ctx.restore();
+            if (this.sprite_boxed) {
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeStyle = '#FF0000';
+                this.ctx.strokeRect(
+                    dime[0], dime[1], dime[2], dime[3]
+                );
+            }
+        });
+    }
     public draw(type:string, data?:{[prop:string]:any}) {
         if (data == undefined) data = {};
-        if (entities != undefined && entities.hasOwnProperty(type)) {
+        if (type == '') {
+            data = {x:0, y:0, w:this.w, h:this.h, color: '#ffffff', alpha:1, ...data};
+            this.ctx.globalAlpha = data.alpha;
+            this.ctx.fillStyle = data.color;
+            this.ctx.fillRect(data.x*this.z, data.y*this.z, data.w*this.z, data.h*this.z);
+            this.ctx.globalAlpha = 1;
+        } else if (entities != undefined && entities.hasOwnProperty(type)) {
             data = {...entities[type].default, ...data};
             // @ts-ignore
             if (entities[type].hasOwnProperty('update')) entities[type].update(data, this, 0, 0);
@@ -171,7 +216,7 @@ class engine {
     public render(p?:HTMLElement) {
         if (p == undefined) p = document.body;
         p.appendChild(this.dom);
-        p.addEventListener('keydown', key=>this.evented[key.key] = {alt:key.altKey, ctrl:key.ctrlKey});
+        p.addEventListener('keydown', key=>this.evented[key.key] = {init:this.evented[key.key] == undefined, alt:key.altKey, ctrl:key.ctrlKey});
         p.addEventListener('keyup', key=>delete this.evented[key.key]);
     };
 
@@ -200,14 +245,14 @@ class engine {
             for (let i = 0; i < entity.hitbox.length; i += 5) {
                 this.ctx.strokeStyle = '#FFFF00';
                 this.ctx.strokeRect(
-                    entity.hitbox[i+1]*this.z, entity.hitbox[i+2]*this.z,
+                    (entity.hitbox[i+1]-this.camera[0])*this.z, (entity.hitbox[i+2]-this.camera[1])*this.z,
                     entity.hitbox[i+3]*this.z, entity.hitbox[i+4]*this.z
                 );
                 this.ctx.strokeStyle = '#FF0000';
                 this.ctx.beginPath();
-                this.ctx.moveTo(entity.hitbox[i+1]*this.z, entity.hitbox[i+2]*this.z);
+                this.ctx.moveTo((entity.hitbox[i+1]-this.camera[0])*this.z, (entity.hitbox[i+2]-this.camera[1])*this.z);
                 // @ts-ignore
-                for (let j = 0; j < 4; j++) this.ctx[entity.hitbox[i]>>>j&1 ? 'lineTo' : 'moveTo']((entity.hitbox[i+1]+entity.hitbox[i+3]*(j<2?1:0))*this.z, (entity.hitbox[i+2]+entity.hitbox[i+4]*(j==1||j==2?1:0))*this.z);
+                for (let j = 0; j < 4; j++) this.ctx[entity.hitbox[i]>>>j&1 ? 'lineTo' : 'moveTo']((entity.hitbox[i+1]+entity.hitbox[i+3]*(j<2?1:0)-this.camera[0])*this.z, (entity.hitbox[i+2]+entity.hitbox[i+4]*(j==1||j==2?1:0)-this.camera[1])*this.z);
                 this.ctx.stroke();
             }
         }
@@ -223,7 +268,7 @@ class engine {
     public collide(entity:{[index:string]:any}, collider:{[index:string]:any}, d?:number):boolean {
         d = d || 15;
 
-    }*/
+    }
     public physics(entity:{[index:string]:any}, d?:number):boolean {
         let collide:boolean = false;
         d = d == undefined ? 15 : d;
@@ -241,6 +286,6 @@ class engine {
             }
         });
         return collide;
-    }
+    }*/
 }
 export {engine};
