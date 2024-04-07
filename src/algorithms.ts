@@ -46,7 +46,12 @@ let algo = {
         if (collided[1] == -1) return false;
         if (collided[0] == 4) entity.hitbox[2] = entity.y = entity.collide[collided[1]].hitbox[2]-entity.hitbox[4];
         return true;
-    }
+    },
+    // Physics - Responsable for Momentum, Gravity, Collision
+    /*physics: (entity:{m:number[], [index:string]:any}, dt:number, ...colliders:{[index:string]:any}[]) => {
+        // Momentum
+        
+    }*/
 
 };
 export {algo};
