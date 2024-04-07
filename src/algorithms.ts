@@ -27,6 +27,26 @@ let algo = {
     gravity: (vector:number, delta_time:number):number => {
         vector[1] -= (9+vector[1])*delta_time/500;
         return vector[1]*delta_time/60;
+    },
+    collision: (entity:{[index:string]:any}, area?:number):number[] => {
+        let collide:number[] = [0, -1];
+        let d = area == undefined ? 15 : area;
+        entity.collide.forEach((collider,num) => {
+            if (entity.hitbox[0]&4 && collider.hitbox[0]&1 && (d&4) == 4 &&
+                entity.hitbox[2]+entity.hitbox[4] >= collider.hitbox[2] &&
+                entity.hitbox[2]+entity.hitbox[4] < collider.hitbox[2]+collider.hitbox[4] &&
+                entity.hitbox[1] < collider.hitbox[1]+collider.hitbox[3] &&
+                entity.hitbox[1]+entity.hitbox[3] > collider.hitbox[1]
+            ) collide = [4, num];
+        });
+        return collide;
+    },
+    collide: (entity:{[index:string]:any}, area?:number):boolean => {
+        let collided = algo.collision(entity, area);
+        if (collided[1] == -1) return false;
+        if (collided[0] == 4) entity.hitbox[2] = entity.y = entity.collide[collided[1]].hitbox[2]-entity.hitbox[4];
+        return true;
     }
+
 };
 export {algo};

@@ -53,6 +53,27 @@ var algo = {
     gravity: function (vector, delta_time) {
         vector[1] -= (9 + vector[1]) * delta_time / 500;
         return vector[1] * delta_time / 60;
+    },
+    collision: function (entity, area) {
+        var collide = [0, -1];
+        var d = area == undefined ? 15 : area;
+        entity.collide.forEach(function (collider, num) {
+            if (entity.hitbox[0] & 4 && collider.hitbox[0] & 1 && (d & 4) == 4 &&
+                entity.hitbox[2] + entity.hitbox[4] >= collider.hitbox[2] &&
+                entity.hitbox[2] + entity.hitbox[4] < collider.hitbox[2] + collider.hitbox[4] &&
+                entity.hitbox[1] < collider.hitbox[1] + collider.hitbox[3] &&
+                entity.hitbox[1] + entity.hitbox[3] > collider.hitbox[1])
+                collide = [4, num];
+        });
+        return collide;
+    },
+    collide: function (entity, area) {
+        var collided = algo.collision(entity, area);
+        if (collided[1] == -1)
+            return false;
+        if (collided[0] == 4)
+            entity.hitbox[2] = entity.y = entity.collide[collided[1]].hitbox[2] - entity.hitbox[4];
+        return true;
     }
 };
 var entities = {
@@ -74,7 +95,15 @@ var entities = {
     },
     // Knight 
     knight: {
-        default: { x: 0, y: 0, f: 0, m: [0, -9], right: true, crouch: false, on_ground: false, jumping: false,
+        default: { x: 0, y: 0,
+            m: [0, -9], // Momentum Vector
+            player: 0, // Player Number (0,1)
+            right: true, // Facing Right?
+            crouched: false, // Is crouching?
+            on_ground: false, // Is on ground?
+            jumping: false, // Is jumping?
+            on_camera: true, // Is focused on camera?
+            sword: 0, // Sword [-1:No Sword, 0->1:Swinging Sword]
             w: 0, // From 0 - 90
             s: [
                 0, // Hair [red, blue]
@@ -83,62 +112,59 @@ var entities = {
                 0, // Walking animation [4 frames]
                 0, // Hand swing [2 frames]
             ],
+            c: 0, // Crouchyness
             hitbox: [], collide: []
-        },
-        render: function (d, o, t, dt) {
-            var c = d.m[0] < 0 || !d.right ? 1 : 0;
-            // Hair
-            o.sprite('sprites.png', d.x + 7 * c, d.y + d.s[2] * 1.8 + 2 * d.s[1] * d.s[1] - (1 - Math.abs(d.m[1]) / 9), 32 + 4 * d.s[0], 0, 4, 5, c == 1);
-            // Leg Left
-            o.sprite('sprites.png', d.x + 6 - d.s[3] * (1 - 2 * c) - c * 5 + (1 - Math.abs(d.m[1]) / 9) * (1 - 2 * c), d.y + 14, 36, 20, 4, 3, c == 1);
-            // Leg Right
-            o.sprite('sprites.png', d.x + 2 + d.s[3] * (1 - 2 * c) + c * 3 - (1 - Math.abs(d.m[1]) / 9) * (1 - 2 * c), d.y + 14 - Math.min(d.s[3] * (4 - d.s[3]) / 3, 1), 36, 20, 4, 3, c == 1);
-            // Hand Left
-            o.sprite('sprites.png', d.x + 8 - Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) - c * 8 + d.s[1] - 2 * d.s[1] * c, d.y + 10 + d.s[1] * d.s[1] - d.s[1], 33, 20, 3, 3);
-            // Body
-            o.sprite('sprites.png', d.x + 2, d.y + 11 + d.s[1] * 0.5, 34, 17, 7, 3, c == 1);
-            // Hand Right
-            o.sprite('sprites.png', d.x + Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) + c * 8 - d.s[1] + 2 * d.s[1] * c, d.y + 10 + d.s[1] * d.s[1] - d.s[1], 33, 20, 3, 3);
-            // Chest
-            o.sprite('sprites.png', d.x, d.y + 6 + d.s[2] * 0.7 + d.s[1], 32, 12, 11, 5, c == 1);
-            // Head
-            o.sprite('sprites.png', d.x + 2, d.y + 1 + d.s[2] + 2 * d.s[1] - (1 - Math.abs(d.m[1]) / 9), 32 + 6 * Math.round(d.s[1]), 5, 7, 7, c == 1);
         },
         update: function (d, o, t, dt) {
             // Movement
-            var dfx = 50 * Math.sin(d.w / 240 * Math.PI) * (d.w < 120 ? -1 : 1) / (100 * Math.abs(d.m[0]) + 1);
-            d.w = (d.w + Math.min(Math.abs(d.m[0]), 1) * dt + dfx) % 240;
-            d.s = [
-                0,
-                d.crouch,
-                (Math.sin((d.w - 60) / 120 * Math.PI) + 1) / 2,
-                (d.w / 60) % 4,
-                (d.w / 120) % 2
-            ];
-            d.x += d.m[0] * dt / 60 * (2 - d.s[1]) / 2;
-            d.on_ground = o.physics(d, d.m[1] > 0 || (d.s[1] > 0.5 && !d.jumping) ? 1 : 4);
+            d.c += (d.crouched || d.sword > 0.1 ? dt / 100 : 0) - d.c * dt / 100;
+            d.x += d.m[0] * dt / 60 * (2 - d.c) / 2;
             if (!d.on_ground)
                 d.y -= algo.gravity(d.m, dt);
-            //o.physics(d, d.m[1] > 0 ? 1 : 4)
-            //d.y = Math.min(d.y, 88);
+            d.on_ground = algo.collide(d, d.m[1] > 0 || (d.crouched && d.c > 0.5 && !d.jumping) ? 1 : 4);
             d.right = d.m[0] == 0 ? d.right : d.m[0] > 0;
             var c = d.m[0] < 0 || !d.right ? 1 : 0;
-            // Hair
-            o.sprite('sprites.png', d.x + 7 * c, d.y + d.s[2] * 1.8 + 2 * d.s[1] * d.s[1] - (1 - Math.abs(d.m[1]) / 9), 32 + 4 * d.s[0], 0, 4, 5, c == 1);
-            // Leg Left
-            o.sprite('sprites.png', d.x + 6 - d.s[3] * (1 - 2 * c) - c * 5 + (1 - Math.abs(d.m[1]) / 9) * (1 - 2 * c), d.y + 14, 36, 20, 4, 3, c == 1);
-            // Leg Right
-            o.sprite('sprites.png', d.x + 2 + d.s[3] * (1 - 2 * c) + c * 3 - (1 - Math.abs(d.m[1]) / 9) * (1 - 2 * c), d.y + 14 - Math.min(d.s[3] * (4 - d.s[3]) / 3, 1), 36, 20, 4, 3, c == 1);
-            // Hand Left
-            o.sprite('sprites.png', d.x + 8 - Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) - c * 8 + d.s[1] - 2 * d.s[1] * c, d.y + 10 + d.s[1] * d.s[1] - d.s[1], 33, 20, 3, 3);
-            // Body
-            o.sprite('sprites.png', d.x + 2, d.y + 11 + d.s[1] * 0.5, 34, 17, 7, 3, c == 1);
-            // Hand Right
-            o.sprite('sprites.png', d.x + Math.sin(d.s[4] * Math.PI / 2) * 2 * (1 - 2 * c) + c * 8 - d.s[1] + 2 * d.s[1] * c, d.y + 10 + d.s[1] * d.s[1] - d.s[1], 33, 20, 3, 3);
-            // Chest
-            o.sprite('sprites.png', d.x, d.y + 6 + d.s[2] * 0.7 + d.s[1], 32, 12, 11, 5, c == 1);
-            // Head
-            o.sprite('sprites.png', d.x + 2, d.y + 1 + d.s[2] + 2 * d.s[1] - (1 - Math.abs(d.m[1]) / 9), 32 + 6 * Math.round(d.s[1]), 5, 7, 7, c == 1);
+            // Animation
+            d.w = (d.w + Math.min(Math.abs(d.m[0]), 1) * dt + 50 * Math.sin(d.w / 240 * Math.PI) * (d.w < 120 ? -1 : 1) / (100 * Math.abs(d.m[0]) + 1)) % 240;
+            var s = [
+                (Math.sin((d.w - 60) / 120 * Math.PI) + 1) / 2, // Neck Bendyness [0->1]
+                (d.w / 60) % 4, // Walking Animation [4 Frames]
+                Math.sin((d.w / 120) % 2 * Math.PI / 2) * 2 * (1 - 2 * c), // Hand Swinging [2 Frames]
+                (1 - Math.cos(t / 500)) * 0.25 // Breathing [0->0.25]
+            ];
+            // Camera focus
+            if (d.on_camera) {
+                o.camera[0] = d.x - o.w / 2;
+                o.camera[1] = Math.min(0, d.y - o.h / 2);
+            }
+            // Render
+            var parts = [
+                // Hair
+                [7 * c, s[0] * 1.8 + 2 * d.c * d.c - (1 - Math.abs(d.m[1]) / 9) + s[3], 32 + 4 * d.player, 0, 4, 5, c == 1],
+                // Leg Left
+                [6 - c * 5 + (1 - Math.abs(d.m[1]) / 9 - s[1]) * (1 - 2 * c), 14, 36, 20, 4, 3],
+                // Leg Right
+                [2 + c * 3 - (1 - Math.abs(d.m[1]) / 9 - s[1]) * (1 - 2 * c), 14 - Math.min(s[1] * (4 - s[1]) / 3, 1)],
+                // Hand Left
+                [8 - s[2] - c * 8 + d.c - 2 * d.c * c, 10 + d.c * d.c - d.c, 33, 20, 3, 3],
+                // Body
+                [2, 11 + d.c * 0.5, 34, 17, 7, 3],
+                // Hand Right
+                [s[2] + c * 8 - d.c + 2 * d.c * c, 10 + d.c * d.c - d.c, 33, 20, 3, 3],
+                // Chest
+                [0, 6 + s[0] * 0.7 + d.c + s[3] / 2, 32, 12, 11, 5],
+                // Head
+                [2, 1 + s[0] + 2 * d.c - (1 - Math.abs(d.m[1]) / 9) + s[3], 32 + 6 * Math.round(d.c), 5, 7, 7]
+            ];
+            // Sword
+            if (d.sword != -1) {
+                if (d.sword < 0.1)
+                    parts.splice(3, 0, [(c ? -3 : 10) - s[2] + d.c - 2 * d.c * c, 5, 45, 5, 4, 7]);
+                else
+                    parts.splice(8, 0, [(c ? -9 : 0) + d.c - 2 * d.c * c, 7 + d.c + s[3] / 2, 49, 5, 20, 8]);
+                d.sword -= d.sword * dt / 75;
+            }
+            o.sprites.apply(o, __spreadArray(['sprites.png', [d.x, d.y]], parts, false));
             // Hitbox
             d.hitbox = [15,
                 d.x, d.y,
@@ -195,7 +221,8 @@ var entities = {
 };
 var engine = /** @class */ (function () {
     function engine(pixel, width, height, dom) {
-        this.fps = 30; // Frames per second
+        this.fps = 60; // Frames per second
+        this.camera = [0, 0];
         // Loader
         this.loaded = {}; // Loaded data in cache
         this.evented = {}; // Recorded events
@@ -284,8 +311,10 @@ var engine = /** @class */ (function () {
                 break;
             }
         }
-        if (index != -1 && action != undefined)
-            action(this.evented[index]);
+        if (index != -1 && action != undefined) {
+            action(this.evented[Object.keys(this.evented)[index]]);
+            this.evented[Object.keys(this.evented)[index]]['init'] = false;
+        }
         return index != -1;
     };
     engine.prototype.loop = function () {
@@ -296,7 +325,11 @@ var engine = /** @class */ (function () {
             this.scenes[this.active_scene](now.getTime() - this.time_init.getTime(), now.getTime() - this.time_last.getTime());
             this.path = '';
         }
-        Object.keys(this.events).forEach(function (e) { return _this.events[e].forEach(function (a) { return _this.check_event(e, a); }); });
+        Object.keys(this.events).forEach(function (e) {
+            _this.events[e].forEach(function (a) { return _this.check_event(e, a); });
+            if (_this.events[e].hasOwnProperty('init'))
+                _this.events[e]['init'] = false;
+        });
         this.time_last = new Date();
     };
     engine.prototype.start_loop = function () {
@@ -322,8 +355,7 @@ var engine = /** @class */ (function () {
             this.events[event].push(action);
             return false;
         }
-        else
-            return this.check_event(event, action);
+        return this.check_event(event, action);
     };
     engine.prototype.sprite = function (img, x, y, cx, cy, cw, ch, fx, fy) {
         if (!this.loaded.hasOwnProperty(img))
@@ -332,19 +364,59 @@ var engine = /** @class */ (function () {
             this.ctx.save();
             this.ctx.scale(-1, 1);
         }
-        this.ctx.drawImage(this.loaded[img], cx, cy, cw, ch, Math.round(this.z * (fx ? -cw - x : x)), Math.round(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
+        this.ctx.drawImage(this.loaded[img], cx, cy, cw, ch, Math.round((fx ? -cw - x + this.camera[0] : x - this.camera[0]) * this.z), Math.round((fy ? -ch - y + this.camera[1] : y - this.camera[1]) * this.z), cw * this.z, ch * this.z);
         if (fx || fy)
             this.ctx.restore();
         if (this.sprite_boxed) {
             this.ctx.lineWidth = 1;
             this.ctx.strokeStyle = '#FF0000';
-            this.ctx.strokeRect(Math.floor(this.z * (fx ? -cw - x : x)), Math.floor(this.z * (fy ? -ch - y : y)), cw * this.z, ch * this.z);
+            this.ctx.strokeRect(Math.round((fx ? -cw - x + this.camera[0] : x - this.camera[0]) * this.z), Math.round((fy ? -ch - y + this.camera[1] : y - this.camera[1]) * this.z), cw * this.z, ch * this.z);
         }
+    };
+    engine.prototype.sprites = function (img, pos) {
+        var _this = this;
+        var args = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
+        }
+        if (!this.loaded.hasOwnProperty(img))
+            throw "Error: File ".concat(img, " is not loaded");
+        var data = [0, 0, 0, 0, 0, 0, 0, 0];
+        args.forEach(function (arg) {
+            data = arg = __spreadArray(__spreadArray([], arg, true), data.slice(arg.length), true);
+            arg[0] += pos[0];
+            arg[1] += pos[1];
+            if (arg[6] || arg[7]) {
+                _this.ctx.save();
+                _this.ctx.scale(-1, 1);
+            }
+            var dime = [
+                Math.round((arg[6] ? -arg[4] - arg[0] + _this.camera[0] : arg[0] - _this.camera[0]) * _this.z),
+                Math.round((arg[7] ? -arg[5] - arg[1] + _this.camera[1] : arg[1] - _this.camera[1]) * _this.z),
+                arg[4] * _this.z,
+                arg[5] * _this.z
+            ];
+            _this.ctx.drawImage(_this.loaded[img], data[2], data[3], data[4], data[5], dime[0], dime[1], dime[2], dime[3]);
+            if (data[6] || data[7])
+                _this.ctx.restore();
+            if (_this.sprite_boxed) {
+                _this.ctx.lineWidth = 1;
+                _this.ctx.strokeStyle = '#FF0000';
+                _this.ctx.strokeRect(dime[0], dime[1], dime[2], dime[3]);
+            }
+        });
     };
     engine.prototype.draw = function (type, data) {
         if (data == undefined)
             data = {};
-        if (entities != undefined && entities.hasOwnProperty(type)) {
+        if (type == '') {
+            data = __assign({ x: 0, y: 0, w: this.w, h: this.h, color: '#ffffff', alpha: 1 }, data);
+            this.ctx.globalAlpha = data.alpha;
+            this.ctx.fillStyle = data.color;
+            this.ctx.fillRect(data.x * this.z, data.y * this.z, data.w * this.z, data.h * this.z);
+            this.ctx.globalAlpha = 1;
+        }
+        else if (entities != undefined && entities.hasOwnProperty(type)) {
             data = __assign(__assign({}, entities[type].default), data);
             // @ts-ignore
             if (entities[type].hasOwnProperty('update'))
@@ -357,7 +429,7 @@ var engine = /** @class */ (function () {
         if (p == undefined)
             p = document.body;
         p.appendChild(this.dom);
-        p.addEventListener('keydown', function (key) { return _this.evented[key.key] = { alt: key.altKey, ctrl: key.ctrlKey }; });
+        p.addEventListener('keydown', function (key) { return _this.evented[key.key] = { init: _this.evented[key.key] == undefined, alt: key.altKey, ctrl: key.ctrlKey }; });
         p.addEventListener('keyup', function (key) { return delete _this.evented[key.key]; });
     };
     ;
@@ -399,13 +471,13 @@ var engine = /** @class */ (function () {
             // @ts-ignore
             for (var i = 0; i < entity.hitbox.length; i += 5) {
                 this.ctx.strokeStyle = '#FFFF00';
-                this.ctx.strokeRect(entity.hitbox[i + 1] * this.z, entity.hitbox[i + 2] * this.z, entity.hitbox[i + 3] * this.z, entity.hitbox[i + 4] * this.z);
+                this.ctx.strokeRect((entity.hitbox[i + 1] - this.camera[0]) * this.z, (entity.hitbox[i + 2] - this.camera[1]) * this.z, entity.hitbox[i + 3] * this.z, entity.hitbox[i + 4] * this.z);
                 this.ctx.strokeStyle = '#FF0000';
                 this.ctx.beginPath();
-                this.ctx.moveTo(entity.hitbox[i + 1] * this.z, entity.hitbox[i + 2] * this.z);
+                this.ctx.moveTo((entity.hitbox[i + 1] - this.camera[0]) * this.z, (entity.hitbox[i + 2] - this.camera[1]) * this.z);
                 // @ts-ignore
                 for (var j = 0; j < 4; j++)
-                    this.ctx[entity.hitbox[i] >>> j & 1 ? 'lineTo' : 'moveTo']((entity.hitbox[i + 1] + entity.hitbox[i + 3] * (j < 2 ? 1 : 0)) * this.z, (entity.hitbox[i + 2] + entity.hitbox[i + 4] * (j == 1 || j == 2 ? 1 : 0)) * this.z);
+                    this.ctx[entity.hitbox[i] >>> j & 1 ? 'lineTo' : 'moveTo']((entity.hitbox[i + 1] + entity.hitbox[i + 3] * (j < 2 ? 1 : 0) - this.camera[0]) * this.z, (entity.hitbox[i + 2] + entity.hitbox[i + 4] * (j == 1 || j == 2 ? 1 : 0) - this.camera[1]) * this.z);
                 this.ctx.stroke();
             }
         }
@@ -424,28 +496,6 @@ var engine = /** @class */ (function () {
                 _this.add_single(entity);
         });
     };
-    /*
-    public collide(entity:{[index:string]:any}, collider:{[index:string]:any}, d?:number):boolean {
-        d = d || 15;
-
-    }*/
-    engine.prototype.physics = function (entity, d) {
-        var collide = false;
-        d = d == undefined ? 15 : d;
-        //console.log((d&4)==4)
-        entity.collide.forEach(function (collider) {
-            // @ts-ignore
-            if (entity.hitbox[0] & 4 && collider.hitbox[0] & 1 && (d & 4) == 4 &&
-                entity.hitbox[2] + entity.hitbox[4] >= collider.hitbox[2] &&
-                entity.hitbox[2] + entity.hitbox[4] < collider.hitbox[2] + collider.hitbox[4] &&
-                entity.hitbox[1] < collider.hitbox[1] + collider.hitbox[3] &&
-                entity.hitbox[1] + entity.hitbox[3] > collider.hitbox[1]) {
-                entity.hitbox[2] = entity.y = collider.hitbox[2] - entity.hitbox[4];
-                collide = true;
-            }
-        });
-        return collide;
-    };
     return engine;
 }());
 var main = new engine(4, 160, 120);
@@ -462,18 +512,17 @@ var dirts = [
 player.collide = dirts;
 main.load('sprites.png');
 main.scene('menu', function (t, dt) {
-    main.ctx.fillStyle = 'skyblue';
-    main.ctx.fillRect(0, 0, main.w * main.z, main.h * main.z);
+    if (dt > 100)
+        return;
+    main.draw('', { color: 'skyblue' });
     main.add(clouds, back);
-    main.ctx.globalAlpha = 0.4;
-    main.ctx.fillStyle = '#DDDDDD';
-    main.ctx.fillRect(0, 0, main.w * main.z, main.h * main.z);
-    main.ctx.globalAlpha = 1;
+    main.draw('', { alpha: 0.2, color: '#dddddd' });
     main.add(dirts[1], water, dirts[0], player);
-    if (player.crouched)
-        player.crouch += (1 - player.crouch) * dt / 100;
-    else
-        player.crouch -= player.crouch * dt / 100;
+    if (player.sword < 0.5)
+        main.on('Enter', function (e) {
+            if (e.init)
+                player.sword = 1;
+        });
     if (main.on('w, ,ArrowUp')) {
         player.crouched = true;
         player.jumping = true;
@@ -488,11 +537,12 @@ main.scene('menu', function (t, dt) {
         player.crouched = player.jumping = false;
     }
     if (main.on('d,ArrowRight'))
-        player.m[0] += (3 - player.m[0]) * dt / 100;
+        player.m[0] += (3 - player.m[0]) * dt / 300;
     else if (main.on('a,ArrowLeft'))
-        player.m[0] -= (3 + player.m[0]) * dt / 100;
+        player.m[0] -= (3 + player.m[0]) * dt / 300;
     else
         player.m[0] -= player.m[0] * dt / 100;
+    //main.camera[0] += (player.x-(player.m[0] < 0 ? 3 : 1)*main.w/4-main.camera[0])*dt/100;
 });
 main.render();
 </script></body></html>

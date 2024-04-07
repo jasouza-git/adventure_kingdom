@@ -13,20 +13,17 @@ let dirts = [
 ];
 player.collide = dirts;
 main.load('sprites.png');
-main.scene('menu', (t, dt)=>{
-    main.ctx.fillStyle = 'skyblue';
-    main.ctx.fillRect(0, 0, main.w*main.z, main.h*main.z);
+main.scene('menu', (t, dt) => {
+    if (dt > 100) return;
+    main.draw('', {color: 'skyblue'});
     main.add(clouds, back);
-    main.ctx.globalAlpha = 0.4;
-    main.ctx.fillStyle = '#DDDDDD';
-    main.ctx.fillRect(0, 0, main.w*main.z, main.h*main.z);
-    main.ctx.globalAlpha = 1;
+    main.draw('', {alpha:0.2, color:'#dddddd'});
 
     main.add(dirts[1], water, dirts[0], player);
 
-    if (player.crouched) player.crouch += (1-player.crouch)*dt/100;
-    else player.crouch -= player.crouch*dt/100;
-    
+    if(player.sword < 0.5) main.on('Enter', e=> {
+        if (e.init) player.sword = 1;
+    });
     if (main.on('w, ,ArrowUp')) {
         player.crouched = true;
         player.jumping = true;
@@ -37,8 +34,11 @@ main.scene('menu', (t, dt)=>{
         if (player.crouched && player.on_ground && player.jumping) player.m[1] = 12;
         player.crouched = player.jumping = false;
     }
-    if(main.on('d,ArrowRight')) player.m[0] += (3-player.m[0])*dt/100;
-    else if(main.on('a,ArrowLeft')) player.m[0] -= (3+player.m[0])*dt/100;
+    if(main.on('d,ArrowRight')) player.m[0] += (3-player.m[0])*dt/300;
+    else if(main.on('a,ArrowLeft')) player.m[0] -= (3+player.m[0])*dt/300;
     else player.m[0] -= player.m[0]*dt/100;
+
+    
+    //main.camera[0] += (player.x-(player.m[0] < 0 ? 3 : 1)*main.w/4-main.camera[0])*dt/100;
 });
 main.render();

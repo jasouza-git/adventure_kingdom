@@ -32,7 +32,7 @@ async function compile() {
         let code = '';
         files.forEach((f,i) => code += cont[i].replace(/(import |export ).*/g, ''));
         const scriptjs = ts.transpileModule(code, options).outputText;
-        const web = `<!DOCTYPE html><html><head><title>Adventure Kingdom</title><style>body {background-color: #000;}canvas {position: fixed;left: 0;top: 0;width: 100%;height: 100%;object-fit: contain;image-rendering: pixelated;z-index: 1;}h1 {z-index: 2;opacity: 0;}</style></head><body><script>${scriptjs}</script></body></html>`
+        const web = `<!DOCTYPE html><html><head><title>Adventure Kingdom</title><style>body{background-color:#000}canvas{position:fixed;left:0;top:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;z-index:1}h1{z-index:2;opacity:0}</style></head><body><script>${scriptjs}</script></body></html>`
         await fs.promises.writeFile('index.html', web);
         console.log('Compiled');
         watch();
