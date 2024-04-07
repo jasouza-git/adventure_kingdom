@@ -44,11 +44,13 @@ let entities:entities_type = {
             hitbox: [], collide: []
         },
         update: (d, o, t, dt) => {
+            //algo.physics(d, {})
             // Movement
             d.c += (d.crouched||d.sword>0.1?dt/100:0)-d.c*dt/100;
             d.x += d.m[0]*dt/60*(2-d.c)/2;
             if(!d.on_ground) d.y -= algo.gravity(d.m, dt);
-            d.on_ground = algo.collide(d, d.m[1] > 0 || (d.crouched && d.c > 0.5 && !d.jumping) ? 1 : 4)
+            d.on_ground = algo.collide(d, d.m[1] > 0 || (d.crouched && d.c > 0.9 && !d.jumping) ? 1 : 4);
+            if(d.on_ground) d.m[1] = -9;
             d.right = d.m[0] == 0 ? d.right : d.m[0] > 0;
             var c = d.m[0] < 0 || !d.right ? 1 : 0;
             
@@ -71,13 +73,13 @@ let entities:entities_type = {
             // Render
             let parts = [
                 // Hair
-                [7*c, s[0]*1.8+2*d.c*d.c-(1-Math.abs(d.m[1])/9)+s[3],                                      32+4*d.player, 0, 4, 5, c==1],
+                [7*c, s[0]*1.8+2*d.c*d.c-(1-Math.abs(d.m[1])/9)+s[3],                                      32+4*d.player, 0, 4, 5, c],
                 // Leg Left
                 [6-c*5+(1-Math.abs(d.m[1])/9-s[1])*(1-2*c), 14,                                                 36, 20, 4, 3],
                 // Leg Right
                 [2+c*3-(1-Math.abs(d.m[1])/9-s[1])*(1-2*c), 14-Math.min(s[1]*(4-s[1])/3,1)                      ],
                 // Hand Left
-                [8-s[2]-c*8+d.c-2*d.c*c, 10+d.c*d.c-d.c, 33, 20, 3, 3],
+                [8-s[2]-c*8+d.c-2*d.c*c, 10+d.c*d.c-d.c, 33, 20, 3, 3, c, 0, 0],
                 // Body
                 [2, 11+d.c*0.5,                                                                            34, 17, 7, 3],
                 // Hand Right
@@ -89,9 +91,9 @@ let entities:entities_type = {
             ];
             // Sword
             if (d.sword != -1) {
-                if (d.sword < 0.1) parts.splice(3, 0, [(c ? -3 : 10)-s[2]+d.c-2*d.c*c, 5, 45, 5, 4, 7]);
+                if (d.sword < 0.5) parts.splice(3, 0, [(c ? -3 : 10)-s[2]+d.c-2*d.c*c, 5, 45, 5, 4, 7, c, 0, d.sword*2, c?3:0, 6]);
                 else parts.splice(8, 0, [(c ? -9 : 0)+d.c-2*d.c*c, 7+d.c+s[3]/2, 49, 5, 20, 8]);
-                d.sword -= d.sword*dt/75;
+                d.sword -= d.sword*dt/100;
             }
 
             o.sprites('sprites.png', [d.x, d.y],

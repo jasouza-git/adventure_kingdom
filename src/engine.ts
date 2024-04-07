@@ -8,12 +8,13 @@ class engine {
     public z:number;                                                    // Size of 1 pixel
     public fps:number = 60;                                             // Frames per second
     public camera:number[] = [0, 0];
-    public constructor(pixel?:number, width?:number, height?:number, dom?:HTMLCanvasElement) {
+    public constructor(args?) {
         // Initalize Canvas
-        this.z = pixel || 1;
-        this.dom = dom || document.createElement('canvas'); 
-        this.w = width || 320;
-        this.h = height || 240;
+        args = args === undefined ? {} : args;
+        let data = {dom: document.createElement('canvas'), w:320, h:240, ...args};
+        Object.keys(data).forEach(key => {
+            this[key] = data[key];
+        });
         this.dom.setAttribute('width', String(this.w*this.z));
         this.dom.setAttribute('height', String(this.h*this.z));
         this.ctx = this.dom.getContext('2d') as CanvasRenderingContext2D;
@@ -137,6 +138,7 @@ class engine {
     // Drawing
     public sprite_boxed:boolean = false;
     public hitbox_boxed:boolean = false;
+    public rotate_boxed:boolean = false;
     public sprite(img:string,
         x:number,y:number,
         cx:number,cy:number,cw:number,ch:number,
@@ -168,14 +170,31 @@ class engine {
     }
     public sprites(img:string, pos:number[], ...args:any[]) {
         if(!this.loaded.hasOwnProperty(img)) throw `Error: File ${img} is not loaded`;
-        let data = [0, 0, 0, 0, 0, 0, 0, 0];
+        // x, y, cx, cy, cw, ch, fx, fy, ra, rx, ry
+        let data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         args.forEach(arg => {
             data = arg = [...arg, ...data.slice(arg.length)];
             arg[0] += pos[0];
             arg[1] += pos[1];
-            if(arg[6] || arg[7]) {
-                this.ctx.save();
-                this.ctx.scale(-1, 1);
+            if (arg[6] || arg[7] || arg[8]) this.ctx.save();
+            if (arg[6] || arg[7]) this.ctx.scale(-1, 1);
+            
+            if(arg[8]) {
+                let rp = [(arg[0]+arg[9]-this.camera[0])*this.z*(1-2*arg[6]), (arg[1]+arg[10]-this.camera[1])*this.z*(1-2*arg[7])];
+                this.ctx.translate(rp[0], rp[1]);
+                this.ctx.rotate(arg[8]*(1-2*arg[6]));
+                this.ctx.translate(-rp[0], -rp[1]);
+                if (this.rotate_boxed) {
+                    this.ctx.lineWidth = 1;
+                    this.ctx.strokeStyle = '#f00';
+                    this.ctx.beginPath();
+                    this.ctx.arc(rp[0], rp[1], 4*this.z, 0, Math.PI*2);
+                    this.ctx.moveTo(rp[0], rp[1]-5*this.z);
+                    this.ctx.lineTo(rp[0], rp[1]+5*this.z);
+                    this.ctx.moveTo(rp[0]-5*this.z, rp[1]);
+                    this.ctx.lineTo(rp[0]+5*this.z, rp[1]);
+                    this.ctx.stroke();
+                }
             }
             let dime = [
                 Math.round((arg[6] ? -arg[4]-arg[0]+this.camera[0] : arg[0]-this.camera[0])*this.z),
@@ -188,7 +207,6 @@ class engine {
                 data[2], data[3], data[4], data[5],
                 dime[0], dime[1], dime[2], dime[3]
             );
-            if (data[6] || data[7]) this.ctx.restore();
             if (this.sprite_boxed) {
                 this.ctx.lineWidth = 1;
                 this.ctx.strokeStyle = '#FF0000';
@@ -196,6 +214,7 @@ class engine {
                     dime[0], dime[1], dime[2], dime[3]
                 );
             }
+            if (arg[6] || arg[7] || arg[8]) this.ctx.restore();
         });
     }
     public draw(type:string, data?:{[prop:string]:any}) {

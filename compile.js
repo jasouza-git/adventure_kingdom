@@ -1,8 +1,10 @@
 const ts = require('typescript');
 const fs = require('fs');
 
-let files = ['types', 'algorithms', 'entities', 'engine', 'game'];
+let files = ['types', 'algorithms', 'entities', 'engine', process.argv.length > 2 ? process.argv[2] : 'adventure_kingdom'];
 let cont = [];
+
+process.stdout.write(`${files[files.length-1]}.ts\t\t`);
 
 async function watch() {
     let changed = -1;
@@ -15,7 +17,7 @@ async function watch() {
         }
     }
     if (changed != -1) {
-        console.log(`Changed: ${files[changed]}.ts`);
+        process.stdout.write(`${files[changed]}.ts\t\t`);
         compile();
     } else setTimeout(watch, 1000);
 }
@@ -34,10 +36,10 @@ async function compile() {
         const scriptjs = ts.transpileModule(code, options).outputText;
         const web = `<!DOCTYPE html><html><head><title>Adventure Kingdom</title><style>body{background-color:#000}canvas{position:fixed;left:0;top:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;z-index:1}h1{z-index:2;opacity:0}</style></head><body><script>${scriptjs}</script></body></html>`
         await fs.promises.writeFile('index.html', web);
-        console.log('Compiled');
+        process.stdout.write(`Success\n`);
         watch();
     } catch(e) {
-        console.log('Failed to compile: ', e);
+        process.stdout.write(`Failed\n`);
     }
 }
 
