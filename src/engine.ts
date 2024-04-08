@@ -22,7 +22,7 @@ class engine {
     }
 
     // Loader
-    private loaded:{[index:string]:loadedfile_type} = {};               // Loaded data in cache
+    public loaded:{[index:string]:loadedfile_type} = {};               // Loaded data in cache
     private loadcheck(percent:number):void {                            // Check if finished loading
         this.ctx.fillRect((this.w*0.25+2)*this.z, (this.h*0.45+2)*this.z, percent*(this.w*0.5-4)*this.z, percent*(this.h*0.1-4)*this.z);
         if (percent < 1) return;
@@ -171,6 +171,7 @@ class engine {
     public sprites(img:string, pos:number[], ...args:any[]) {
         if(!this.loaded.hasOwnProperty(img)) throw `Error: File ${img} is not loaded`;
         // x, y, cx, cy, cw, ch, fx, fy, ra, rx, ry
+        pos = [pos[0]||0, pos[1]||0, pos[2]||1, pos[3]||1];
         let data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
         args.forEach(arg => {
             data = arg = [...arg, ...data.slice(arg.length)];
@@ -199,8 +200,8 @@ class engine {
             let dime = [
                 Math.round((arg[6] ? -arg[4]-arg[0]+this.camera[0] : arg[0]-this.camera[0])*this.z),
                 Math.round((arg[7] ? -arg[5]-arg[1]+this.camera[1] : arg[1]-this.camera[1])*this.z),
-                arg[4]*this.z,
-                arg[5]*this.z
+                arg[4]*this.z*pos[2],
+                arg[5]*this.z*pos[3]
             ];
             this.ctx.drawImage(
                 this.loaded[img] as HTMLImageElement,
@@ -208,6 +209,7 @@ class engine {
                 dime[0], dime[1], dime[2], dime[3]
             );
             if (this.sprite_boxed) {
+                this.ctx.globalAlpha = 1;
                 this.ctx.lineWidth = 1;
                 this.ctx.strokeStyle = '#FF0000';
                 this.ctx.strokeRect(
@@ -220,10 +222,14 @@ class engine {
     public draw(type:string, data?:{[prop:string]:any}) {
         if (data == undefined) data = {};
         if (type == '') {
-            data = {x:0, y:0, w:this.w, h:this.h, color: '#ffffff', alpha:1, ...data};
+            data = {x:0, y:0, w:this.w, h:this.h, color: '#ffffff', alpha:1, img:'', ...data};
             this.ctx.globalAlpha = data.alpha;
-            this.ctx.fillStyle = data.color;
-            this.ctx.fillRect(data.x*this.z, data.y*this.z, data.w*this.z, data.h*this.z);
+            if (data.img == '') {
+                this.ctx.fillStyle = data.color;
+                this.ctx.fillRect(data.x*this.z, data.y*this.z, data.w*this.z, data.h*this.z);
+            } else {
+                this.ctx.drawImage(this.loaded[data.img] as HTMLImageElement, data.x*this.z, data.y*this.z, data.w*this.z, data.h*this.z);
+            }
             this.ctx.globalAlpha = 1;
         } else if (entities != undefined && entities.hasOwnProperty(type)) {
             data = {...entities[type].default, ...data};

@@ -6,6 +6,7 @@ interface engine_type {
     z:number,
     fps:number,
     camera:number[],
+    loaded:{[index:string]:loadedfile_type},
     load:(...files:string[])=>void,
     start_loop:()=>void,
     stop_loop:()=>void,
