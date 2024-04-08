@@ -240,7 +240,7 @@ var engine = /** @class */ (function () {
     }
     engine.prototype.loadcheck = function (percent) {
         var _this = this;
-        this.ctx.fillRect((this.w * 0.25 + 2) * this.z, (this.h * 0.45 + 2) * this.z, percent * (this.w * 0.5 - 4) * this.z, percent * (this.h * 0.1 - 4) * this.z);
+        this.ctx.fillRect((this.w * 0.25 + 2) * this.z, (this.h * 0.45 + 2) * this.z, percent * (this.w * 0.5 - 4) * this.z, (this.h * 0.1 - 4) * this.z);
         if (percent < 1)
             return;
         var check = function () {

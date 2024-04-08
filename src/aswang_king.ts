@@ -5,6 +5,7 @@ import {entities} from "./entities.ts";
 // @ts-ignore
 entities = {
     ...entities,
+    
     // Pinoy Entitiy
     pinoy: {
         default: {

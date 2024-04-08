@@ -24,7 +24,7 @@ class engine {
     // Loader
     public loaded:{[index:string]:loadedfile_type} = {};               // Loaded data in cache
     private loadcheck(percent:number):void {                            // Check if finished loading
-        this.ctx.fillRect((this.w*0.25+2)*this.z, (this.h*0.45+2)*this.z, percent*(this.w*0.5-4)*this.z, percent*(this.h*0.1-4)*this.z);
+        this.ctx.fillRect((this.w*0.25+2)*this.z, (this.h*0.45+2)*this.z, percent*(this.w*0.5-4)*this.z, (this.h*0.1-4)*this.z);
         if (percent < 1) return;
         var check = ()=>{
             for(var i = 0; i < Object.keys(this.loaded).length; i++)
