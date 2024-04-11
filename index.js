@@ -1,9 +1,15 @@
 const ts = require('typescript');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
 
-let folder = process.argv.length > 2 ? process.argv[2] : 'adventure_kingdom';
-let files = ['game.ts'];//'types', 'algorithms', 'entities', 'engine', process.argv.length > 2 ? process.argv[2] : 'adventure_kingdom'];
+let folder = '';
+let port = 8000;
+process.argv.slice(2).forEach(a => {
+    if (isNaN(a)) folder = a;
+    else port = Number(a);
+});
+let files = ['game.ts'];
 let cont = [];
 
 
@@ -63,4 +69,17 @@ async function init() {
     }
 }
 
-init();
+
+http.createServer((req, res) => {
+    let p = path.join(__dirname, req.url == '/' ? 'index.html' : decodeURIComponent(req.url));
+    fs.exists(p, e => {
+        if (e) fs.createReadStream(p).pipe(res);
+        else {
+            res.writeHead(404, {'Content-Type': 'text/plain'});
+            res.end('404 Not Found\n');
+        }
+    })
+}).listen(port, () => {
+    console.log('Hosting in', port);
+    if (folder != '') init();
+});

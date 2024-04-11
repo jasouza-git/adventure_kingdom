@@ -2,6 +2,7 @@ import { entities_type } from "../types";
 import { algo } from "../algorithms";
 
 let required_files:string[] = [
+    'Rise_of_the_Aswang_King.png',
     'Flowers.png', 'Bgitems.png', 'Blocks.png',
     'dark bg.png', 'normal bg.png', 'normal clouds.png',
     'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png',
@@ -11,17 +12,20 @@ let entities:entities_type = {
     // Pinoy Entitiy
     pinoy: {
         default: {
-            x:0, y:150, m:[0,0], hitbox:[], collide:[], nocollide:[],
+            x:0, y:100, m:[0,0], hitbox:[], collide:[], nocollide:[],
             isdead: false, // Is character dead?
             crouch: false, // Is character crouching?
             ground: false, // Is character standing on ground?
+            jumping: false,// Is character jumping?
             fright: true,  // Is character facing right?
             camera: true,  // Is camera on character?
+            swing: false,  // Is character swinging sword?
+            swinging: 0,   // Current swining position (0->1)
         },
         update: (d, o, t, dt) => {
             d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
             let cols = algo.physics(dt, d);
-            if (d.crouch) cols.forEach(c => {
+            if (d.crouch && !d.jumping) cols.forEach(c => {
                     if (c[1]==2) d.nocollide.push(c[0]);
                 });
             else d.nocollide = [];
@@ -30,6 +34,13 @@ let entities:entities_type = {
             if (d.camera) {
                 o.camera[0] = d.x-o.w/2;
             }
+
+            // Sword
+            if (d.swing) {
+                d.swinging += (1-d.swinging)*dt/100;
+                if (d.swinging > 0.9) d.swing = false;
+            } else d.swinging -= d.swinging*dt/100;
+            let s = Math.round(d.swinging*2.4);
 
             let c = n => [n%6, Math.floor(n/6)];
 
@@ -46,8 +57,8 @@ let entities:entities_type = {
                 ],
                 // Body
                 [   0, d.crouch ? 2 : 0,
-                    !d.ground ? 64 : d.crouch ? 32 : Math.abs(d.m[0]) > 0.5 ? 32*body[0] : 0,
-                    !d.ground || d.crouch ? 32*4 : Math.abs(d.m[0]) > 0.5 ? 32*body[1] : 64,
+                    s > 0 ? 32*(4+s-1) : !d.ground ? 64 : d.crouch ? 32 : Math.abs(d.m[0]) > 0.5 ? 32*body[0] : 0,
+                    s > 0 ? 32*4 : !d.ground || d.crouch ? 32*4 : Math.abs(d.m[0]) > 0.5 ? 32*body[1] : 64,
                     32, 32,
                     d.fright ? 0 : 1
                 ]
@@ -144,11 +155,28 @@ let entities:entities_type = {
                     ]);
                 }
             }
+            for (let x = 0; x < d.w; x++) {
+                if (d.data[x] > 0.5)
+                    o.sprites('Flowers.png', [d.x, d.y],
+                        [32*x,-32,0,0,32,32]
+                    );
+            }
             o.sprites('Blocks.png', [d.x, d.y], ...bs);
             d.hitbox = [ 1,
                 d.x, d.y,
                 d.w*16, d.h*16
             ];
+        },
+        create: (o, arg) => {
+            let seed = Number(new Date())
+            let w = arg.w || 0;
+            let d:number[] = [];
+            for (let i = 0; i < w>>1; i++) d.push(Math.random());
+            return {
+                seed: seed,
+                data: d,
+                ...arg
+            }
         }
     },
     setting: {
@@ -181,6 +209,14 @@ let entities:entities_type = {
                 width: w,
                 ...arg
             }
+        }
+    },
+    menu: {
+        default: {},
+        update: (d, o, t, dt) => {
+            o.sprites('Rise_of_the_Aswang_King.png', [-128, 0],
+                [0, 0, 0, 0, 256, 144]
+            )
         }
     }
 };
