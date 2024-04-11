@@ -35,7 +35,7 @@ var algo = {
                 y++;
         }
         return o;
-    }, //cdr_it(s, z, (p, ht)
+    },
     cdr_it: function (seed, length, loop) {
         loop(3, 0, 0, true);
         var h = 1;
@@ -50,29 +50,59 @@ var algo = {
         }
         loop(0, 0, length - 1, true);
     },
-    gravity: function (vector, delta_time) {
-        vector[1] -= (9 + vector[1]) * delta_time / 500;
-        return vector[1] * delta_time / 60;
+    // Physics - Responsable for Gravity, Momentum, Collision
+    // (delta_time, entity.[m,hitbox,collide,nocollide]) => (entity.[x,y,m,ground])
+    gravity: 9,
+    physics: function (delta_time, entity) {
+        // Calculate Momentum and difference Position
+        var m = [entity.m[0], entity.m[1] - (algo.gravity + entity.m[1]) * delta_time / 500];
+        var p = [m[0] * delta_time / 50, -m[1] * delta_time / 50];
+        var c = [];
+        entity.ground = false;
+        entity.collide.forEach(function (collider, id) {
+            if (entity.nocollide.indexOf(id) != -1)
+                return;
+            for (var a = 0; a < 4; a++) {
+                // Would have been easier if hitbox was [N,W,S,E] instead
+                // Optional (a+1)>>1&1 instead
+                var A = a == 1 || a == 2 ? collider : entity;
+                var B = a == 1 || a == 2 ? entity : collider;
+                if (entity.hitbox[0] >> a & 1 && collider.hitbox[0] >> ((a + 2) % 4) & 1 &&
+                    A.hitbox[2 - a % 2] >= B.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] &&
+                    A.hitbox[2 - a % 2] + p[1 - a % 2] * (a == 1 || a == 2 ? -1 : 1) < B.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] &&
+                    entity.hitbox[1 + a % 2] < collider.hitbox[1 + a % 2] + collider.hitbox[3 + a % 2] &&
+                    entity.hitbox[1 + a % 2] + entity.hitbox[3 + a % 2] > collider.hitbox[1 + a % 2]) {
+                    p[1 - a % 2] = collider.hitbox[2 - a % 2] - entity.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] * (a == 1 || a == 2 ? -1 : 1);
+                    m[1 - a % 2] = 0;
+                    if (a == 2)
+                        entity.ground = true;
+                    c.push([id, a]); // There can only be 1 side of collision, no need binary set
+                }
+            }
+        });
+        entity.x += p[0];
+        entity.y += p[1];
+        entity.m = m;
+        return c;
     },
-    collision: function (entity, area) {
-        var collide = [0, -1];
-        var d = area == undefined ? 15 : area;
-        entity.collide.forEach(function (collider, num) {
-            if (entity.hitbox[0] & 4 && collider.hitbox[0] & 1 && (d & 4) == 4 &&
-                entity.hitbox[2] + entity.hitbox[4] >= collider.hitbox[2] &&
-                entity.hitbox[2] + entity.hitbox[4] < collider.hitbox[2] + collider.hitbox[4] &&
-                entity.hitbox[1] < collider.hitbox[1] + collider.hitbox[3] &&
-                entity.hitbox[1] + entity.hitbox[3] > collider.hitbox[1])
-                collide = [4, num];
+    /*
+    collision: (entity:{[index:string]:any}, area?:number):number[] => {
+        let collide:number[] = [0, -1];
+        let d = area == undefined ? 15 : area;
+        entity.collide.forEach((collider,num) => {
+            if (entity.hitbox[0]&4 && collider.hitbox[0]&1 && (d&4) == 4 &&
+                entity.hitbox[2]+entity.hitbox[4] >= collider.hitbox[2] &&
+                entity.hitbox[2]+entity.hitbox[4] < collider.hitbox[2]+collider.hitbox[4] &&
+                entity.hitbox[1] < collider.hitbox[1]+collider.hitbox[3] &&
+                entity.hitbox[1]+entity.hitbox[3] > collider.hitbox[1]
+            ) collide = [4, num];
         });
         return collide;
     },
-    collide: function (entity, area) {
-        var collided = algo.collision(entity, area);
-        if (collided[1] == -1)
-            return false;
-        if (collided[0] == 4)
-            entity.hitbox[2] = entity.y = entity.collide[collided[1]].hitbox[2] - entity.hitbox[4];
+    collide: (entity:{[index:string]:any}, area?:number):boolean => {
+        let collided = algo.collision(entity, area);
+        if (collided[1] == -1) return false;
+        if (collided[0] == 4) entity.hitbox[2] = entity.y = entity.collide[collided[1]].hitbox[2]-entity.hitbox[4];
         return true;
     },
     // Physics - Responsable for Momentum, Gravity, Collision
@@ -80,134 +110,177 @@ var algo = {
         // Momentum
         
     }*/
+    rseed: function (seed) {
+        var x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+    },
+    prng: function (seed, len, pos) {
+        var chunk = [];
+        for (var i = 0; i < len; i++)
+            chunk.push(algo.rseed(seed + pos * len + i));
+        return chunk;
+    }
 };
+var required_files = [
+    'Flowers.png', 'Bgitems.png', 'Blocks.png',
+    'dark bg.png', 'normal bg.png', 'normal clouds.png',
+    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png',
+    'Mcparts.png'
+];
 var entities = {
-    // Knight 
-    knight: {
-        default: { x: 0, y: 0,
-            m: [0, -9], // Momentum Vector
-            player: 0, // Player Number (0,1)
-            right: true, // Facing Right?
-            crouched: false, // Is crouching?
-            on_ground: false, // Is on ground?
-            jumping: false, // Is jumping?
-            on_camera: true, // Is focused on camera?
-            c: 0, // Crouchyness
-            sword: 0, // Sword [-1:No Sword, 0->1:Swinging Sword]
-            w: 0, // From 0 - 90
-            s: [
-                0, // Hair [red, blue]
-                0, // Head [normal, duck]
-                0, // Neck [normal, bend]
-                0, // Walking animation [4 frames]
-                0, // Hand swing [2 frames]
-            ],
-            hitbox: [], collide: []
+    // Pinoy Entitiy
+    pinoy: {
+        default: {
+            x: 0, y: 150, m: [0, 0], hitbox: [], collide: [], nocollide: [],
+            isdead: false, // Is character dead?
+            crouch: false, // Is character crouching?
+            ground: false, // Is character standing on ground?
+            fright: true, // Is character facing right?
+            camera: true, // Is camera on character?
         },
         update: function (d, o, t, dt) {
-            //algo.physics(d, {})
-            // Movement
-            d.c += (d.crouched || d.sword > 0.1 ? dt / 100 : 0) - d.c * dt / 100;
-            d.x += d.m[0] * dt / 60 * (2 - d.c) / 2;
-            if (!d.on_ground)
-                d.y -= algo.gravity(d.m, dt);
-            d.on_ground = algo.collide(d, d.m[1] > 0 || (d.crouched && d.c > 0.9 && !d.jumping) ? 1 : 4);
-            if (d.on_ground)
-                d.m[1] = -9;
-            d.right = d.m[0] == 0 ? d.right : d.m[0] > 0;
-            var c = d.m[0] < 0 || !d.right ? 1 : 0;
-            // Animation
-            d.w = (d.w + Math.min(Math.abs(d.m[0]), 1) * dt + 50 * Math.sin(d.w / 240 * Math.PI) * (d.w < 120 ? -1 : 1) / (100 * Math.abs(d.m[0]) + 1)) % 240;
-            var s = [
-                (Math.sin((d.w - 60) / 120 * Math.PI) + 1) / 2, // Neck Bendyness [0->1]
-                (d.w / 60) % 4, // Walking Animation [4 Frames]
-                Math.sin((d.w / 120) % 2 * Math.PI / 2) * 2 * (1 - 2 * c), // Hand Swinging [2 Frames]
-                (1 - Math.cos(t / 500)) * 0.25 // Breathing [0->0.25]
-            ];
-            // Camera focus
-            if (d.on_camera) {
+            d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+            var cols = algo.physics(dt, d);
+            if (d.crouch)
+                cols.forEach(function (c) {
+                    if (c[1] == 2)
+                        d.nocollide.push(c[0]);
+                });
+            else
+                d.nocollide = [];
+            // Camera
+            if (d.camera) {
                 o.camera[0] = d.x - o.w / 2;
-                o.camera[1] = Math.min(0, d.y - o.h / 2);
             }
-            // Render
-            var parts = [
-                // Hair
-                [7 * c, s[0] * 1.8 + 2 * d.c * d.c - (1 - Math.abs(d.m[1]) / 9) + s[3], 32 + 4 * d.player, 0, 4, 5, c],
-                // Leg Left
-                [6 - c * 5 + (1 - Math.abs(d.m[1]) / 9 - s[1]) * (1 - 2 * c), 14, 36, 20, 4, 3],
-                // Leg Right
-                [2 + c * 3 - (1 - Math.abs(d.m[1]) / 9 - s[1]) * (1 - 2 * c), 14 - Math.min(s[1] * (4 - s[1]) / 3, 1)],
-                // Hand Left
-                [8 - s[2] - c * 8 + d.c - 2 * d.c * c, 10 + d.c * d.c - d.c, 33, 20, 3, 3, c, 0, 0],
-                // Body
-                [2, 11 + d.c * 0.5, 34, 17, 7, 3],
-                // Hand Right
-                [s[2] + c * 8 - d.c + 2 * d.c * c, 10 + d.c * d.c - d.c, 33, 20, 3, 3],
-                // Chest
-                [0, 6 + s[0] * 0.7 + d.c + s[3] / 2, 32, 12, 11, 5],
-                // Head
-                [2, 1 + s[0] + 2 * d.c - (1 - Math.abs(d.m[1]) / 9) + s[3], 32 + 6 * Math.round(d.c), 5, 7, 7]
-            ];
-            // Sword
-            if (d.sword != -1) {
-                if (d.sword < 0.5)
-                    parts.splice(3, 0, [(c ? -3 : 10) - s[2] + d.c - 2 * d.c * c, 5, 45, 5, 4, 7, c, 0, d.sword * 2, c ? 3 : 0, 6]);
-                else
-                    parts.splice(8, 0, [(c ? -9 : 0) + d.c - 2 * d.c * c, 7 + d.c + s[3] / 2, 49, 5, 20, 8]);
-                d.sword -= d.sword * dt / 100;
-            }
-            o.sprites.apply(o, __spreadArray(['sprites.png', [d.x, d.y]], parts, false));
+            var c = function (n) { return [n % 6, Math.floor(n / 6)]; };
+            var leg = c(1 + Math.floor(t / 50) % 6);
+            var body = c(13 + Math.floor(t / 50) % 12);
+            o.sprites('Mcparts.png', [d.x, d.y], 
+            // Leg
+            [0, 0,
+                !d.ground ? 64 : d.crouch ? 32 : Math.abs(d.m[0]) > 0.5 ? 32 * leg[0] : 0,
+                !d.ground || d.crouch ? 32 : Math.abs(d.m[0]) > 0.5 ? 32 * leg[1] : 0,
+                32, 32,
+                d.fright ? 0 : 1
+            ], 
+            // Body
+            [0, d.crouch ? 2 : 0,
+                !d.ground ? 64 : d.crouch ? 32 : Math.abs(d.m[0]) > 0.5 ? 32 * body[0] : 0,
+                !d.ground || d.crouch ? 32 * 4 : Math.abs(d.m[0]) > 0.5 ? 32 * body[1] : 64,
+                32, 32,
+                d.fright ? 0 : 1
+            ]);
             // Hitbox
             d.hitbox = [15,
-                d.x, d.y,
-                11, 16
+                d.x + 7, d.y,
+                16, 29
             ];
         }
     },
-    // Dirt Entity
-    dirt: {
-        default: { x: 0, y: 0, w: 0, h: 0, hitbox: [] },
-        update: function (d, o, t, dt) {
-            for (var i = 0; i < d.w; i++)
-                for (var j = 0; j < d.h; j++)
-                    o.sprite('sprites.png', d.x + i * 8, d.y + j * 8, i == 0 ? 0 : i + 1 >= d.w ? 8 : 4, j == 0 ? 0 : j + 1 >= d.h ? 12 : 8, 8, 8);
+    // Background Entity
+    background: {
+        default: {
+            darkmode: false,
+            dark: 0
         },
-        create: function (o, a) {
-            return __assign({ hitbox: [1, a.x + 4, a.y, a.w * 8 - 8, 8] }, a);
+        update: function (d, o, t, dt) {
+            if (d.darkmode)
+                d.dark += (1 - d.dark) * dt / 1000;
+            else
+                d.dark -= d.dark * dt / 1000;
+            o.draw('', { img: 'normal bg.png' });
+            o.draw('', { img: 'dark bg.png', alpha: d.dark });
         }
     },
-    liquid: {
-        default: { x: 0, y: 0, w: 0, h: 0, lava: false },
+    dog: {
+        default: { x: 0, y: 220, running: true },
         update: function (d, o, t, dt) {
-            var f = Math.floor(t / 200 * (d.lava ? 1 : 1.5)) % 4;
-            for (var i = 0; i < d.w; i++)
-                for (var j = 1; j < d.h * 2 - 1; j++)
-                    o.sprite('sprites.png', d.x + i * 8, d.y + 4 * j, (i + f + j) % 2 * 8 + (d.lava ? 16 : 0), 35 + Math.floor((i + f + j) / 2) % 2 * 8, 8, 8);
+            o.sprites('Dog.png', [d.x, d.y], [0, 0, (d.running ? 1 + Math.floor(t / 100) % 2 : 0) * 32 + 3, 8, (38 + 14) / 2, 15]);
         }
     },
-    eud: {
-        default: { x: 0, y: 0, w: 0, h: 0, seed: 0, s: 0, t: 0, hp: 0 },
+    cat: {
+        default: { x: 0, y: 220, running: true },
         update: function (d, o, t, dt) {
-            if (d.t == 0) {
-                d.x += d.s * dt / 1000;
-                if (d.x > o.w)
-                    d.x = -d.w * 8;
+            o.sprites('Cat (1).png', [d.x, d.y], [0, 0, (d.running ? 1 + Math.floor(t / 100) % 2 : 0) * 16, 0, 16, 16]);
+        }
+    },
+    king: {
+        default: { x: 0, y: 100,
+            wing_angle: 0
+        },
+        update: function (d, o, t, dt) {
+            d.wing_angle = Math.sin(t / 150);
+            o.sprites('Aswang King.png', [d.x, d.y], 
+            // Right wing
+            [61, 1 + Math.sin(t / 200), 35, 0, 35, 18, 0, 0, -d.wing_angle, 0, 18], 
+            // Left wing
+            [0, Math.sin(t / 200), 0, 0, 35, 18, 0, 0, d.wing_angle, 35], 
+            // Left hand
+            [1, 24 + Math.sin(t / 200) / 2, 0, 18, 23, 21, 0, 0, 0], 
+            // Right hand
+            [66, 24 + Math.sin(t / 200) / 2, 23, 18, 23, 21], 
+            // Body
+            [28, 13 + Math.sin(t / 200), 0, 39, 37, 52], 
+            // Head
+            [41, 1 + Math.sin(t / 200) * 2, 70, 0, 13, 18]);
+        }
+    },
+    arrow: {
+        default: { x: 0, y: 0, m: [0, 0], a: 0 },
+        update: function (d, o, t, dt) {
+            if (d.y < 220) {
+                d.x += d.m[0] * dt / 50;
+                //d.y -= algo.gravity(d.m, dt);
+                d.a += (Math.atan2(d.m[1], -d.m[0]) - d.a) * dt / 200;
             }
-            algo.cdr_it(d.seed, d.w, function (p, h, x, e) {
-                var m = Math.abs(2 * p - 3) == 1 ? 4 : 0;
-                for (var j = 0; j < h + d.hp; j++)
-                    o.sprite('sprites.png', d.x + x * 8, d.y - j * 8 - 8, 8, 63 - 8 - (j == 0 ? 0 : 1) + d.t * 12, 8, 8);
-                o.sprite('sprites.png', d.x + x * 8, d.y - (h + d.hp) * 8 + (m == 4 ? 5 : 0) - 8, [16, 8, 8, 0][p], 55 - m - (m == 0 ? 1 : 0) + d.t * 12 + (e ? 1 : 0), 8, 8 - (m == 4 ? 5 : 0));
-            });
+            o.sprites('Arrow.png', [d.x, d.y], [0, 0, 0, 0, 8, 5, 0, 0, d.a, 4, 3]);
         },
         create: function (o, arg) {
-            var w = arg != undefined && arg.w ? arg.w : Math.floor(Math.random() * 12) + 2;
-            var h = 0;
-            var s = algo.cdr(w - 2);
-            algo.cdr_it(s, w, function (p, ht) { return h = Math.max(ht, h); });
-            var x = Math.floor(Math.pow(Math.random(), 3) * (o.w / o.z + w * 8)) - w * 4;
-            var y = Math.floor(Math.pow(Math.random(), 3) * (o.h / o.z - h * 24)) + (h + 1) * 8;
-            return __assign({ x: x, y: y, w: w, h: h + 1, seed: s, s: Math.random() * 5 + 1 }, arg);
+            return __assign({ m: [5 - 10 * Math.random(), 5 - 10 * Math.random()] }, arg);
+        }
+    },
+    plat: {
+        default: { x: 0, y: 0, w: 0, h: 0, hitbox: [] },
+        update: function (d, o, t, dt) {
+            var bs = [];
+            for (var y = 0; y < d.h * 2; y++) {
+                for (var x = 0; x < d.w * 2; x++) {
+                    bs.push([
+                        8 * x, 8 * y,
+                        x == 0 ? 23 : x + 1 == d.w * 2 ? 31 : 27,
+                        y == 0 ? 22 : y + 1 == d.h * 2 ? 34 : 30,
+                        8, 8
+                    ]);
+                }
+            }
+            o.sprites.apply(o, __spreadArray(['Blocks.png', [d.x, d.y]], bs, false));
+            d.hitbox = [1,
+                d.x, d.y,
+                d.w * 16, d.h * 16
+            ];
+        }
+    },
+    setting: {
+        default: { seed: 0, width: 0, data: [] },
+        update: function (d, o, t, dt) {
+            // Flowers
+            for (var i = 0; i < d.data.length >> 1; i++) {
+                if (d.data[i] > 0.5)
+                    o.sprites('Flowers.png', [32 * i, 190], [0, 0, 0, 0, 32, 32]);
+            }
+            // Objects
+            for (var i = 0; i < d.data.length >> 1; i++) {
+                var p = d.data[i + (d.data.length >> 1)];
+                if (p > 0.5) {
+                    var n = Math.floor(2 * (p - 0.5) * 17);
+                    o.sprites('Bgitems.png', [32 * i + 5 - 20 * (p - 0.5), 190 + 10 * (p - 0.5)], [0, 0, 32 * (n % 4), 32 * Math.floor(n / 4), 32, 32]);
+                }
+            }
+        },
+        create: function (o, arg) {
+            var seed = Number(new Date());
+            var w = 20;
+            return __assign({ seed: seed, data: algo.prng(seed, w * 2, 0), width: w }, arg);
         }
     }
 };
@@ -231,12 +304,16 @@ var engine = /** @class */ (function () {
         args = args === undefined ? {} : args;
         var data = __assign({ dom: document.createElement('canvas'), w: 320, h: 240 }, args);
         Object.keys(data).forEach(function (key) {
+            if (key == 'load')
+                return;
             _this[key] = data[key];
         });
         this.dom.setAttribute('width', String(this.w * this.z));
         this.dom.setAttribute('height', String(this.h * this.z));
         this.ctx = this.dom.getContext('2d');
         this.ctx.imageSmoothingEnabled = false;
+        if (Object.keys(data).indexOf('load') != -1)
+            this.load.apply(this, data['load']);
     }
     engine.prototype.loadcheck = function (percent) {
         var _this = this;
@@ -330,7 +407,7 @@ var engine = /** @class */ (function () {
     engine.prototype.start_loop = function () {
         this.time_init = new Date();
         this.time_last = new Date();
-        this.looper = setInterval(this.loop.bind(this), 1000 / this.fps);
+        this.looper = window.setInterval(this.loop.bind(this), 1000 / this.fps);
     };
     engine.prototype.stop_loop = function () {
         clearInterval(this.looper);
@@ -518,113 +595,42 @@ var engine = /** @class */ (function () {
     };
     return engine;
 }());
-// @ts-ignore
-entities = __assign(__assign({}, entities), { 
-    // Pinoy Entitiy
-    pinoy: {
-        default: {
-            x: 0, y: 200, m: [0, 0],
-            isdead: false, // Is character dead?
-            crouch: false, // Is character crouching?
-            ground: false, // Is character standing on ground?
-            fright: true, // Is character facing right?
-            camera: true, // Is camera on character?
-        },
-        update: function (d, o, t, dt) {
-            d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
-            d.x += d.m[0] * dt / 10;
-            d.y -= d.m[1] * dt / 50;
-            // Temporary Ground
-            if (d.y >= 200) {
-                d.ground = true;
-                d.y = 200;
-                d.m[1] = 0;
-            }
-            else {
-                d.ground = false;
-                d.y -= algo.gravity(d.m, dt);
-            }
-            // Camera
-            if (d.camera) {
-                o.camera[0] = d.x - o.w / 2;
-            }
-            o.sprites('McCombinedNew2.png', [d.x, d.y], [0, 0,
-                !d.ground ? 32 * 15 : d.crouch ? 32 * 14 : Math.abs(d.m[0]) > 0.5 ? 32 * (2 + Math.floor(t / 75) % 12) : 32 * Math.floor(t / 100) % 2, 0,
-                32, 32,
-                d.fright ? 0 : 1
-            ]);
-        }
-    }, 
-    // Background Entity
-    background: {
-        default: {
-            darkmode: false,
-            dark: 0
-        },
-        update: function (d, o, t, dt) {
-            if (d.darkmode)
-                d.dark += (1 - d.dark) * dt / 1000;
-            else
-                d.dark -= d.dark * dt / 1000;
-            o.draw('', { img: 'normal bg.png' });
-            o.draw('', { img: 'dark bg.png', alpha: d.dark });
-        }
-    }, dog: {
-        default: { x: 0, y: 220, running: true },
-        update: function (d, o, t, dt) {
-            o.sprites('Dog.png', [d.x, d.y], [0, 0, (d.running ? 1 + Math.floor(t / 100) % 2 : 0) * 32 + 3, 8, (38 + 14) / 2, 15]);
-        }
-    }, cat: {
-        default: { x: 0, y: 220, running: true },
-        update: function (d, o, t, dt) {
-            o.sprites('Cat (1).png', [d.x, d.y], [0, 0, (d.running ? 1 + Math.floor(t / 100) % 2 : 0) * 16, 0, 16, 16]);
-        }
-    }, king: {
-        default: { x: 0, y: 100,
-            wing_angle: 0
-        },
-        update: function (d, o, t, dt) {
-            d.wing_angle = Math.sin(t / 150);
-            o.sprites('Aswang King.png', [d.x, d.y], 
-            // Right wing
-            [61, 1 + Math.sin(t / 200), 35, 0, 35, 18, 0, 0, -d.wing_angle, 0, 18], 
-            // Left wing
-            [0, Math.sin(t / 200), 0, 0, 35, 18, 0, 0, d.wing_angle, 35], 
-            // Left hand
-            [1, 24 + Math.sin(t / 200) / 2, 0, 18, 23, 21, 0, 0, 0], 
-            // Right hand
-            [66, 24 + Math.sin(t / 200) / 2, 23, 18, 23, 21], 
-            // Body
-            [28, 13 + Math.sin(t / 200), 0, 39, 37, 52], 
-            // Head
-            [41, 1 + Math.sin(t / 200) * 2, 70, 0, 13, 18]);
-        }
-    } });
-var debug = false;
-var main = new engine({
-    z: 4, w: 320, h: 240, sprite_boxed: debug, rotate_boxed: debug
-});
-var back = main.entity('background', { darkmode: true, dark: 1 });
+var level = function (main) { return [
+    [
+        // Background
+        main.entity('background'),
+        // Platforms
+        main.entity('plat', { x: -10 * 4, y: main.h - 16, w: 10, h: 2 }),
+        main.entity('plat', { x: 16 * 8, y: main.h - 16 * 4, w: 10, h: 5 }),
+    ]
+]; };
+// Set gravity, game, levels, player, and player collisions
+algo.gravity = 20;
+var main = new engine({ z: 4, w: 320, h: 240, load: required_files });
+var lv = level(main);
 var player = main.entity('pinoy');
-var pet = [main.entity('dog'), main.entity('cat', { x: 32 })];
-var king = main.entity('king');
-main.load('dark bg.png', 'normal bg.png', 'normal clouds.png', 'Dog.png', 'Cat (1).png', 'Aswang King.png', 'McCombinedNew2.png');
-main.scene('menu', function (t, dt) {
-    main.add(back, player, pet, king);
+player.collide = __spreadArray([], lv[0].slice(1), true);
+// Level Scene
+main.scene('main', function (t, dt) {
+    main.add(lv[0], player);
     if (main.on('x'))
-        back.darkmode = !back.darkmode;
+        lv[0][0].darkmode = !lv[0][0].darkmode;
+    main.on('z', function (e) {
+        if (e.init)
+            main.sprite_boxed = main.hitbox_boxed = main.rotate_boxed = !main.sprite_boxed;
+    });
     if (main.on('w, ,ArrowUp') && player.ground) {
         player.crouch = true;
         player.m[0] = 0;
     }
     else if (player.crouch) {
-        player.m[1] = 10;
+        player.m[1] = 20;
         player.crouch = false;
     }
     else if (main.on('d,ArrowRight'))
-        player.m[0] = 1;
+        player.m[0] = 8;
     else if (main.on('a,ArrowLeft'))
-        player.m[0] = -1;
+        player.m[0] = -8;
     else
         player.m[0] = 0;
 });
