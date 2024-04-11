@@ -1,5 +1,6 @@
-import {loadedfile_type, action_type, scene_type} from "./types.ts";
-import {entities} from "./entities.ts";
+import {loadedfile_type, action_type, scene_type, entities_type} from "./types.ts";
+
+/*#*/ let entities:entities_type = {};
 class engine {
     public dom:HTMLCanvasElement;                                       // Canvas
     public ctx:CanvasRenderingContext2D;                                // Context
@@ -13,12 +14,14 @@ class engine {
         args = args === undefined ? {} : args;
         let data = {dom: document.createElement('canvas'), w:320, h:240, ...args};
         Object.keys(data).forEach(key => {
+            if (key == 'load') return;
             this[key] = data[key];
         });
         this.dom.setAttribute('width', String(this.w*this.z));
         this.dom.setAttribute('height', String(this.h*this.z));
         this.ctx = this.dom.getContext('2d') as CanvasRenderingContext2D;
         this.ctx.imageSmoothingEnabled = false;
+        if (Object.keys(data).indexOf('load') != -1) this.load(...data['load']);
     }
 
     // Loader
@@ -116,7 +119,7 @@ class engine {
     public start_loop():void {                                          // Start looper
         this.time_init = new Date();
         this.time_last = new Date();
-        this.looper = setInterval(this.loop.bind(this), 1000/this.fps);
+        this.looper = window.setInterval(this.loop.bind(this), 1000/this.fps);
     }
     public stop_loop():void {                                           // Stop looper
         clearInterval(this.looper);

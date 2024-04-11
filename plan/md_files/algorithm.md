@@ -1,3 +1,12 @@
+# Physics
+- Generation
+    - cdr
+    - cdr_it
+    - random
+- Physics
+
+
+
 # Catalan and Dyck Algorithm
 [Catalan Numbers](https://en.wikipedia.org/wiki/Catalan_number)
 ```python
