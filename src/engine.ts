@@ -12,16 +12,19 @@ class engine {
     public constructor(args?) {
         // Initalize Canvas
         args = args === undefined ? {} : args;
-        let data = {dom: document.createElement('canvas'), w:320, h:240, ...args};
-        Object.keys(data).forEach(key => {
+        Object.keys(args).forEach(key => {
             if (key == 'load') return;
-            this[key] = data[key];
+            this[key] = args[key];
         });
+        this.dom = document.createElement('canvas');
+        if (args.dom) this.dom = args.dom;
+        this.w = args.w || 320;
+        this.h = args.h || 240;
         this.dom.setAttribute('width', String(this.w*this.z));
         this.dom.setAttribute('height', String(this.h*this.z));
         this.ctx = this.dom.getContext('2d') as CanvasRenderingContext2D;
         this.ctx.imageSmoothingEnabled = false;
-        if (Object.keys(data).indexOf('load') != -1) this.load(...data['load']);
+        if (Object.keys(args).indexOf('load') != -1) this.load(...args['load']);
     }
 
     // Loader
@@ -49,33 +52,36 @@ class engine {
 
         // Loading Files
         files.forEach((file:string, i:number)=>{
-            if(file.slice(-4) == '.png') {
+            let ext = file.slice(-4);
+            if(ext == '.png') {
                 this.loaded[file] = new Image();
-                (this.loaded[file] as HTMLImageElement).src = '/asset/'+file;
+                (this.loaded[file] as HTMLImageElement).src = file;
                 (this.loaded[file] as HTMLImageElement).onload = ()=>{
                     loaded[i] = 4;
                     this.loadcheck(loaded.reduce((pre:number, cur:number)=>pre+cur)/files.length/4);
                 };
-            } else if(file.slice(-4) == '.ttf') {
+            } else if(ext == '.ttf' || ext == '.mp3') {
                 loaded[i] = 0;
                 this.loaded[file] = '';
-                let h : XMLHttpRequest = new XMLHttpRequest();
-                h.open('GET', '/asset/'+file);
+                let h = new XMLHttpRequest();
+                h.open('GET', file);
                 h.responseType = 'blob';
                 h.onreadystatechange = () => {
                     loaded[i] = h.readyState;
                     this.loadcheck(loaded.reduce((pre:number, cur:number)=>pre+cur)/files.length/4);
                     if (h.readyState != 4 || h.status != 200) return;
                     this.loaded[file] = URL.createObjectURL(h.response);
-                    
-                    var d : HTMLHeadElement = document.createElement('h1');
-                    d.style.font = `20px ${file.slice(0,-4)}`;
-                    d.innerHTML = file.slice(0,-4)
-                    var s : HTMLStyleElement = document.createElement('style');
-                    s.innerHTML += `@font-face {font-family:"${file.slice(0,-4)}";src:url("${this.loaded[file]}") format("truetype");}`;
-                    document.head.appendChild(s);
-                    document.body.appendChild(d);
-                }
+                    if (ext == '.ttf') {
+                        var d : HTMLHeadElement = document.createElement('h1');
+                        d.style.font = `20px ${file.slice(0,-4)}`;
+                        d.innerHTML = file.slice(0,-4)
+                        var s : HTMLStyleElement = document.createElement('style');
+                        s.innerHTML += `@font-face {font-family:"${file.slice(0,-4)}";src:url("${this.loaded[file]}") format("truetype");}`;
+                        document.head.appendChild(s);
+                        document.body.appendChild(d);
+                    }
+                };
+                h.send();
             }
         });
     }
@@ -89,6 +95,7 @@ class engine {
     private path:string = '';                                           // Current path of action (scene)
     private time_init:Date;                                             // Time since first frame
     private time_last:Date;                                             // Time since last frame
+    private audios:{[key:string]:HTMLAudioElement} = {}; // Current playing audios
     private check_event(event:string, action?:action_type) : boolean {             // Check if event occured then active action
         let events:string[] = event.split(',');
         let index:number = -1;
@@ -106,9 +113,19 @@ class engine {
     private loop():void {                                               // Loop interval to trigger event check and scene
         let now:Date = new Date();
         if (this.active_scene.length != 0) {
+            Object.keys(this.audios).forEach(audio => {
+                if (!this.audios[audio].hasAttribute('single'))
+                    this.audios[audio].removeAttribute('active');
+            });
             this.path = this.active_scene;
             this.scenes[this.active_scene](now.getTime() - this.time_init.getTime(), now.getTime() - this.time_last.getTime());
             this.path = '';
+            Object.keys(this.audios).forEach(audio => {
+                if (this.audios[audio].hasAttribute('active'))
+                    this.audios[audio].play();
+                else
+                    this.audios[audio].pause();
+            });
         }
         Object.keys(this.events).forEach(e => {
             this.events[e].forEach(a => this.check_event(e, a));
@@ -136,6 +153,20 @@ class engine {
             return false;
         }
         return this.check_event(event, action);
+    }
+    public play(audio:string, single?:boolean) {
+        if (single) {
+            this.audios[audio] = new Audio();
+            this.audios[audio].src = this.loaded[audio] as string;
+            this.audios[audio].play();
+            this.audios[audio].setAttribute('single','');
+        } else {
+            if (!this.audios[audio]) {
+                this.audios[audio] = new Audio();
+                this.audios[audio].src = this.loaded[audio] as string;
+            }
+            this.audios[audio].setAttribute('active','');
+        }
     }
 
     // Drawing

@@ -2,6 +2,7 @@ const ts = require('typescript');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+//const prepack = require("prepack");
 
 let folder = '';
 let port = 8000;
@@ -31,7 +32,7 @@ async function watch() {
     }
     if (changed != -1) {
         let d = new Date();
-        process.stdout.write(`${files[changed]} in line ${line+1} at ${d.getHours()}:${d.getMinutes()} `);
+        process.stdout.write(`* ${files[changed]} in line ${line+1} at ${d.getHours()}:${d.getMinutes()} `);
         compile();
     } else setTimeout(watch, 1000);
 }
@@ -47,6 +48,7 @@ async function compile() {
     try {
         let code = [cont[0], ...cont[0].match(/import \{.*\} from ".*";/g)].reduce((code,match)=>code.replace(match, cont[files.indexOf(match.match(/(?<=import \{.*\} from ").*(?=";)/)[0])].replace(/(import |export |\/\*#\*\/ ).*/g, '')));
         const scriptjs = ts.transpileModule(code, options).outputText;
+        //console.log(prepack.prepackSources([{filePath:'test.js',fileContents:scriptjs}],{}));
         const web = `<!DOCTYPE html><html><head><title>Adventure Kingdom</title><style>body{background-color:#000}canvas{position:fixed;left:0;top:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;z-index:1}h1{z-index:2;opacity:0}</style></head><body><script>${scriptjs}</script></body></html>`
         await fs.promises.writeFile('index.html', web);
         process.stdout.write(`(Success)\n`);
@@ -58,7 +60,7 @@ async function compile() {
 
 async function init() {
     try {
-        process.stdout.write(`${files[files.length-1]}\t\t`);
+        process.stdout.write(`* ${files[files.length-1]} `);
         cont.push((await fs.promises.readFile(`src/${folder}/game.ts`)).toString('utf8'));
         files.push(...cont[0].match(/(?<=import \{.*\} from ").*(?=";)/g)); //.map(x=>)
         for (var i = 1; i < files.length; i++) cont[i] = (await fs.promises.readFile(path.resolve('src',folder,files[i]))).toString('utf8');
@@ -71,7 +73,7 @@ async function init() {
 
 
 http.createServer((req, res) => {
-    let p = path.join(__dirname, req.url == '/' ? 'index.html' : decodeURIComponent(req.url));
+    let p = req.url == '/' ? 'index.html' : path.join(__dirname, 'asset', decodeURIComponent(req.url));
     fs.exists(p, e => {
         if (e) fs.createReadStream(p).pipe(res);
         else {
