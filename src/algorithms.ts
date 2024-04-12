@@ -33,7 +33,7 @@ let algo = {
         let p = [m[0]*delta_time/50, -m[1]*delta_time/50];
         let c:number[][] = [];
 
-        entity.ground = false;
+        entity.ground = -1;
         entity.collide.forEach((collider, id) => {
             if (entity.nocollide.indexOf(id) != -1) return;
             for (let a = 0; a < 4; a++) {
@@ -49,7 +49,7 @@ let algo = {
                 ) {
                     p[1-a%2] = collider.hitbox[2-a%2]-entity.hitbox[2-a%2]+B.hitbox[4-a%2]*(a==1||a==2?-1:1);
                     m[1-a%2] = 0;
-                    if (a==2) entity.ground = true;
+                    if (a==2) entity.ground = id;
                     c.push([id, a]); // There can only be 1 side of collision, no need binary set
                 }
             }

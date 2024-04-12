@@ -58,7 +58,7 @@ var algo = {
         var m = [entity.m[0], entity.m[1] - (algo.gravity + entity.m[1]) * delta_time / 500];
         var p = [m[0] * delta_time / 50, -m[1] * delta_time / 50];
         var c = [];
-        entity.ground = false;
+        entity.ground = -1;
         entity.collide.forEach(function (collider, id) {
             if (entity.nocollide.indexOf(id) != -1)
                 return;
@@ -75,7 +75,7 @@ var algo = {
                     p[1 - a % 2] = collider.hitbox[2 - a % 2] - entity.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] * (a == 1 || a == 2 ? -1 : 1);
                     m[1 - a % 2] = 0;
                     if (a == 2)
-                        entity.ground = true;
+                        entity.ground = id;
                     c.push([id, a]); // There can only be 1 side of collision, no need binary set
                 }
             }
@@ -122,66 +122,97 @@ var algo = {
     }
 };
 var required_files = [
-    'Flowers.png', 'Bgitems.png', 'Blocks.png',
-    'dark bg.png', 'normal bg.png', 'normal clouds.png',
-    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png',
-    'Mcparts.png'
+    // Menu
+    'Rise_of_the_Aswang_King.png',
+    // Background
+    'dark bg.png', 'normal bg.png', 'normal clouds.png', 'Housesv2.png',
+    // Platforms
+    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Trees.png', 'Lagablab, bubble and random vegetation.png',
+    // Entities
+    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png',
+    // Player
+    'Mcparts.png',
+    // Music
+    'song/1st Temp BG Song (New Area).mp3'
 ];
 var entities = {
     // Pinoy Entitiy
     pinoy: {
         default: {
-            x: 0, y: 150, m: [0, 0], hitbox: [], collide: [], nocollide: [],
+            x: 0, y: 0, m: [0, 0], hitbox: [], collide: [], nocollide: [],
             isdead: false, // Is character dead?
             crouch: false, // Is character crouching?
-            ground: false, // Is character standing on ground?
+            jumping: false, // Is character jumping?
             fright: true, // Is character facing right?
             camera: true, // Is camera on character?
+            swing: false, // Is character swinging sword?
+            swinging: 0, // Current swining position (0->1)
+            dead: -1, // Level of deadness (-1 Not dead, 0->1 Dying)
+            ground: -1, // Collider character is on
         },
         update: function (d, o, t, dt) {
-            d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
-            var cols = algo.physics(dt, d);
-            if (d.crouch)
-                cols.forEach(function (c) {
-                    if (c[1] == 2)
-                        d.nocollide.push(c[0]);
-                });
-            else
-                d.nocollide = [];
+            // Hitbox
+            d.hitbox = [15,
+                d.x + 12, d.y,
+                8, 29
+            ];
+            // Movement
+            if (d.dead == -1) {
+                d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+                var cols = algo.physics(dt, d);
+                if (d.crouch && !d.jumping)
+                    cols.forEach(function (c) {
+                        if (c[1] == 2)
+                            d.nocollide.push(c[0]);
+                    });
+                else
+                    d.nocollide = [];
+            }
+            if (d.y >= o.h - 32)
+                d.dead = 0;
             // Camera
             if (d.camera) {
                 o.camera[0] = d.x - o.w / 2;
             }
+            // Sword
+            if (d.swing && d.dead == -1) {
+                d.swinging += (1 - d.swinging) * dt / 100;
+                if (d.swinging > 0.9)
+                    d.swing = false;
+            }
+            else
+                d.swinging -= d.swinging * dt / 100;
+            var s = Math.round(d.swinging * 2.4);
+            // Rendering
             var c = function (n) { return [n % 6, Math.floor(n / 6)]; };
-            var leg = c(1 + Math.floor(t / 50) % 6);
-            var body = c(13 + Math.floor(t / 50) % 12);
-            o.sprites('Mcparts.png', [d.x, d.y], 
+            var leg = c(d.ground == -1 ? 8 :
+                d.crouch ? 7 :
+                    Math.abs(d.m[0]) > 0.5 ? 1 + Math.floor(t / 50) % 6 :
+                        0);
+            var body = c(s > 0 ? 27 + s :
+                d.ground == -1 ? 26 :
+                    d.crouch ? 25 :
+                        Math.abs(d.m[0]) > 0.5 ? 13 + Math.floor(t / 50) % 12 :
+                            12);
+            if (d.dead != -1) {
+                d.y = o.h - 33;
+                leg = c(9);
+                body = c(27);
+                d.dead += (1 - d.dead) * dt / 200;
+            }
+            o.sprites('Mcparts.png', [d.x, d.y - (d.dead == -1 ? 0 : 21 * Math.sin(1.32 * (d.dead * d.dead + 0.133) * Math.PI) - 11)], 
             // Leg
-            [0, 0,
-                !d.ground ? 64 : d.crouch ? 32 : Math.abs(d.m[0]) > 0.5 ? 32 * leg[0] : 0,
-                !d.ground || d.crouch ? 32 : Math.abs(d.m[0]) > 0.5 ? 32 * leg[1] : 0,
-                32, 32,
-                d.fright ? 0 : 1
-            ], 
+            [0, 0, 32 * leg[0], 32 * leg[1], 32, 32, 1 - d.fright], 
             // Body
-            [0, d.crouch ? 2 : 0,
-                !d.ground ? 64 : d.crouch ? 32 : Math.abs(d.m[0]) > 0.5 ? 32 * body[0] : 0,
-                !d.ground || d.crouch ? 32 * 4 : Math.abs(d.m[0]) > 0.5 ? 32 * body[1] : 64,
-                32, 32,
-                d.fright ? 0 : 1
-            ]);
-            // Hitbox
-            d.hitbox = [15,
-                d.x + 7, d.y,
-                16, 29
-            ];
+            [0, d.crouch ? 2 : 0, 32 * body[0], 32 * body[1], 32, 32, 1 - d.fright]);
         }
     },
     // Background Entity
     background: {
         default: {
             darkmode: false,
-            dark: 0
+            dark: 0,
+            house: false
         },
         update: function (d, o, t, dt) {
             if (d.darkmode)
@@ -190,18 +221,47 @@ var entities = {
                 d.dark -= d.dark * dt / 1000;
             o.draw('', { img: 'normal bg.png' });
             o.draw('', { img: 'dark bg.png', alpha: d.dark });
+            if (d.house)
+                o.sprites('Housesv2.png', [], [-150, 100, 126, 0, 128, 128]);
         }
     },
-    dog: {
-        default: { x: 0, y: 220, running: true },
+    pet: {
+        default: { x: 0, y: 0, m: [0, 0], animal: 0, jumping: false, ground: -1, collide: [], nocollide: [], hitbox: [] },
         update: function (d, o, t, dt) {
-            o.sprites('Dog.png', [d.x, d.y], [0, 0, (d.running ? 1 + Math.floor(t / 100) % 2 : 0) * 32 + 3, 8, (38 + 14) / 2, 15]);
-        }
-    },
-    cat: {
-        default: { x: 0, y: 220, running: true },
-        update: function (d, o, t, dt) {
-            o.sprites('Cat (1).png', [d.x, d.y], [0, 0, (d.running ? 1 + Math.floor(t / 100) % 2 : 0) * 16, 0, 16, 16]);
+            // Hitbox
+            d.hitbox = [15,
+                d.x, d.y,
+                26, 15
+            ];
+            // Follow AI
+            if (d.follow != undefined && d.follow.dead == -1) {
+                d.m[0] = Math.abs(d.follow.x + (d.follow.x > d.x ? -15 : 15) - d.x) < 15 ? 0 : d.follow.x > d.x ? 7 : -7; //(d.follow.x+(d.follow.x>d.x?-10:10)-d.x)/10;
+                if (Math.abs(d.follow.y - d.y) > o.h) {
+                    d.x = d.follow.x;
+                    d.y = d.follow.y;
+                }
+                // Jump
+                if (d.follow.ground != -1 && d.follow.collide[d.follow.ground].y < d.y && !d.jumping) {
+                    d.m[1] = 20; //16;
+                    d.jumping = true;
+                }
+                else if (d.follow.ground != -1 && d.ground != -1 && d.follow.collide[d.follow.ground].y > d.y + 16) {
+                    d.nocollide = [d.ground];
+                }
+            }
+            // Movement
+            d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+            algo.physics(dt, d);
+            if (d.ground != -1) {
+                d.jumping = false;
+                d.nocollide = [];
+            }
+            // Render
+            var x = (Math.abs(d.m[0]) > 0.15 ? 1 + Math.floor(t / 100) % 2 : 0);
+            if (d.animal == 0)
+                o.sprites('Dog.png', [d.x, d.y], [0, 0, x * 32 + 3, 8, 26, 15, 1 - d.fright]);
+            else if (d.animal == 1)
+                o.sprites('Cat (1).png', [d.x, d.y], [0, 0, x * 16, 0, 16, 16, 1 - d.fright]);
         }
     },
     king: {
@@ -253,11 +313,36 @@ var entities = {
                     ]);
                 }
             }
+            for (var x = 0; x < d.w; x++) {
+                if (d.data[x] & 8)
+                    o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32 * x, -32, 0, 0, 32, 32]);
+                if (d.data[x] & 4)
+                    o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32 * x, -32, 32, 0, 32, 32]);
+                if (d.data[x] & 2)
+                    o.sprites('Trees.png', [d.x, d.y], [32 * x, -64, 0, 0, 64, 64]);
+                if (d.data[x] & 1)
+                    o.sprites('Flowers.png', [d.x, d.y], [32 * x, -32, 0, 0, 32, 32]);
+            }
             o.sprites.apply(o, __spreadArray(['Blocks.png', [d.x, d.y]], bs, false));
             d.hitbox = [1,
                 d.x, d.y,
                 d.w * 16, d.h * 16
             ];
+        },
+        create: function (o, arg) {
+            var w = arg.w || 0;
+            var d = [];
+            for (var i = 0; i < w >> 1; i++)
+                d.push(
+                // Grass
+                (Math.random() < 0.5 ? 1 : 0) +
+                    // Tree
+                    (Math.random() < 0.1 ? 2 : 0) +
+                    // Big Grass
+                    (Math.random() < 0.2 ? 4 : 0) +
+                    // Bush
+                    (Math.random() < 0.1 ? 8 : 0));
+            return __assign({ data: d }, arg);
         }
     },
     setting: {
@@ -282,6 +367,27 @@ var entities = {
             var w = 20;
             return __assign({ seed: seed, data: algo.prng(seed, w * 2, 0), width: w }, arg);
         }
+    },
+    menu: {
+        default: {},
+        update: function (d, o, t, dt) {
+            o.sprites('Rise_of_the_Aswang_King.png', [-128, 0], [0, 0, 0, 0, 256, 144]);
+        }
+    },
+    mananangal: {
+        default: { x: 0, y: 0, t: 0 },
+        update: function (d, o, t, dt) {
+            var c = [
+                // Body
+                [0, 0, 0, 0, 32, 32],
+                // Wing
+                [0, 1, 32 * 3, 0, 32, 32, 0, 0, Math.sin(t / 100) * 0.5 - 0.5, 11, 19]
+            ];
+            var tng = Math.floor(d.t * 4);
+            if (tng > 0)
+                c.push([7, 8, Math.floor(t / 100) % 3 * 32, 32 * 3, 32, 32, 0, 0, 0]);
+            o.sprites.apply(o, __spreadArray(['Mananangalv3.png', [d.x, d.y + Math.sin(t / 200) * 0.5]], c, false));
+        }
     }
 };
 var engine = /** @class */ (function () {
@@ -296,24 +402,29 @@ var engine = /** @class */ (function () {
         this.scenes = {}; // Scenes
         this.active_scene = ''; // Active Scene
         this.path = ''; // Current path of action (scene)
+        this.audios = {}; // Current playing audios
         // Drawing
         this.sprite_boxed = false;
         this.hitbox_boxed = false;
         this.rotate_boxed = false;
         // Initalize Canvas
         args = args === undefined ? {} : args;
-        var data = __assign({ dom: document.createElement('canvas'), w: 320, h: 240 }, args);
-        Object.keys(data).forEach(function (key) {
+        Object.keys(args).forEach(function (key) {
             if (key == 'load')
                 return;
-            _this[key] = data[key];
+            _this[key] = args[key];
         });
+        this.dom = document.createElement('canvas');
+        if (args.dom)
+            this.dom = args.dom;
+        this.w = args.w || 320;
+        this.h = args.h || 240;
         this.dom.setAttribute('width', String(this.w * this.z));
         this.dom.setAttribute('height', String(this.h * this.z));
         this.ctx = this.dom.getContext('2d');
         this.ctx.imageSmoothingEnabled = false;
-        if (Object.keys(data).indexOf('load') != -1)
-            this.load.apply(this, data['load']);
+        if (Object.keys(args).indexOf('load') != -1)
+            this.load.apply(this, args['load']);
     }
     engine.prototype.loadcheck = function (percent) {
         var _this = this;
@@ -343,19 +454,20 @@ var engine = /** @class */ (function () {
         this.ctx.strokeRect(this.w * this.z * 0.25, this.h * this.z * 0.45, this.w * this.z * 0.5, this.h * this.z * 0.1);
         // Loading Files
         files.forEach(function (file, i) {
-            if (file.slice(-4) == '.png') {
+            var ext = file.slice(-4);
+            if (ext == '.png') {
                 _this.loaded[file] = new Image();
-                _this.loaded[file].src = '/asset/' + file;
+                _this.loaded[file].src = file;
                 _this.loaded[file].onload = function () {
                     loaded[i] = 4;
                     _this.loadcheck(loaded.reduce(function (pre, cur) { return pre + cur; }) / files.length / 4);
                 };
             }
-            else if (file.slice(-4) == '.ttf') {
+            else if (ext == '.ttf' || ext == '.mp3') {
                 loaded[i] = 0;
                 _this.loaded[file] = '';
                 var h_1 = new XMLHttpRequest();
-                h_1.open('GET', '/asset/' + file);
+                h_1.open('GET', file);
                 h_1.responseType = 'blob';
                 h_1.onreadystatechange = function () {
                     loaded[i] = h_1.readyState;
@@ -363,14 +475,17 @@ var engine = /** @class */ (function () {
                     if (h_1.readyState != 4 || h_1.status != 200)
                         return;
                     _this.loaded[file] = URL.createObjectURL(h_1.response);
-                    var d = document.createElement('h1');
-                    d.style.font = "20px ".concat(file.slice(0, -4));
-                    d.innerHTML = file.slice(0, -4);
-                    var s = document.createElement('style');
-                    s.innerHTML += "@font-face {font-family:\"".concat(file.slice(0, -4), "\";src:url(\"").concat(_this.loaded[file], "\") format(\"truetype\");}");
-                    document.head.appendChild(s);
-                    document.body.appendChild(d);
+                    if (ext == '.ttf') {
+                        var d = document.createElement('h1');
+                        d.style.font = "20px ".concat(file.slice(0, -4));
+                        d.innerHTML = file.slice(0, -4);
+                        var s = document.createElement('style');
+                        s.innerHTML += "@font-face {font-family:\"".concat(file.slice(0, -4), "\";src:url(\"").concat(_this.loaded[file], "\") format(\"truetype\");}");
+                        document.head.appendChild(s);
+                        document.body.appendChild(d);
+                    }
                 };
+                h_1.send();
             }
         });
     };
@@ -393,9 +508,19 @@ var engine = /** @class */ (function () {
         var _this = this;
         var now = new Date();
         if (this.active_scene.length != 0) {
+            Object.keys(this.audios).forEach(function (audio) {
+                if (!_this.audios[audio].hasAttribute('single'))
+                    _this.audios[audio].removeAttribute('active');
+            });
             this.path = this.active_scene;
             this.scenes[this.active_scene](now.getTime() - this.time_init.getTime(), now.getTime() - this.time_last.getTime());
             this.path = '';
+            Object.keys(this.audios).forEach(function (audio) {
+                if (_this.audios[audio].hasAttribute('active'))
+                    _this.audios[audio].play();
+                else
+                    _this.audios[audio].pause();
+            });
         }
         Object.keys(this.events).forEach(function (e) {
             _this.events[e].forEach(function (a) { return _this.check_event(e, a); });
@@ -428,6 +553,21 @@ var engine = /** @class */ (function () {
             return false;
         }
         return this.check_event(event, action);
+    };
+    engine.prototype.play = function (audio, single) {
+        if (single) {
+            this.audios[audio] = new Audio();
+            this.audios[audio].src = this.loaded[audio];
+            this.audios[audio].play();
+            this.audios[audio].setAttribute('single', '');
+        }
+        else {
+            if (!this.audios[audio]) {
+                this.audios[audio] = new Audio();
+                this.audios[audio].src = this.loaded[audio];
+            }
+            this.audios[audio].setAttribute('active', '');
+        }
     };
     engine.prototype.sprite = function (img, x, y, cx, cy, cw, ch, fx, fy) {
         if (!this.loaded.hasOwnProperty(img))
@@ -598,34 +738,64 @@ var engine = /** @class */ (function () {
 var level = function (main) { return [
     [
         // Background
-        main.entity('background'),
+        main.entity('background', { house: true }),
         // Platforms
-        main.entity('plat', { x: -10 * 4, y: main.h - 16, w: 10, h: 2 }),
+        main.entity('plat', { x: 0, y: main.h - 16 * 6, w: 16, h: 7 }),
+        main.entity('plat', { x: -10 * 16, y: main.h - 16, w: 16, h: 2 }),
         main.entity('plat', { x: 16 * 8, y: main.h - 16 * 4, w: 10, h: 5 }),
+        // Dog
+        main.entity('pet', { x: 15, y: 209 }),
+        // Enemy
+        main.entity('mananangal')
     ]
 ]; };
+var level_collide = function (level) {
+    var c = [
+        level[0].slice(1, 4)
+    ];
+    level[0][4].collide = c[0];
+    return c;
+};
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-var main = new engine({ z: 4, w: 320, h: 240, load: required_files });
+var main = new engine({ z: 10, w: 320, h: 240, load: required_files });
 var lv = level(main);
-var player = main.entity('pinoy');
-player.collide = __spreadArray([], lv[0].slice(1), true);
+var player = main.entity('pinoy', { y: 195 });
+var menu = main.entity('menu');
+var collides = level_collide(lv);
+player.collide = collides[0];
+lv[0][4].follow = player;
 // Level Scene
-main.scene('main', function (t, dt) {
-    main.add(lv[0], player);
+main.scene('level', function (t, dt) {
+    if (dt > 100)
+        return;
+    //main.play('song/1st Temp BG Song (New Area).mp3');
+    // Layers
+    main.add(lv[0], player, menu);
+    // Developer Tools
     if (main.on('x'))
         lv[0][0].darkmode = !lv[0][0].darkmode;
     main.on('z', function (e) {
         if (e.init)
             main.sprite_boxed = main.hitbox_boxed = main.rotate_boxed = !main.sprite_boxed;
     });
-    if (main.on('w, ,ArrowUp') && player.ground) {
+    // Player Controls
+    main.on('Enter', function (e) {
+        if (e.init && player.swinging < 0.1)
+            player.swing = true;
+    });
+    if (main.on('w, ,ArrowUp') && player.ground != -1) {
+        player.crouch = player.jumping = true;
+        player.m[0] = 0;
+    }
+    else if (main.on('s,ArrowDown')) {
         player.crouch = true;
         player.m[0] = 0;
     }
     else if (player.crouch) {
-        player.m[1] = 20;
-        player.crouch = false;
+        if (player.jumping)
+            player.m[1] = 20;
+        player.crouch = player.jumping = false;
     }
     else if (main.on('d,ArrowRight'))
         player.m[0] = 8;

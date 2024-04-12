@@ -26,7 +26,7 @@ interface entities_type {
         create?:(engine:engine_type, args:{[prop:string]:any})=>{[prop:string]:any}
     }
 }
-type loadedfile_type = HTMLImageElement|String;
+type loadedfile_type = HTMLImageElement|string;
 type action_type = (...args:any[])=>any;
 type scene_type = (dt_from_start:number, dt_from_last:number) => void;
 export {engine_type, entities_type, loadedfile_type, action_type, scene_type};
