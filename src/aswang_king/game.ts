@@ -41,7 +41,6 @@ main.scene('level', (t, dt) => {
         player.crouch = true;
         player.m[0] = 0;
     } else if (player.crouch) {
-        if (player.jumping) player.m[1] = 20;
         player.crouch = player.jumping = false;
     } else if(main.on('d,ArrowRight')) player.m[0] = 8;
     else if(main.on('a,ArrowLeft')) player.m[0] = -8;
