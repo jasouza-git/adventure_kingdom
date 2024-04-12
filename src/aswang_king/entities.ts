@@ -50,7 +50,8 @@ let entities:entities_type = {
             
             // Camera
             if (d.camera) {
-                o.camera[0] = d.x-o.w/2;
+                //o.camera[0] = d.x-o.w/2;
+                o.camera[0] += (d.x-o.w/2-o.camera[0])*dt/100;
             }
 
             // Sword
@@ -79,7 +80,12 @@ let entities:entities_type = {
                 d.y = o.h-33;
                 leg = c(9);
                 body = c(27);
-                d.dead += (1-d.dead)*dt/200;
+                d.dead += (1-d.dead)*dt/300;
+                if (d.dead > 0.99) {
+                    d.dead = -1;
+                    d.x = 0;
+                    d.y = 195;
+                }
             }
             o.sprites('Mcparts.png', [d.x, d.y-(d.dead == -1 ? 0 : 21*Math.sin(1.32*(d.dead*d.dead+0.133)*Math.PI)-11)],
                 // Leg

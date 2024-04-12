@@ -5,7 +5,7 @@ import {level, level_collide} from "./levels.ts";
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-let main = new engine({z:10, w:320, h:240, load: required_files});
+let main = new engine({z:4, w:320, h:240, load: required_files});
 let lv = level(main);
 let player = main.entity('pinoy', {y:195});
 let menu = main.entity('menu');

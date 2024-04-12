@@ -172,7 +172,8 @@ var entities = {
                 d.dead = 0;
             // Camera
             if (d.camera) {
-                o.camera[0] = d.x - o.w / 2;
+                //o.camera[0] = d.x-o.w/2;
+                o.camera[0] += (d.x - o.w / 2 - o.camera[0]) * dt / 100;
             }
             // Sword
             if (d.swing && d.dead == -1) {
@@ -198,7 +199,12 @@ var entities = {
                 d.y = o.h - 33;
                 leg = c(9);
                 body = c(27);
-                d.dead += (1 - d.dead) * dt / 200;
+                d.dead += (1 - d.dead) * dt / 300;
+                if (d.dead > 0.99) {
+                    d.dead = -1;
+                    d.x = 0;
+                    d.y = 195;
+                }
             }
             o.sprites('Mcparts.png', [d.x, d.y - (d.dead == -1 ? 0 : 21 * Math.sin(1.32 * (d.dead * d.dead + 0.133) * Math.PI) - 11)], 
             // Leg
@@ -758,7 +764,7 @@ var level_collide = function (level) {
 };
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-var main = new engine({ z: 10, w: 320, h: 240, load: required_files });
+var main = new engine({ z: 4, w: 320, h: 240, load: required_files });
 var lv = level(main);
 var player = main.entity('pinoy', { y: 195 });
 var menu = main.entity('menu');
