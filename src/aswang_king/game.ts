@@ -34,8 +34,9 @@ main.scene('level', (t, dt) => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
     if(main.on('w, ,ArrowUp') && player.ground != -1) {
-        player.crouch = player.jumping = true;
-        player.m[0] = 0;
+        player.m[1] = 20;
+        /*player.crouch = player.jumping = true;
+        player.m[0] = 0;*/
     } else if (main.on('s,ArrowDown')) {
         player.crouch = true;
         player.m[0] = 0;
