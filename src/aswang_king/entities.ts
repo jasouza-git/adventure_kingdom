@@ -179,7 +179,8 @@ let entities:entities_type = {
         default: {x:0, y:0, m:[0,0], a:0},
         update: (d, o, t, dt) => {
             if (d.y < 220) {
-                d.x += d.m[0]*dt/50;
+                algo.physics(dt, d, true);
+                //d.x += d.m[0]*dt/50;
                 //d.y -= algo.gravity(d.m, dt);
                 d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
             }

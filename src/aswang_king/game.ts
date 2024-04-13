@@ -10,6 +10,7 @@ let lv = level(main);
 let player = main.entity('pinoy', {y:195});
 let menu = main.entity('menu');
 let collides = level_collide(lv);
+let king = main.entity('arrow');
 
 player.collide = collides[0];
 lv[0][4].follow = player;
@@ -21,12 +22,15 @@ main.scene('level', (t, dt) => {
     //main.play('song/1st Temp BG Song (New Area).mp3');
 
     // Layers
-    main.add(lv[0], player, menu);
+    main.add(lv[0], player, menu, king);
 
     // Developer Tools
     if(main.on('x')) lv[0][0].darkmode = !lv[0][0].darkmode;
     main.on('z', e => {
         if(e.init) main.sprite_boxed = main.hitbox_boxed = main.rotate_boxed = !main.sprite_boxed;
+    });
+    main.on('h', e => {
+        if(e.init) main.hitbox_boxed = !main.hitbox_boxed;
     });
 
     // Player Controls

@@ -53,33 +53,34 @@ var algo = {
     // Physics - Responsable for Gravity, Momentum, Collision
     // (delta_time, entity.[m,hitbox,collide,nocollide]) => (entity.[x,y,m,ground])
     gravity: 9,
-    physics: function (delta_time, entity) {
+    physics: function (delta_time, entity, nocollide) {
         // Calculate Momentum and difference Position
         var m = [entity.m[0], entity.m[1] - (algo.gravity + entity.m[1]) * delta_time / 500];
         var p = [m[0] * delta_time / 50, -m[1] * delta_time / 50];
         var c = [];
         entity.ground = -1;
-        entity.collide.forEach(function (collider, id) {
-            if (entity.nocollide.indexOf(id) != -1)
-                return;
-            for (var a = 0; a < 4; a++) {
-                // Would have been easier if hitbox was [N,W,S,E] instead
-                // Optional (a+1)>>1&1 instead
-                var A = a == 1 || a == 2 ? collider : entity;
-                var B = a == 1 || a == 2 ? entity : collider;
-                if (entity.hitbox[0] >> a & 1 && collider.hitbox[0] >> ((a + 2) % 4) & 1 &&
-                    A.hitbox[2 - a % 2] >= B.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] &&
-                    A.hitbox[2 - a % 2] + p[1 - a % 2] * (a == 1 || a == 2 ? -1 : 1) < B.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] &&
-                    entity.hitbox[1 + a % 2] < collider.hitbox[1 + a % 2] + collider.hitbox[3 + a % 2] &&
-                    entity.hitbox[1 + a % 2] + entity.hitbox[3 + a % 2] > collider.hitbox[1 + a % 2]) {
-                    p[1 - a % 2] = collider.hitbox[2 - a % 2] - entity.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] * (a == 1 || a == 2 ? -1 : 1);
-                    m[1 - a % 2] = 0;
-                    if (a == 2)
-                        entity.ground = id;
-                    c.push([id, a]); // There can only be 1 side of collision, no need binary set
+        if (nocollide != true)
+            entity.collide.forEach(function (collider, id) {
+                if (entity.nocollide.indexOf(id) != -1)
+                    return;
+                for (var a = 0; a < 4; a++) {
+                    // Would have been easier if hitbox was [N,W,S,E] instead
+                    // Optional (a+1)>>1&1 instead
+                    var A = a == 1 || a == 2 ? collider : entity;
+                    var B = a == 1 || a == 2 ? entity : collider;
+                    if (entity.hitbox[0] >> a & 1 && collider.hitbox[0] >> ((a + 2) % 4) & 1 &&
+                        A.hitbox[2 - a % 2] >= B.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] &&
+                        A.hitbox[2 - a % 2] + p[1 - a % 2] * (a == 1 || a == 2 ? -1 : 1) < B.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] &&
+                        entity.hitbox[1 + a % 2] < collider.hitbox[1 + a % 2] + collider.hitbox[3 + a % 2] &&
+                        entity.hitbox[1 + a % 2] + entity.hitbox[3 + a % 2] > collider.hitbox[1 + a % 2]) {
+                        p[1 - a % 2] = collider.hitbox[2 - a % 2] - entity.hitbox[2 - a % 2] + B.hitbox[4 - a % 2] * (a == 1 || a == 2 ? -1 : 1);
+                        m[1 - a % 2] = 0;
+                        if (a == 2)
+                            entity.ground = id;
+                        c.push([id, a]); // There can only be 1 side of collision, no need binary set
+                    }
                 }
-            }
-        });
+            });
         entity.x += p[0];
         entity.y += p[1];
         entity.m = m;
@@ -298,7 +299,8 @@ var entities = {
         default: { x: 0, y: 0, m: [0, 0], a: 0 },
         update: function (d, o, t, dt) {
             if (d.y < 220) {
-                d.x += d.m[0] * dt / 50;
+                algo.physics(dt, d, true);
+                //d.x += d.m[0]*dt/50;
                 //d.y -= algo.gravity(d.m, dt);
                 d.a += (Math.atan2(d.m[1], -d.m[0]) - d.a) * dt / 200;
             }
@@ -772,6 +774,7 @@ var lv = level(main);
 var player = main.entity('pinoy', { y: 195 });
 var menu = main.entity('menu');
 var collides = level_collide(lv);
+var king = main.entity('arrow');
 player.collide = collides[0];
 lv[0][4].follow = player;
 // Level Scene
@@ -780,13 +783,17 @@ main.scene('level', function (t, dt) {
         return;
     //main.play('song/1st Temp BG Song (New Area).mp3');
     // Layers
-    main.add(lv[0], player, menu);
+    main.add(lv[0], player, menu, king);
     // Developer Tools
     if (main.on('x'))
         lv[0][0].darkmode = !lv[0][0].darkmode;
     main.on('z', function (e) {
         if (e.init)
             main.sprite_boxed = main.hitbox_boxed = main.rotate_boxed = !main.sprite_boxed;
+    });
+    main.on('h', function (e) {
+        if (e.init)
+            main.hitbox_boxed = !main.hitbox_boxed;
     });
     // Player Controls
     main.on('Enter', function (e) {
@@ -803,8 +810,6 @@ main.scene('level', function (t, dt) {
         player.m[0] = 0;
     }
     else if (player.crouch) {
-        if (player.jumping)
-            player.m[1] = 20;
         player.crouch = player.jumping = false;
     }
     else if (main.on('d,ArrowRight'))
