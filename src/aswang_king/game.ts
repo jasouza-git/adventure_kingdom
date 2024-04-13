@@ -10,19 +10,20 @@ let lv = level(main);
 let player = main.entity('pinoy', {y:195});
 let menu = main.entity('menu');
 let collides = level_collide(lv);
-let king = main.entity('arrow');
+let pet = main.entity('pet', {x:15,y:209,animal:0});
+let king = main.entity('king');
 
-player.collide = collides[0];
-lv[0][4].follow = player;
+pet.collide = player.collide = collides[0];
+pet.follow = player;
 
 
 // Level Scene
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
-    //main.play('song/1st Temp BG Song (New Area).mp3');
+    main.play('song/1st Temp BG Song (New Area).mp3');
 
     // Layers
-    main.add(lv[0], player, menu, king);
+    main.add(lv[0], pet, player, menu, king);
 
     // Developer Tools
     if(main.on('x')) lv[0][0].darkmode = !lv[0][0].darkmode;
@@ -37,17 +38,15 @@ main.scene('level', (t, dt) => {
     main.on('Enter', e => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
-    if(main.on('w, ,ArrowUp') && player.ground != -1) {
+    if(main.on('w,W, ,ArrowUp') && player.ground != -1) {
         player.m[1] = 20;
-        /*player.crouch = player.jumping = true;
-        player.m[0] = 0;*/
-    } else if (main.on('s,ArrowDown')) {
+    } else if (main.on('s,S,ArrowDown')) {
         player.crouch = true;
         player.m[0] = 0;
     } else if (player.crouch) {
         player.crouch = player.jumping = false;
-    } else if(main.on('d,ArrowRight')) player.m[0] = 8;
-    else if(main.on('a,ArrowLeft')) player.m[0] = -8;
+    } else if(main.on('d,D,ArrowRight')) player.m[0] = 8;
+    else if(main.on('a,A,ArrowLeft')) player.m[0] = -8;
     else player.m[0] = 0;
 });
 main.render();

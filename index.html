@@ -130,7 +130,7 @@ var required_files = [
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Trees.png', 'Lagablab, bubble and random vegetation.png',
     // Entities
-    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png',
+    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shootercorrected.png',
     // Player
     'Mcparts.png',
     // Music
@@ -141,7 +141,6 @@ var entities = {
     pinoy: {
         default: {
             x: 0, y: 0, m: [0, 0], hitbox: [], collide: [], nocollide: [],
-            isdead: false, // Is character dead?
             crouch: false, // Is character crouching?
             jumping: false, // Is character jumping?
             fright: true, // Is character facing right?
@@ -150,6 +149,7 @@ var entities = {
             swinging: 0, // Current swining position (0->1)
             dead: -1, // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1, // Collider character is on
+            lives: 3
         },
         update: function (d, o, t, dt) {
             var c = function (n) { return [n % 6, Math.floor(n / 6)]; };
@@ -398,6 +398,19 @@ var entities = {
             if (tng > 0)
                 c.push([7, 8, Math.floor(t / 100) % 3 * 32, 32 * 3, 32, 32, 0, 0, 0]);
             o.sprites.apply(o, __spreadArray(['Mananangalv3.png', [d.x, d.y + Math.sin(t / 200) * 0.5]], c, false));
+        }
+    },
+    shooter: {
+        default: { x: 0, y: 0, f: 0, cooldown: 1000, bind: [], speed: 0 },
+        update: function (d, o, t, dt) {
+            if (d.speed != 0) {
+                d.cooldown -= dt;
+                if (d.cooldown <= 0) {
+                    d.bind.push(o.entity('arrow', { x: d.x, y: d.y + 4, m: [-(Math.random() * 15 + 10) * d.speed / 15, 0] }));
+                    d.cooldown = 1000;
+                }
+            }
+            o.sprites('Shootercorrected.png', [], [d.x, d.y, 0, 0, 13, 12, d.f & 1, d.f >> 1 & 1]);
         }
     }
 };
@@ -729,6 +742,8 @@ var engine = /** @class */ (function () {
                 this.ctx.stroke();
             }
         }
+        if (entity['bind'] != undefined)
+            this.add(entity['bind']);
     };
     engine.prototype.add = function () {
         var _this = this;
@@ -754,17 +769,17 @@ var level = function (main) { return [
         main.entity('plat', { x: 0, y: main.h - 16 * 6, w: 16, h: 7 }),
         main.entity('plat', { x: -10 * 16, y: main.h - 16, w: 16, h: 2, dropoff: false }),
         main.entity('plat', { x: 16 * 8, y: main.h - 16 * 4, w: 10, h: 5 }),
-        // Dog
-        main.entity('pet', { x: 15, y: 209 }),
+        // Shooter
+        main.entity('shooter', { x: 16 * 8 - 8, y: main.h - 16 * 4, f: 1 }),
         // Enemy
         main.entity('mananangal')
-    ]
+    ],
+    []
 ]; };
 var level_collide = function (level) {
     var c = [
         level[0].slice(1, 4)
     ];
-    level[0][4].collide = c[0];
     return c;
 };
 // Set gravity, game, levels, player, and player collisions
@@ -774,16 +789,17 @@ var lv = level(main);
 var player = main.entity('pinoy', { y: 195 });
 var menu = main.entity('menu');
 var collides = level_collide(lv);
-var king = main.entity('arrow');
-player.collide = collides[0];
-lv[0][4].follow = player;
+var pet = main.entity('pet', { x: 15, y: 209, animal: 0 });
+var king = main.entity('king');
+pet.collide = player.collide = collides[0];
+pet.follow = player;
 // Level Scene
 main.scene('level', function (t, dt) {
     if (dt > 100)
         return;
-    //main.play('song/1st Temp BG Song (New Area).mp3');
+    main.play('song/1st Temp BG Song (New Area).mp3');
     // Layers
-    main.add(lv[0], player, menu, king);
+    main.add(lv[0], pet, player, menu, king);
     // Developer Tools
     if (main.on('x'))
         lv[0][0].darkmode = !lv[0][0].darkmode;
@@ -800,21 +816,19 @@ main.scene('level', function (t, dt) {
         if (e.init && player.swinging < 0.1)
             player.swing = true;
     });
-    if (main.on('w, ,ArrowUp') && player.ground != -1) {
+    if (main.on('w,W, ,ArrowUp') && player.ground != -1) {
         player.m[1] = 20;
-        /*player.crouch = player.jumping = true;
-        player.m[0] = 0;*/
     }
-    else if (main.on('s,ArrowDown')) {
+    else if (main.on('s,S,ArrowDown')) {
         player.crouch = true;
         player.m[0] = 0;
     }
     else if (player.crouch) {
         player.crouch = player.jumping = false;
     }
-    else if (main.on('d,ArrowRight'))
+    else if (main.on('d,D,ArrowRight'))
         player.m[0] = 8;
-    else if (main.on('a,ArrowLeft'))
+    else if (main.on('a,A,ArrowLeft'))
         player.m[0] = -8;
     else
         player.m[0] = 0;

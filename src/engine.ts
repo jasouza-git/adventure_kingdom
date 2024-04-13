@@ -315,6 +315,7 @@ class engine {
                 this.ctx.stroke();
             }
         }
+        if (entity['bind'] != undefined) this.add(entity['bind']);
     }
     public add(...entities:({[index:string]:any}|{[index:string]:any}[])[]) {
         entities.forEach(entity => {

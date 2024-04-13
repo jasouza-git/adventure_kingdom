@@ -16,7 +16,8 @@ interface engine_type {
     sprites:(img:string, ...args:any[])=>void,
     draw:(type:string, data:undefined|{[prop:string]:any})=>void,
     render:(p?:HTMLElement)=>void,
-    physics:(entity:{[index:string]:any}, d?:number)=>boolean
+    physics:(entity:{[index:string]:any}, d?:number)=>boolean,
+    entity(type:string, ...arg:any) : {[index:string]:any}
 }
 interface entities_type {
     [entity_id:string]:{

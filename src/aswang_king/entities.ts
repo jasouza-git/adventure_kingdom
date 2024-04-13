@@ -9,7 +9,7 @@ let required_files:string[] = [
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Trees.png', 'Lagablab, bubble and random vegetation.png',
     // Entities
-    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png',
+    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shootercorrected.png',
     // Player
     'Mcparts.png',
     // Music
@@ -20,7 +20,6 @@ let entities:entities_type = {
     pinoy: {
         default: {
             x:0, y:0, m:[0,0], hitbox:[], collide:[], nocollide:[],
-            isdead: false, // Is character dead?
             crouch: false, // Is character crouching?
             jumping: false,// Is character jumping?
             fright: true,  // Is character facing right?
@@ -29,6 +28,7 @@ let entities:entities_type = {
             swinging: 0,   // Current swining position (0->1)
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
+            lives: 3
         },
         update: (d, o, t, dt) => {
             let c = n => [n%6, Math.floor(n/6)];
@@ -292,6 +292,23 @@ let entities:entities_type = {
             let tng = Math.floor(d.t*4);
             if (tng > 0) c.push([7, 8, Math.floor(t/100)%3*32, 32*3, 32, 32, 0, 0, 0]);
             o.sprites('Mananangalv3.png', [d.x, d.y+Math.sin(t/200)*0.5], ...c);
+        }
+    },
+    shooter: {
+        default: {x:0, y:0, f:0, cooldown: 1000, bind:[], speed:0},
+        update: (d, o, t, dt) => {
+
+            if (d.speed != 0) {
+                d.cooldown -= dt;
+                if (d.cooldown <= 0) {
+                    d.bind.push(o.entity('arrow', {x:d.x, y:d.y+4, m:[-(Math.random()*15+10)*d.speed/15, 0]}));
+                    d.cooldown = 1000;
+                }
+            }
+
+            o.sprites('Shootercorrected.png', [],
+                [d.x, d.y, 0,0, 13,12, d.f&1,d.f>>1&1]
+            )
         }
     }
 };
