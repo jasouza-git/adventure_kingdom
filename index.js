@@ -75,8 +75,16 @@ async function init() {
 http.createServer((req, res) => {
     let p = req.url == '/' ? 'index.html' : path.join(__dirname, 'asset', decodeURIComponent(req.url));
     fs.exists(p, e => {
-        if (e) fs.createReadStream(p).pipe(res);
-        else {
+        if (e) {
+            res.writeHead(200, {
+                'Content-Type': 
+                    p.endsWith('.html') ? 'text/html' :
+                    p.endsWith('.png') ? 'image/png' :
+                    p.endsWith('.mp3') ? 'audio/mpeg' :
+                    'text/plain'
+            });
+            fs.createReadStream(p).pipe(res);
+        } else {
             res.writeHead(404, {'Content-Type': 'text/plain'});
             res.end('404 Not Found\n');
         }

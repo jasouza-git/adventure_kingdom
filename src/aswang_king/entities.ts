@@ -31,56 +31,63 @@ let entities:entities_type = {
             ground: -1,    // Collider character is on
         },
         update: (d, o, t, dt) => {
-            // Hitbox
-            d.hitbox = [ 15,
-                d.x+12, d.y,
-                8, 29
-            ];
-
-            // Movement
+            let c = n => [n%6, Math.floor(n/6)];
+            let leg = [0,0], body = [0,0];
             if (d.dead == -1) {
+                // Hitbox
+                d.hitbox = [ 15,
+                    d.x+12, d.y,
+                    8, 29
+                ];
+
+                // Movement
                 d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
                 let cols = algo.physics(dt, d);
                 if (d.crouch && !d.jumping) cols.forEach(c => {
-                    if (c[1]==2) d.nocollide.push(c[0]);
+                    if (c[1]==2 && d.collide[c[0]].dropoff) d.nocollide.push(c[0]);
                 });
                 else d.nocollide = [];
-            }
-            if (d.y >= o.h-32) d.dead = 0;
-            
-            // Camera
-            if (d.camera) {
-                o.camera[0] = d.x-o.w/2;
-            }
+                if (d.y >= o.h-32) d.dead = 0;
+                
+                // Camera
+                if (d.camera) {
+                    //o.camera[0] = d.x-o.w/2;
+                    o.camera[0] += (d.x-o.w/2-o.camera[0])*dt/100;
+                }
 
-            // Sword
-            if (d.swing && d.dead == -1) {
-                d.swinging += (1-d.swinging)*dt/100;
-                if (d.swinging > 0.9) d.swing = false;
-            } else d.swinging -= d.swinging*dt/100;
-            let s = Math.round(d.swinging*2.4);
-
-            // Rendering
-            let c = n => [n%6, Math.floor(n/6)];
-            let leg = c(
-                d.ground == -1 ? 8 :
-                d.crouch ? 7 :
-                Math.abs(d.m[0]) > 0.5 ? 1+Math.floor(t/50)%6 :
-                0
-            );
-            let body = c(
-                s > 0 ? 27+s :
-                d.ground == -1 ? 26 :
-                d.crouch ? 25 :
-                Math.abs(d.m[0]) > 0.5 ? 13+Math.floor(t/50)%12 :
-                12
-            );
+                // Sword
+                if (d.swing && d.dead == -1) {
+                    d.swinging += (1-d.swinging)*dt/100;
+                    if (d.swinging > 0.9) d.swing = false;
+                } else d.swinging -= d.swinging*dt/100;
+                let s = Math.round(d.swinging*2.4);
+                leg = c(
+                    d.ground == -1 ? 8 :
+                    d.crouch ? 7 :
+                    Math.abs(d.m[0]) > 0.5 ? 1+Math.floor(t/50)%6 :
+                    0
+                );
+                body = c(
+                    s > 0 ? 27+s :
+                    d.ground == -1 ? 26 :
+                    d.crouch ? 25 :
+                    Math.abs(d.m[0]) > 0.5 ? 13+Math.floor(t/50)%12 :
+                    12
+                );
+            } 
             if (d.dead != -1) {
                 d.y = o.h-33;
                 leg = c(9);
                 body = c(27);
-                d.dead += (1-d.dead)*dt/200;
+                d.dead += (1-d.dead)*dt/300;
+                if (d.dead > 0.99) {
+                    d.dead = -1;
+                    d.x = 0;
+                    d.y = 195;
+                }
             }
+
+            // Rendering
             o.sprites('Mcparts.png', [d.x, d.y-(d.dead == -1 ? 0 : 21*Math.sin(1.32*(d.dead*d.dead+0.133)*Math.PI)-11)],
                 // Leg
                 [0, 0, 32*leg[0], 32*leg[1], 32, 32, 1-d.fright],
@@ -127,7 +134,8 @@ let entities:entities_type = {
                 } else if (d.follow.ground != -1 && d.ground != -1 && d.follow.collide[d.follow.ground].y > d.y+16) {
                     d.nocollide = [d.ground];
                 }
-            }
+            } else d.m[0] = 0;
+                
             // Movement
             d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
             algo.physics(dt, d);
@@ -187,7 +195,7 @@ let entities:entities_type = {
         }
     },
     plat: {
-        default: {x:0, y:0, w:0, h:0, hitbox:[]},
+        default: {x:0, y:0, w:0, h:0, hitbox:[], dropoff:true},
         update: (d, o, t, dt) => {
             let bs:number[][] = [];
             for (let y = 0; y < d.h*2; y++) {

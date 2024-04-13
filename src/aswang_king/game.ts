@@ -5,7 +5,7 @@ import {level, level_collide} from "./levels.ts";
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-let main = new engine({z:10, w:320, h:240, load: required_files});
+let main = new engine({z:4, w:320, h:240, load: required_files});
 let lv = level(main);
 let player = main.entity('pinoy', {y:195});
 let menu = main.entity('menu');
@@ -34,13 +34,13 @@ main.scene('level', (t, dt) => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
     if(main.on('w, ,ArrowUp') && player.ground != -1) {
-        player.crouch = player.jumping = true;
-        player.m[0] = 0;
+        player.m[1] = 20;
+        /*player.crouch = player.jumping = true;
+        player.m[0] = 0;*/
     } else if (main.on('s,ArrowDown')) {
         player.crouch = true;
         player.m[0] = 0;
     } else if (player.crouch) {
-        if (player.jumping) player.m[1] = 20;
         player.crouch = player.jumping = false;
     } else if(main.on('d,ArrowRight')) player.m[0] = 8;
     else if(main.on('a,ArrowLeft')) player.m[0] = -8;
