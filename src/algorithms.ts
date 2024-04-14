@@ -1,3 +1,5 @@
+import { engine_type } from "./types";
+
 let algo = {
     // Catalan Number, Dyck Word, Random Generation
     cdr: (length:number) => {
@@ -25,17 +27,40 @@ let algo = {
         loop(0, 0, length-1, true);
     },
     // Physics - Responsable for Gravity, Momentum, Collision
-    // (delta_time, entity.[m,hitbox,collide,nocollide]) => (entity.[x,y,m,ground])
+    // (delta_time, entity.[m,hitbox], engine.[interacts]) => (entity.[x,y,m,ground])
     gravity: 9,
-    physics: (delta_time:number, entity:{[index:string]:any}, nocollide?:boolean):number[][] => {
+    physics: (delta_time:number, entity:{[index:string]:any}, engine:engine_type):number[][] => {
+        // Chasing
+        if (entity.chase) {
+            if (entity.follow == undefined) {
+                engine.interacts.forEach(c => {
+                    if (c['__type__'] == entity.chase.type) {
+                        entity.follow = c;
+                        return;
+                    }
+                });
+            }/* else {
+                let d = [entity.follow.x - entity.x, entity.y-entity.follow.y];
+                if (entity.chase.min) entity.m = [
+                    Math.abs(d[0]) < entity.chase.min ? entity.chase.min*(d[0] > 0 ? 1 : -1) : d[0]/1000*entity.chase.speed,
+                    Math.abs(d[1]) < entity.chase.min ? entity.chase.min*(d[1] > 0 ? 1 : -1) : d[1]/1000*entity.chase.speed
+                ];
+                else entity.m = [
+                    (entity.follow.x - entity.x)/1000*entity.chase.speed,
+                    -(entity.follow.y - entity.y)/1000*entity.chase.speed
+                ]
+            }*/
+        }
+        
         // Calculate Momentum and difference Position
-        let m = [entity.m[0], entity.m[1]-(algo.gravity+entity.m[1])*delta_time/500];
+        let m = [entity.m[0], entity.m[1]-(entity.nogravity == undefined ? (algo.gravity+entity.m[1])*delta_time/500 : 0)];
         let p = [m[0]*delta_time/50, -m[1]*delta_time/50];
         let c:number[][] = [];
 
         entity.ground = -1;
-        if (nocollide != true) entity.collide.forEach((collider, id) => {
-            if (entity.nocollide.indexOf(id) != -1) return;
+        //if (nocollide != true) (entity.parent != undefined ? entity.parent.collide : entity.collide).forEach((collider, id) => {
+        engine.interacts.forEach((collider, id) => {
+            if (entity.nocollide != undefined && (entity.nocollide.indexOf(id) != -1 || entity.nocollide.indexOf(collider['__type__']) != -1)) return;
             for (let a = 0; a < 4; a++) {
                 // Would have been easier if hitbox was [N,W,S,E] instead
                 // Optional (a+1)>>1&1 instead
@@ -54,11 +79,23 @@ let algo = {
                 }
             }
         });
-        
+
         entity.x += p[0];
         entity.y += p[1];
         entity.m = m;
         return c;
+    },
+    intersect: (A, Bs, fil?):number => {
+        for(var n = 0; n < Bs.length; n++) {
+            var B = Bs[n];
+            if (( A.hitbox[1] < B.hitbox[1] && B.hitbox[1] < A.hitbox[1]+A.hitbox[3] &&
+                  A.hitbox[2] < B.hitbox[2] && B.hitbox[2] < A.hitbox[2]+A.hitbox[4] ) ||
+                ( B.hitbox[1] < A.hitbox[1] && A.hitbox[1] < B.hitbox[1]+B.hitbox[3] &&
+                  B.hitbox[2] < A.hitbox[2] && A.hitbox[2] < B.hitbox[2]+B.hitbox[4] )) {
+                if (fil == undefined || fil(B) == true) return n;
+            }
+        }
+        return -1;
     },
     /*
     collision: (entity:{[index:string]:any}, area?:number):number[] => {

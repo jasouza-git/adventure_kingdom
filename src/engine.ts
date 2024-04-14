@@ -2,6 +2,8 @@ import {loadedfile_type, action_type, scene_type, entities_type} from "./types.t
 
 /*#*/ let entities:entities_type = {};
 class engine {
+    private buf:HTMLCanvasElement = document.createElement('canvas');   // Buffer Canvas
+    public btx:CanvasRenderingContext2D;                                // Buffer Context
     public dom:HTMLCanvasElement;                                       // Canvas
     public ctx:CanvasRenderingContext2D;                                // Context
     public w:number;                                                    // Width
@@ -22,15 +24,19 @@ class engine {
         this.h = args.h || 240;
         this.dom.setAttribute('width', String(this.w*this.z));
         this.dom.setAttribute('height', String(this.h*this.z));
+        this.buf.setAttribute('width', String(this.w*this.z));
+        this.buf.setAttribute('height', String(this.h*this.z));
         this.ctx = this.dom.getContext('2d') as CanvasRenderingContext2D;
+        this.btx = this.buf.getContext('2d') as CanvasRenderingContext2D;
         this.ctx.imageSmoothingEnabled = false;
+        this.btx.imageSmoothingEnabled = false;
         if (Object.keys(args).indexOf('load') != -1) this.load(...args['load']);
     }
 
     // Loader
     public loaded:{[index:string]:loadedfile_type} = {};               // Loaded data in cache
     private loadcheck(percent:number):void {                            // Check if finished loading
-        this.ctx.fillRect((this.w*0.25+2)*this.z, (this.h*0.45+2)*this.z, percent*(this.w*0.5-4)*this.z, (this.h*0.1-4)*this.z);
+        this.btx.fillRect((this.w*0.25+2)*this.z, (this.h*0.45+2)*this.z, percent*(this.w*0.5-4)*this.z, (this.h*0.1-4)*this.z);
         if (percent < 1) return;
         var check = ()=>{
             for(var i = 0; i < Object.keys(this.loaded).length; i++)
@@ -46,9 +52,9 @@ class engine {
         let loaded : number[] = [];
 
         // Loading Menu
-        this.ctx.lineWidth = this.z;
-        this.ctx.strokeStyle = this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.strokeRect(this.w*this.z*0.25, this.h*this.z*0.45, this.w*this.z*0.5, this.h*this.z*0.1);
+        this.btx.lineWidth = this.z;
+        this.btx.strokeStyle = this.btx.fillStyle = '#FFFFFF';
+        this.btx.strokeRect(this.w*this.z*0.25, this.h*this.z*0.45, this.w*this.z*0.5, this.h*this.z*0.1);
 
         // Loading Files
         files.forEach((file:string, i:number)=>{
@@ -133,6 +139,7 @@ class engine {
             if (this.events[e].hasOwnProperty('init')) this.events[e]['init'] = false;
         });
         this.time_last = new Date();
+        this.ctx.drawImage(this.buf, 0, 0);
         if (this.filter != undefined) {
             this.ctx.putImageData(this.filter(this.ctx.getImageData(0,0, this.w*this.z, this.h*this.z)), 0, 0);
         }
@@ -183,10 +190,10 @@ class engine {
         fx?:boolean,fy?:boolean) {                                      // Draw Sprite
         if(!this.loaded.hasOwnProperty(img)) throw `Error: File ${img} is not loaded`;
         if(fx || fy) {
-            this.ctx.save();
-            this.ctx.scale(-1, 1);
+            this.btx.save();
+            this.btx.scale(-1, 1);
         }
-        this.ctx.drawImage(
+        this.btx.drawImage(
             this.loaded[img] as HTMLImageElement,
             cx,cy,cw,ch,
             Math.round((fx ? -cw-x+this.camera[0] : x-this.camera[0])*this.z),
@@ -194,11 +201,11 @@ class engine {
             cw*this.z,
             ch*this.z
         );
-        if (fx || fy) this.ctx.restore();
+        if (fx || fy) this.btx.restore();
         if (this.sprite_boxed) {
-            this.ctx.lineWidth = 1;
-            this.ctx.strokeStyle = '#FF0000';
-            this.ctx.strokeRect(
+            this.btx.lineWidth = 1;
+            this.btx.strokeStyle = '#FF0000';
+            this.btx.strokeRect(
                 Math.round((fx ? -cw-x+this.camera[0] : x-this.camera[0])*this.z),
                 Math.round((fy ? -ch-y+this.camera[1] : y-this.camera[1])*this.z),
                 cw*this.z,
@@ -215,24 +222,24 @@ class engine {
             data = arg = [...arg, ...data.slice(arg.length)];
             arg[0] += pos[0];
             arg[1] += pos[1];
-            if (arg[6] || arg[7] || arg[8]) this.ctx.save();
-            if (arg[6] || arg[7]) this.ctx.scale(-1, 1);
+            if (arg[6] || arg[7] || arg[8]) this.btx.save();
+            if (arg[6] || arg[7]) this.btx.scale(-1, 1);
             
             if(arg[8]) {
                 let rp = [(arg[0]+arg[9]-this.camera[0]*arg[11])*this.z*(1-2*arg[6]), (arg[1]+arg[10]-this.camera[1])*this.z*(1-2*arg[7])];
-                this.ctx.translate(rp[0], rp[1]);
-                this.ctx.rotate(arg[8]*(1-2*arg[6]));
-                this.ctx.translate(-rp[0], -rp[1]);
+                this.btx.translate(rp[0], rp[1]);
+                this.btx.rotate(arg[8]*(1-2*arg[6]));
+                this.btx.translate(-rp[0], -rp[1]);
                 if (this.rotate_boxed) {
-                    this.ctx.lineWidth = 1;
-                    this.ctx.strokeStyle = '#f00';
-                    this.ctx.beginPath();
-                    this.ctx.arc(rp[0], rp[1], 4*this.z, 0, Math.PI*2);
-                    this.ctx.moveTo(rp[0], rp[1]-5*this.z);
-                    this.ctx.lineTo(rp[0], rp[1]+5*this.z);
-                    this.ctx.moveTo(rp[0]-5*this.z, rp[1]);
-                    this.ctx.lineTo(rp[0]+5*this.z, rp[1]);
-                    this.ctx.stroke();
+                    this.btx.lineWidth = 1;
+                    this.btx.strokeStyle = '#f00';
+                    this.btx.beginPath();
+                    this.btx.arc(rp[0], rp[1], 4*this.z, 0, Math.PI*2);
+                    this.btx.moveTo(rp[0], rp[1]-5*this.z);
+                    this.btx.lineTo(rp[0], rp[1]+5*this.z);
+                    this.btx.moveTo(rp[0]-5*this.z, rp[1]);
+                    this.btx.lineTo(rp[0]+5*this.z, rp[1]);
+                    this.btx.stroke();
                 }
             }
             let dime = [
@@ -241,34 +248,34 @@ class engine {
                 arg[4]*this.z*pos[2],
                 arg[5]*this.z*pos[3]
             ];
-            this.ctx.drawImage(
+            this.btx.drawImage(
                 this.loaded[img] as HTMLImageElement,
                 data[2], data[3], data[4], data[5],
                 dime[0], dime[1], dime[2], dime[3]
             );
             if (this.sprite_boxed) {
-                this.ctx.globalAlpha = 1;
-                this.ctx.lineWidth = 1;
-                this.ctx.strokeStyle = '#FF0000';
-                this.ctx.strokeRect(
+                this.btx.globalAlpha = 1;
+                this.btx.lineWidth = 1;
+                this.btx.strokeStyle = '#FF0000';
+                this.btx.strokeRect(
                     dime[0], dime[1], dime[2], dime[3]
                 );
             }
-            if (arg[6] || arg[7] || arg[8]) this.ctx.restore();
+            if (arg[6] || arg[7] || arg[8]) this.btx.restore();
         });
     }
     public draw(type:string, data?:{[prop:string]:any}) {
         if (data == undefined) data = {};
         if (type == '') {
             data = {x:0, y:0, w:this.w, h:this.h, color: '#ffffff', alpha:1, img:'', ...data};
-            this.ctx.globalAlpha = data.alpha;
+            this.btx.globalAlpha = data.alpha;
             if (data.img == '') {
-                this.ctx.fillStyle = data.color;
-                this.ctx.fillRect(data.x*this.z, data.y*this.z, data.w*this.z, data.h*this.z);
+                this.btx.fillStyle = data.color;
+                this.btx.fillRect(data.x*this.z, data.y*this.z, data.w*this.z, data.h*this.z);
             } else {
-                this.ctx.drawImage(this.loaded[data.img] as HTMLImageElement, data.x*this.z, data.y*this.z, data.w*this.z, data.h*this.z);
+                this.btx.drawImage(this.loaded[data.img] as HTMLImageElement, data.x*this.z, data.y*this.z, data.w*this.z, data.h*this.z);
             }
-            this.ctx.globalAlpha = 1;
+            this.btx.globalAlpha = 1;
         } else if (entities != undefined && entities.hasOwnProperty(type)) {
             data = {...entities[type].default, ...data};
             // @ts-ignore
@@ -284,6 +291,7 @@ class engine {
     };
 
     // Entity
+    public interacts:{[index:string]:any}[] = [];
     public entity(type:string, ...arg:any) : {[index:string]:any} {
         if (!entities.hasOwnProperty(type)) throw `Error: No such entity "${type}"`;
         let out = {};
@@ -291,6 +299,7 @@ class engine {
         if (entities[type].hasOwnProperty('create')) out = entities[type].create(this, ...arg);
         else out = arg[0];
         out = {'__type__':type, ...entities[type].default, ...out};
+        if (out['interact']) this.interacts.push(out);
         return out;
     }
     public entities(type:string, len:number, ...arg:any) : {[index:string]:any}[] {
@@ -303,20 +312,20 @@ class engine {
         // @ts-ignore
         entities[entity['__type__']].update(entity, this, (new Date()).getTime()-this.time_init.getTime(), (new Date()).getTime()-this.time_last.getTime());
         if (this.hitbox_boxed && entity.hitbox) {
-            this.ctx.lineWidth = 1;
+            this.btx.lineWidth = 1;
             // @ts-ignore
             for (let i = 0; i < entity.hitbox.length; i += 5) {
-                this.ctx.strokeStyle = '#FFFF00';
-                this.ctx.strokeRect(
+                this.btx.strokeStyle = '#FFFF00';
+                this.btx.strokeRect(
                     (entity.hitbox[i+1]-this.camera[0])*this.z, (entity.hitbox[i+2]-this.camera[1])*this.z,
                     entity.hitbox[i+3]*this.z, entity.hitbox[i+4]*this.z
                 );
-                this.ctx.strokeStyle = '#FF0000';
-                this.ctx.beginPath();
-                this.ctx.moveTo((entity.hitbox[i+1]-this.camera[0])*this.z, (entity.hitbox[i+2]-this.camera[1])*this.z);
+                this.btx.strokeStyle = '#FF0000';
+                this.btx.beginPath();
+                this.btx.moveTo((entity.hitbox[i+1]-this.camera[0])*this.z, (entity.hitbox[i+2]-this.camera[1])*this.z);
                 // @ts-ignore
-                for (let j = 0; j < 4; j++) this.ctx[entity.hitbox[i]>>>j&1 ? 'lineTo' : 'moveTo']((entity.hitbox[i+1]+entity.hitbox[i+3]*(j<2?1:0)-this.camera[0])*this.z, (entity.hitbox[i+2]+entity.hitbox[i+4]*(j==1||j==2?1:0)-this.camera[1])*this.z);
-                this.ctx.stroke();
+                for (let j = 0; j < 4; j++) this.btx[entity.hitbox[i]>>>j&1 ? 'lineTo' : 'moveTo']((entity.hitbox[i+1]+entity.hitbox[i+3]*(j<2?1:0)-this.camera[0])*this.z, (entity.hitbox[i+2]+entity.hitbox[i+4]*(j==1||j==2?1:0)-this.camera[1])*this.z);
+                this.btx.stroke();
             }
         }
         if (entity['bind'] != undefined) this.add(entity['bind']);

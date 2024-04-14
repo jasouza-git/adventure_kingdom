@@ -19,12 +19,13 @@ let entities:entities_type = {
     // Pinoy Entitiy
     pinoy: {
         default: {
-            x:0, y:0, m:[0,0], hitbox:[], collide:[], nocollide:[],
+            x:0, y:0, m:[0,0], hitbox:[], nocollide:[],
             crouch: false, // Is character crouching?
             jumping: false,// Is character jumping?
             fright: true,  // Is character facing right?
             camera: true,  // Is camera on character?
             swing: false,  // Is character swinging sword?
+            interact:true, // Physics entities interacts
             swinging: 0,   // Current swining position (0->1)
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
@@ -42,9 +43,9 @@ let entities:entities_type = {
 
                 // Movement
                 d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
-                let cols = algo.physics(dt, d);
+                let cols = algo.physics(dt, d, o);
                 if (d.crouch && !d.jumping) cols.forEach(c => {
-                    if (c[1]==2 && d.collide[c[0]].dropoff) d.nocollide.push(c[0]);
+                    if (c[1]==2 && o.interacts[c[0]].dropoff) d.nocollide.push(c[0]);
                 });
                 else d.nocollide = [];
                 if (d.y >= o.h-32) d.dead = 0;
@@ -61,6 +62,12 @@ let entities:entities_type = {
                     if (d.swinging > 0.9) d.swing = false;
                 } else d.swinging -= d.swinging*dt/100;
                 let s = Math.round(d.swinging*2.4);
+                if (s > 0) d.hitbox.push(0,
+                    d.x+(d.fright?20:-4), d.y,
+                    16, 29
+                );
+
+
                 leg = c(
                     d.ground == -1 ? 8 :
                     d.crouch ? 7 :
@@ -76,7 +83,11 @@ let entities:entities_type = {
                 );
             } 
             if (d.dead != -1) {
-                d.y = o.h-33;
+                d.hitbox = [ 15,
+                    d.x+12, o.h,
+                    8, 29
+                ];
+                //d.y = o.h-33;
                 leg = c(9);
                 body = c(27);
                 d.dead += (1-d.dead)*dt/300;
@@ -84,11 +95,13 @@ let entities:entities_type = {
                     d.dead = -1;
                     d.x = 0;
                     d.y = 195;
+                    d.m = [0,0];
+                    d.fright = true;
                 }
             }
 
             // Rendering
-            o.sprites('Mcparts.png', [d.x, d.y-(d.dead == -1 ? 0 : 21*Math.sin(1.32*(d.dead*d.dead+0.133)*Math.PI)-11)],
+            o.sprites('Mcparts.png', [d.x, d.dead == -1 ? d.y : d.dead < 0.5 ? d.y-10*Math.sin(d.dead*Math.PI) : o.h+22-Math.sin(d.dead*Math.PI)*(o.h-d.y+32)],
                 // Leg
                 [0, 0, 32*leg[0], 32*leg[1], 32, 32, 1-d.fright],
                 // Body
@@ -125,7 +138,7 @@ let entities:entities_type = {
         }
     },
     pet: {
-        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, collide:[], nocollide:[], hitbox:[]},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[]},
         update: (d, o, t, dt) => {
             // Hitbox
             d.hitbox = [ 15,
@@ -140,20 +153,20 @@ let entities:entities_type = {
                     d.y = d.follow.y;
                 }
                 // Jump
-                if (d.follow.ground != -1 && d.follow.collide[d.follow.ground].y < d.y && !d.jumping) {
+                if (d.follow.ground != -1 && o.interacts[d.follow.ground].y < d.y && !d.jumping) {
                     d.m[1] = 20;//16;
                     d.jumping = true;
-                } else if (d.follow.ground != -1 && d.ground != -1 && d.follow.collide[d.follow.ground].y > d.y+16) {
-                    d.nocollide = [d.ground];
+                } else if (d.follow.ground != -1 && d.ground != -1 && o.interacts[d.follow.ground].y > d.y+16) {
+                    d.nocollide.push(d.ground);
                 }
             } else d.m[0] = 0;
                 
             // Movement
             d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
-            algo.physics(dt, d);
+            algo.physics(dt, d, o);
             if (d.ground != -1) {
                 d.jumping = false;
-                d.nocollide = [];
+                d.nocollide.splice(1);
             }
             // Render
             let x = (Math.abs(d.m[0])>0.15?1+Math.floor(t/100)%2:0);
@@ -188,17 +201,25 @@ let entities:entities_type = {
         }
     },
     arrow: {
-        default: {x:0, y:0, m:[0,0], a:0},
+        default: {x:0, y:0, m:[0,0], a:0, nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 3000},
         update: (d, o, t, dt) => {
-            if (d.y < 220) {
-                algo.physics(dt, d, true);
-                //d.x += d.m[0]*dt/50;
-                //d.y -= algo.gravity(d.m, dt);
-                d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
+            let col = algo.physics(dt, d, o);
+            if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1) col.forEach(c => {
+                if (o.interacts[c[0]]['__type__'] == 'pinoy' && o.interacts[c[0]].dead == -1) o.interacts[c[0]].dead = 0;
+            });
+            if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
+            else {
+                d.m = [0, 0];
+                d.duration -= dt;
             }
+
             o.sprites('Arrow.png', [d.x, d.y],
                 [0, 0, 0, 0, 8, 5, 0, 0, d.a, 4, 3]
             );
+            d.hitbox = [15,
+                d.x, d.y,
+                8, 5
+            ]
         },
         create: (o, arg) => {
             return {
@@ -208,7 +229,7 @@ let entities:entities_type = {
         }
     },
     plat: {
-        default: {x:0, y:0, w:0, h:0, hitbox:[], dropoff:true},
+        default: {x:0, y:0, w:0, h:0, hitbox:[], dropoff:true, interact:true},
         update: (d, o, t, dt) => {
             let bs:number[][] = [];
             for (let y = 0; y < d.h*2; y++) {
@@ -293,29 +314,56 @@ let entities:entities_type = {
         }
     },
     mananangal: {
-        default: {x:0, y:0, t:0},
+        default: {x:0, y:0, t:0, m:[0,0], hitbox:[],
+            follow:undefined,
+            nogravity:true,
+            nocollide:['plat'],
+            chase: {
+                type: 'pinoy',
+                speed: 10,
+                min: 4,
+            }
+        },
         update: (d, o, t, dt) => {
+            d.hitbox = [0,
+                d.x, d.y+8,
+                32, 24
+            ];
+            algo.physics(dt, d, o);
+
+            // AI
+            if (d.follow != undefined) {
+                d.m = [(d.follow.x - d.x)/80, -(d.follow.y - d.y)/80];
+                if (Math.hypot(d.follow.x - d.x, d.follow.y - d.y) < 30) d.t = 1;
+                else d.t = 0;
+            }
+
             let c = [
                 // Body
-                [0, 0, 0, 0, 32, 32],
+                [0, 0, 0, 0, 32, 32, d.m[0] < 0],
                 // Wing
-                [0, 1, 32*3, 0, 32, 32, 0, 0, Math.sin(t/100)*0.5-0.5, 11, 19]
+                [0, 1, 32*3, 0, 32, 32, d.m[0] < 0, 0, Math.sin(t/100)*0.5+(d.m[0] < 0 ? 0.5 : -0.5), d.m[0] < 0 ? 20 : 11, 19]
             ];
             let tng = Math.floor(d.t*4);
-            if (tng > 0) c.push([7, 8, Math.floor(t/100)%3*32, 32*3, 32, 32, 0, 0, 0]);
+            if (tng > 0) c.push([d.m[0] < 0 ? -7 : 7, 8, Math.floor(t/100)%3*32, 32*3, 32, 32, d.m[0] < 0, 0, 0]);
             o.sprites('Mananangalv3.png', [d.x, d.y+Math.sin(t/200)*0.5], ...c);
         }
     },
     shooter: {
-        default: {x:0, y:0, f:0, cooldown: 1000, bind:[], speed:0},
+        default: {x:0, y:0, f:0, cooldown: 1000, bind:[], speed:0, collide:[]},
         update: (d, o, t, dt) => {
 
             if (d.speed != 0) {
                 d.cooldown -= dt;
                 if (d.cooldown <= 0) {
-                    d.bind.push(o.entity('arrow', {x:d.x, y:d.y+4, m:[-(Math.random()*15+10)*d.speed/15, 0]}));
+                    d.bind.push(o.entity('arrow', {x:d.x, y:d.y+4, m:[-(Math.random()*15+10)*d.speed/15, 0], parent:d}));
                     d.cooldown = 1000;
                 }
+            }
+
+            for (var n = 0; n < d.bind.length; n++) if (d.bind[n].duration < 0) {
+                d.bind.splice(n,1);
+                n--;
             }
 
             o.sprites('Shootercorrected.png', [],
