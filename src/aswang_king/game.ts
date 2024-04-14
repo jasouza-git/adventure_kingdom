@@ -60,7 +60,7 @@ main.filter = d => {
     for (var y = 0; y < h; y++) {
         for (var x = 0; x < w; x++) {
             var p = (x+y*w)*4;
-            var o = 255-555*Math.max(Math.hypot(x-w/2, y-h/2)-7*w/20,0)/Math.min(w,h);
+            var o = 255-255*Math.max(Math.hypot(x-w/2, y-h/2)-7*w/20,0)/Math.min(w,h);
             if (y % 2 == 0) o *= (w*y/2+x-t)*0.000001%0.02 + 0.98;// ? 1 : 0.96;
             d.data[p+3] = Math.floor(o);
         }

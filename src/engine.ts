@@ -208,9 +208,9 @@ class engine {
     }
     public sprites(img:string, pos:number[], ...args:any[]) {
         if(!this.loaded.hasOwnProperty(img)) throw `Error: File ${img} is not loaded`;
-        // x, y, cx, cy, cw, ch, fx, fy, ra, rx, ry
+        // x, y, cx, cy, cw, ch, fx, fy, ra, rx, ry, px, py
         pos = [pos[0]||0, pos[1]||0, pos[2]||1, pos[3]||1];
-        let data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        let data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1];
         args.forEach(arg => {
             data = arg = [...arg, ...data.slice(arg.length)];
             arg[0] += pos[0];
@@ -219,7 +219,7 @@ class engine {
             if (arg[6] || arg[7]) this.ctx.scale(-1, 1);
             
             if(arg[8]) {
-                let rp = [(arg[0]+arg[9]-this.camera[0])*this.z*(1-2*arg[6]), (arg[1]+arg[10]-this.camera[1])*this.z*(1-2*arg[7])];
+                let rp = [(arg[0]+arg[9]-this.camera[0]*arg[11])*this.z*(1-2*arg[6]), (arg[1]+arg[10]-this.camera[1])*this.z*(1-2*arg[7])];
                 this.ctx.translate(rp[0], rp[1]);
                 this.ctx.rotate(arg[8]*(1-2*arg[6]));
                 this.ctx.translate(-rp[0], -rp[1]);
@@ -236,7 +236,7 @@ class engine {
                 }
             }
             let dime = [
-                Math.round((arg[6] ? -arg[4]-arg[0]+this.camera[0] : arg[0]-this.camera[0])*this.z),
+                Math.round((arg[6] ? -arg[4]-arg[0]+this.camera[0]*arg[11] : arg[0]-this.camera[0]*arg[11])*this.z),
                 Math.round((arg[7] ? -arg[5]-arg[1]+this.camera[1] : arg[1]-this.camera[1])*this.z),
                 arg[4]*this.z*pos[2],
                 arg[5]*this.z*pos[3]

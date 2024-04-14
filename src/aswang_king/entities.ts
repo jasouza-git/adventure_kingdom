@@ -5,7 +5,7 @@ let required_files:string[] = [
     // Menu
     'Rise_of_the_Aswang_King.png',
     // Background
-    'dark bg.png', 'normal bg.png', 'normal clouds.png', 'Housesv2.png',
+    'dark bg.png', 'normal bg.png', 'normal clouds.png', 'Housesv2.png', 'bg normal (no clouds) .png', 'bg normal (w clouds) .png',
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Trees.png', 'Lagablab, bubble and random vegetation.png',
     // Entities
@@ -102,14 +102,26 @@ let entities:entities_type = {
         default: {
             darkmode: false,
             dark: 0,
-            house: false
+            house: false,
+            data: 0,
         },
         update: (d, o, t, dt) => {
             if (d.darkmode) d.dark += (1-d.dark)*dt/1000;
             else d.dark -= d.dark*dt/1000;
             o.draw('', {img:'normal bg.png'});
             o.draw('', {img:'dark bg.png', alpha: d.dark});
+            for (var x = -5; x < 7; x++) o.sprites(d.data>>(x+5)&1 ? 'bg normal (no clouds) .png' : 'bg normal (w clouds) .png', [], [64*x, 0, 0, 0, 64, 240, 0, 0, 0, 0, 0, 0.1]);
             if (d.house) o.sprites('Housesv2.png', [], [-150, 100, 126, 0, 128, 128]);
+        },
+        create: (o, arg) => {
+            let d = 0;
+            for (var x = 0; x < 10; x++) {
+                if (Math.random() < 0.5) d += 1<<x;
+            }
+            return {
+                data: d,
+                ...arg
+            }
         }
     },
     pet: {
