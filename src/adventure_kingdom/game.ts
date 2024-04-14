@@ -39,7 +39,7 @@ main.scene('menu', (t, dt) => {
         player.crouched = true;
         player.jumping = false;
     } else {
-        if (player.crouched && player.ground && player.jumping) player.m[1] = 12;
+        if (player.crouched && player.ground != -1 && player.jumping) player.m[1] = 12;
         player.crouched = player.jumping = false;
     }
     if(main.on('d,ArrowRight')) player.m[0] += (3-player.m[0])*dt/300;

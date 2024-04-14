@@ -61,7 +61,7 @@ let entities:entities_type = {
                 o.camera[1] = Math.min(0, d.y-o.h/2);
             }
 
-            let txx = d.ground ? 0 : 1-Math.abs(d.m[1])/9;
+            let txx = d.ground != -1 ? 0 : 1-Math.abs(d.m[1])/9;
 
             // Render
             let parts = [

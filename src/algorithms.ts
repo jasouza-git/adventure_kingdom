@@ -27,14 +27,14 @@ let algo = {
     // Physics - Responsable for Gravity, Momentum, Collision
     // (delta_time, entity.[m,hitbox,collide,nocollide]) => (entity.[x,y,m,ground])
     gravity: 9,
-    physics: (delta_time:number, entity:{[index:string]:any}):number[][] => {
+    physics: (delta_time:number, entity:{[index:string]:any}, nocollide?:boolean):number[][] => {
         // Calculate Momentum and difference Position
         let m = [entity.m[0], entity.m[1]-(algo.gravity+entity.m[1])*delta_time/500];
         let p = [m[0]*delta_time/50, -m[1]*delta_time/50];
         let c:number[][] = [];
 
         entity.ground = -1;
-        entity.collide.forEach((collider, id) => {
+        if (nocollide != true) entity.collide.forEach((collider, id) => {
             if (entity.nocollide.indexOf(id) != -1) return;
             for (let a = 0; a < 4; a++) {
                 // Would have been easier if hitbox was [N,W,S,E] instead
