@@ -5,7 +5,8 @@ import {level, level_collide} from "./levels.ts";
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-let main = new engine({z:4, w:320, h:240, load: required_files});
+let main = new engine({z:1, w:320, h:240, load: required_files, camera:[-160,0]});
+main.dom.style.filter = 'contrast(1.1)';
 let lv = level(main);
 let player = main.entity('pinoy', {y:195});
 let menu = main.entity('menu');
@@ -20,7 +21,7 @@ pet.follow = player;
 // Level Scene
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
-    main.play('song/1st Temp BG Song (New Area).mp3');
+    //main.play('song/1st Temp BG Song (New Area).mp3');
 
     // Layers
     main.add(lv[0], pet, player, menu, king);
@@ -50,3 +51,19 @@ main.scene('level', (t, dt) => {
     else player.m[0] = 0;
 });
 main.render();
+
+
+main.filter = d => {
+    var w = main.w*main.z;
+    var h = main.h*main.z;
+    var t = ((new Date()).getTime()-main.time_init.getTime())*10;
+    for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+            var p = (x+y*w)*4;
+            var o = 255-555*Math.max(Math.hypot(x-w/2, y-h/2)-7*w/20,0)/Math.min(w,h);
+            if (y % 2 == 0) o *= (w*y/2+x-t)*0.000001%0.02 + 0.98;// ? 1 : 0.96;
+            d.data[p+3] = Math.floor(o);
+        }
+    }
+    return d;
+}

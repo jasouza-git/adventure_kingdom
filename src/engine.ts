@@ -93,7 +93,7 @@ class engine {
     private scenes:{[scene:string]:scene_type} = {};                    // Scenes
     private active_scene:string = '';                                   // Active Scene
     private path:string = '';                                           // Current path of action (scene)
-    private time_init:Date;                                             // Time since first frame
+    public time_init:Date;                                             // Time since first frame
     private time_last:Date;                                             // Time since last frame
     private audios:{[key:string]:HTMLAudioElement} = {}; // Current playing audios
     private check_event(event:string, action?:action_type) : boolean {             // Check if event occured then active action
@@ -110,6 +110,7 @@ class engine {
             this.evented[Object.keys(this.evented)[index]]['init'] = false;
         }return index != -1;
     }
+    public filter:undefined|((d:ImageData)=>ImageData) = undefined;
     private loop():void {                                               // Loop interval to trigger event check and scene
         let now:Date = new Date();
         if (this.active_scene.length != 0) {
@@ -132,6 +133,9 @@ class engine {
             if (this.events[e].hasOwnProperty('init')) this.events[e]['init'] = false;
         });
         this.time_last = new Date();
+        if (this.filter != undefined) {
+            this.ctx.putImageData(this.filter(this.ctx.getImageData(0,0, this.w*this.z, this.h*this.z)), 0, 0);
+        }
     }
     public start_loop():void {                                          // Start looper
         this.time_init = new Date();
