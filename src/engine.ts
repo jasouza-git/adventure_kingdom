@@ -36,7 +36,7 @@ class engine {
     // Loader
     public loaded:{[index:string]:loadedfile_type} = {};               // Loaded data in cache
     private loadcheck(percent:number):void {                            // Check if finished loading
-        this.btx.fillRect((this.w*0.25+2)*this.z, (this.h*0.45+2)*this.z, percent*(this.w*0.5-4)*this.z, (this.h*0.1-4)*this.z);
+        this.ctx.fillRect((this.w*0.25+2)*this.z, (this.h*0.45+2)*this.z, percent*(this.w*0.5-4)*this.z, (this.h*0.1-4)*this.z);
         if (percent < 1) return;
         var check = ()=>{
             for(var i = 0; i < Object.keys(this.loaded).length; i++)
@@ -52,9 +52,9 @@ class engine {
         let loaded : number[] = [];
 
         // Loading Menu
-        this.btx.lineWidth = this.z;
-        this.btx.strokeStyle = this.btx.fillStyle = '#FFFFFF';
-        this.btx.strokeRect(this.w*this.z*0.25, this.h*this.z*0.45, this.w*this.z*0.5, this.h*this.z*0.1);
+        this.ctx.lineWidth = this.z;
+        this.ctx.strokeStyle = this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.strokeRect(this.w*this.z*0.25, this.h*this.z*0.45, this.w*this.z*0.5, this.h*this.z*0.1);
 
         // Loading Files
         files.forEach((file:string, i:number)=>{
@@ -116,6 +116,7 @@ class engine {
             this.evented[Object.keys(this.evented)[index]]['init'] = false;
         }return index != -1;
     }
+    private gp:Gamepad|null;
     public filter:undefined|((d:ImageData)=>ImageData) = undefined;
     private loop():void {                                               // Loop interval to trigger event check and scene
         let now:Date = new Date();
@@ -138,6 +139,25 @@ class engine {
             this.events[e].forEach(a => this.check_event(e, a));
             if (this.events[e].hasOwnProperty('init')) this.events[e]['init'] = false;
         });
+        let gp = navigator.getGamepads()[0];
+        if (gp != null) {
+            if (Math.abs(gp.axes[9]+0.43)<0.1) this.evented['gp_e'] = this.evented['gp_e'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_e'];
+            if (Math.abs(gp.axes[9]-0.71)<0.1) this.evented['gp_w'] =  this.evented['gp_w'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_w'];
+            if (Math.abs(gp.axes[9]-0.14)<0.1) this.evented['gp_s'] =  this.evented['gp_s'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_s'];
+            if (Math.abs(gp.axes[9]+1) < 0.1) this.evented['gp_n'] = this.evented['gp_n'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_n'];
+            if (gp.buttons[0].value == 1) this.evented['gp_1'] = this.evented['gp_1'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_1'];
+            if (gp.buttons[1].value == 1) this.evented['gp_2'] = this.evented['gp_2'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_2'];
+            if (gp.buttons[2].value == 1) this.evented['gp_3'] = this.evented['gp_3'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_4'];
+            if (gp.buttons[3].value == 1) this.evented['gp_4'] = this.evented['gp_4'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_4'];
+        }
         this.time_last = new Date();
         this.ctx.drawImage(this.buf, 0, 0);
         if (this.filter != undefined) {

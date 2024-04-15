@@ -7,7 +7,7 @@ let required_files:string[] = [
     // Background
     'dark bg.png', 'normal bg.png', 'normal clouds.png', 'Housesv2.png', 'bg normal (no clouds) .png', 'bg normal (w clouds) .png',
     // Platforms
-    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Trees.png', 'Lagablab, bubble and random vegetation.png',
+    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lagablab, bubble and random vegetation.png',
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shootercorrected.png',
     // Player
@@ -245,7 +245,7 @@ let entities:entities_type = {
             for (let x = 0; x < d.w; x++) {
                 if (d.data[x]&8) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
                 if (d.data[x]&4) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,32,0,32,32]);
-                if (d.data[x]&2) o.sprites('Trees.png', [d.x, d.y], [32*x, -64, 0, 0, 64, 64]);
+                if (d.data[x]&2) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 64*(Math.floor(t/500)%2), 0, 64, 64]);
                 if (d.data[x]&1) o.sprites('Flowers.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
             }
             o.sprites('Blocks.png', [d.x, d.y], ...bs);

@@ -9,7 +9,7 @@ let level = main => [
         // Shooter
         main.entity('shooter', {x:16*8-8, y:main.h-16*4-64, f:1, speed:25}),
         // Enemy
-        main.entity('mananangal')
+        //main.entity('mananangal')
     ],
     [
 
