@@ -1,7 +1,7 @@
 import {algo} from "../algorithms.ts";
 import {required_files} from "./entities.ts";
 import {engine} from "../engine.ts";
-import {level, level_collide} from "./levels.ts";
+import {level} from "./levels.ts";
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
@@ -10,21 +10,19 @@ main.dom.style.filter = 'contrast(1.1)';
 let lv = level(main);
 let player = main.entity('pinoy', {y:195});
 let menu = main.entity('menu');
-let collides = level_collide(lv);
-let pet = main.entity('pet', {x:15,y:209,animal:0});
-let king = main.entity('king');
-
-pet.collide = player.collide = collides[0];
-pet.follow = player;
-
+let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
+let off = 0;
 
 // Level Scene
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
     //main.play('song/1st Temp BG Song (New Area).mp3');
 
+
+    off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
+
     // Layers
-    main.add(lv[0], pet, player, menu, king);
+    main.add(lv[0], pet, menu, player);
 
     // Developer Tools
     if(main.on('x')) lv[0][0].darkmode = !lv[0][0].darkmode;
@@ -52,7 +50,6 @@ main.scene('level', (t, dt) => {
 });
 main.render();
 
-
 main.filter = d => {
     var w = main.w*main.z;
     var h = main.h*main.z;
@@ -60,8 +57,12 @@ main.filter = d => {
     for (var y = 0; y < h; y++) {
         for (var x = 0; x < w; x++) {
             var p = (x+y*w)*4;
-            var o = 255-555*Math.max(Math.hypot(x-w/2, y-h/2)-7*w/20,0)/Math.min(w,h);
-            if (y % 2 == 0) o *= (w*y/2+x-t)*0.000001%0.02 + 0.98;// ? 1 : 0.96;
+            var o = 255-255*Math.max(Math.hypot(x-w/2, y-h/2)-7*w/20,0)/Math.min(w,h);
+            if (y % 2 == 0) o *= (w*y/2+x-t)*0.000001%0.02 + 0.98;
+            if (off != 0) {
+                d.data[p+1] = d.data[p+1+off*4];
+                d.data[p+3] = d.data[p+3+off*4];
+            }
             d.data[p+3] = Math.floor(o);
         }
     }
