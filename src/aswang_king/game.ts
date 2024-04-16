@@ -34,18 +34,22 @@ main.scene('level', (t, dt) => {
     });
 
     // Player Controls
-    main.on('Enter', e => {
+    main.on('gp_j0', e => {
+        player.camera = e.x*100;
+    });
+    main.on('Enter,gp_1', e => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
-    if(main.on('w,W, ,ArrowUp') && player.ground != -1) {
+    
+    if(main.on('w,W, ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20;
-    } else if (main.on('s,S,ArrowDown')) {
+    } else if (main.on('s,S,ArrowDown,gp_s')) {
         player.crouch = true;
         player.m[0] = 0;
     } else if (player.crouch) {
         player.crouch = player.jumping = false;
-    } else if(main.on('d,D,ArrowRight')) player.m[0] = 8;
-    else if(main.on('a,A,ArrowLeft')) player.m[0] = -8;
+    } else if(main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8;
+    else if(main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8;
     else player.m[0] = 0;
 });
 main.render();
