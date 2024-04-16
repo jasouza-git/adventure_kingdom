@@ -12,7 +12,6 @@ let player = main.entity('pinoy', {y:195});
 let menu = main.entity('menu');
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
 let off = 0;
-let king = main.entity('mananangal');
 
 // Level Scene
 main.scene('level', (t, dt) => {
@@ -23,7 +22,7 @@ main.scene('level', (t, dt) => {
     off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
 
     // Layers
-    main.add(lv[0], pet, menu, player, king);
+    main.add(lv[0], pet, menu, player);
 
     // Developer Tools
     if(main.on('x')) lv[0][0].darkmode = !lv[0][0].darkmode;
@@ -35,9 +34,13 @@ main.scene('level', (t, dt) => {
     });
 
     // Player Controls
+    main.on('gp_j0', e => {
+        player.camera = e.x*100;
+    });
     main.on('Enter,gp_1', e => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
+    
     if(main.on('w,W, ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20;
     } else if (main.on('s,S,ArrowDown,gp_s')) {

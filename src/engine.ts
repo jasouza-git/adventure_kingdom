@@ -54,7 +54,10 @@ class engine {
         // Loading Menu
         this.ctx.lineWidth = this.z;
         this.ctx.strokeStyle = this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.strokeRect(this.w*this.z*0.25, this.h*this.z*0.45, this.w*this.z*0.5, this.h*this.z*0.1);
+        this.ctx.strokeRect(Math.floor(this.w*this.z*0.25),
+                            Math.floor(this.h*this.z*0.45),
+                            Math.floor(this.w*this.z*0.5),
+                            Math.floor(this.h*this.z*0.1));
 
         // Loading Files
         files.forEach((file:string, i:number)=>{
@@ -141,6 +144,8 @@ class engine {
         });
         let gp = navigator.getGamepads()[0];
         if (gp != null) {
+            this.evented['gp_j0'] = {init:this.evented['gp_j0']==undefined, x:gp.axes[0], y:gp.axes[1]};
+            this.evented['gp_j1'] = {init:this.evented['gp_j1']==undefined, x:gp.axes[2], y:gp.axes[5]};
             if (Math.abs(gp.axes[9]+0.43)<0.1) this.evented['gp_e'] = this.evented['gp_e'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_e'];
             if (Math.abs(gp.axes[9]-0.71)<0.1) this.evented['gp_w'] =  this.evented['gp_w'] == undefined ? {init:true} : {init:false};
@@ -157,6 +162,9 @@ class engine {
             else delete this.evented['gp_4'];
             if (gp.buttons[3].value == 1) this.evented['gp_4'] = this.evented['gp_4'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_4'];
+        } else {
+            delete this.evented['gp_j0'];
+            delete this.evented['gp_j1'];
         }
         this.time_last = new Date();
         this.ctx.drawImage(this.buf, 0, 0);

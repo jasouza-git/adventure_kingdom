@@ -23,7 +23,7 @@ let entities:entities_type = {
             crouch: false, // Is character crouching?
             jumping: false,// Is character jumping?
             fright: true,  // Is character facing right?
-            camera: true,  // Is camera on character?
+            camera: 0,     // Camera on player offset, if undefined then no set
             swing: false,  // Is character swinging sword?
             interact:true, // Physics entities interacts
             swinging: 0,   // Current swining position (0->1)
@@ -51,9 +51,9 @@ let entities:entities_type = {
                 if (d.y >= o.h-32) d.dead = 0;
                 
                 // Camera
-                if (d.camera) {
+                if (d.camera != undefined) {
                     //o.camera[0] = d.x-o.w/2;
-                    o.camera[0] += (d.x-o.w/2-o.camera[0])*dt/100;
+                    o.camera[0] += (d.x+d.camera-o.w/2-o.camera[0])*dt/100;
                 }
 
                 // Sword
@@ -229,7 +229,7 @@ let entities:entities_type = {
         }
     },
     plat: {
-        default: {x:0, y:0, w:0, h:0, hitbox:[], dropoff:true, interact:true},
+        default: {x:0, y:0, w:0, h:0, hitbox:[], dropoff:true, interact:true, col:1},
         update: (d, o, t, dt) => {
             let bs:number[][] = [];
             for (let y = 0; y < d.h*2; y++) {
@@ -249,7 +249,7 @@ let entities:entities_type = {
                 if (d.data[x]&1) o.sprites('Flowers.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
             }
             o.sprites('Blocks.png', [d.x, d.y], ...bs);
-            d.hitbox = [ 1,
+            d.hitbox = [ d.col,
                 d.x, d.y,
                 d.w*16, d.h*16
             ];
@@ -322,25 +322,42 @@ let entities:entities_type = {
                 type: 'pinoy',
                 speed: 10,
                 min: 4,
-            }
+            },
+            dead: -1,
+            pn: 0,
+            speed: 5,
+            target: false
         },
         update: (d, o, t, dt) => {
             d.hitbox = [0,
                 d.x, d.y+8,
-                32, 24
+                32, 24,
+                        0,
+                d.x+(d.m[0]>0?32:-64), d.y,
+                64, 40
             ];
             algo.physics(dt, d, o);
 
             // AI
-            if (d.follow != undefined) {
-                d.m = [(d.follow.x - d.x)/80, -(d.follow.y - d.y)/80];
-                if (Math.hypot(d.follow.x - d.x, d.follow.y - d.y) < 30) d.t = 1;
-                else d.t = 0;
+            if (!d.target && d.p != undefined) {
+                let v = d.pn == 0 ? [Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.atan2(d.y-d.p[1], d.p[0]-d.x)]
+                                  : [Math.hypot(d.p[2]-d.x, d.p[3]-d.y), Math.atan2(d.y-d.p[3], d.p[2]-d.x)];
+                if (v[0] < 10) d.pn = 1-d.pn;
+                d.v = v;
+                d.m = [Math.cos(v[1])*d.speed/2, Math.sin(v[1])*d.speed/2];
+                //o.sprites('Mananangalv3.png', [p[0], p[1]+Math.sin(t/200)*0.5], [0, 0, 0, 0, 32, 32, d.m[0] < 0]);
+            } else if (d.follow != undefined) {
+                let h = Math.hypot(d.follow.x - d.x, d.follow.y - d.y);
+                let a = Math.atan2(d.y-d.follow.y, d.follow.x-d.x);
+                if (h > 20) d.m = [Math.cos(a)*d.speed, Math.sin(a)*d.speed];
+                //d.m = [(d.follow.x - d.x)/80, -(d.follow.y - d.y)/80];
+                //if (Math.hypot(d.follow.x - d.x, d.follow.y - d.y) < 30) d.t = 1;
+                //else d.t = 0;
             }
 
             let c = [
                 // Body
-                [0, 0, 0, 0, 32, 32, d.m[0] < 0],
+                [0, 0, d.dead == -1 ? 0 : Math.round(d.dead*2)*32, 0, 32, 32, d.m[0] < 0],
                 // Wing
                 [0, 1, 32*3, 0, 32, 32, d.m[0] < 0, 0, Math.sin(t/100)*0.5+(d.m[0] < 0 ? 0.5 : -0.5), d.m[0] < 0 ? 20 : 11, 19]
             ];
