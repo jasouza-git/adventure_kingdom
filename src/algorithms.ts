@@ -104,6 +104,7 @@ let algo = {
                (B[1] < A[1] && A[1] < B[1]+B[3] &&
                 B[2] < A[2] && A[2] < B[2]+B[4] );
     },
+    sprite: (n,w) => [n%w, Math.floor(n/w)],
     /*
     collision: (entity:{[index:string]:any}, area?:number):number[] => {
         let collide:number[] = [0, -1];
