@@ -372,35 +372,18 @@ let entities:entities_type = {
     shooter: {
         default: {x:0, y:0, f:0, a:0, shoot:1, cooldowntmp:1000, cooldown: 1000, bind:[], speed:0, collide:[], s:10},
         update: (d, o, t, dt) => {
-            /*
-            if (d.speed != 0) {
-                d.cooldown -= dt;
-                if (d.cooldown <= 0) {
-                    d.bind.push(o.entity('arrow', {x:d.x, y:d.y+4, m:[-(Math.random()*15+10)*d.speed/15, 0], parent:d}));
-                    d.cooldown = 1000;
-                }
-            }
-
-            for (var n = 0; n < d.bind.length; n++) if (d.bind[n].duration < 0) {
-                d.bind.splice(n,1);
-                n--;
-            }
-
-            o.sprites('Shootercorrected.png', [],
-                [d.x, d.y, 0,0, 13,12, d.f&1,d.f>>1&1]
-            )*/
             let ofs = 0;
             if (d.shoot > 0) {
                 d.cooldowntmp -= dt;
                 //console.log(d.cooldowntmp);
                 if (d.colldowntmp < 1000) ofs = 2;
                 if (d.cooldowntmp <= 0) {
-                    d.bind.push(o.entity('arrow', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(-d.a),d.s*Math.sin(-d.a)], parent:d, a:d.a+Math.PI}));
+                    d.bind.push(o.entity('arrow', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(d.a),d.s*Math.sin(d.a)], parent:d, a:-d.a+Math.PI}));
                     d.shoot--;
                     d.cooldowntmp = d.cooldown;
                 }
             }
-            o.sprites('Shooterv2.png', [], [d.x-6, d.y-6, 32*ofs, 0, 13, 12, d.f, 0, d.a, 6, 6])
+            o.sprites('Shooterv2.png', [], [d.x-6, d.y-6, 32*ofs, 0, 13, 12, d.f, 0, -d.a, 6, 6])
         }
     },
     vine: {
