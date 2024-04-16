@@ -9,7 +9,9 @@ let required_files:string[] = [
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lagablab, bubble and random vegetation.png',
     // Entities
-    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shootercorrected.png',
+    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shooterv2.png',
+    // Objects
+    'Vine.png', 'Tripwire2Correct.png',
     // Player
     'Mcparts.png',
     // Music
@@ -345,6 +347,7 @@ let entities:entities_type = {
                 if (v[0] < 10) d.pn = 1-d.pn;
                 d.v = v;
                 d.m = [Math.cos(v[1])*d.speed/2, Math.sin(v[1])*d.speed/2];
+                if (algo.rectint(d.follow.hitbox, d.hitbox.slice(5))) d.target = true;
                 //o.sprites('Mananangalv3.png', [p[0], p[1]+Math.sin(t/200)*0.5], [0, 0, 0, 0, 32, 32, d.m[0] < 0]);
             } else if (d.follow != undefined) {
                 let h = Math.hypot(d.follow.x - d.x, d.follow.y - d.y);
@@ -367,9 +370,9 @@ let entities:entities_type = {
         }
     },
     shooter: {
-        default: {x:0, y:0, f:0, cooldown: 1000, bind:[], speed:0, collide:[]},
+        default: {x:0, y:0, f:0, a:0, shoot:1, cooldowntmp:1000, cooldown: 1000, bind:[], speed:0, collide:[], s:10},
         update: (d, o, t, dt) => {
-
+            /*
             if (d.speed != 0) {
                 d.cooldown -= dt;
                 if (d.cooldown <= 0) {
@@ -385,7 +388,56 @@ let entities:entities_type = {
 
             o.sprites('Shootercorrected.png', [],
                 [d.x, d.y, 0,0, 13,12, d.f&1,d.f>>1&1]
-            )
+            )*/
+            let ofs = 0;
+            if (d.shoot > 0) {
+                d.cooldowntmp -= dt;
+                console.log(d.cooldowntmp);
+                if (d.colldowntmp < 1000) ofs = 2;
+                if (d.cooldowntmp <= 0) {
+                    d.bind.push(o.entity('arrow', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(-d.a),d.s*Math.sin(-d.a)], parent:d, a:d.a+Math.PI}));
+                    d.shoot--;
+                    d.cooldowntmp = d.cooldown;
+                }
+            }
+            o.sprites('Shooterv2.png', [], [d.x-6, d.y-6, 32*ofs, 0, 13, 12, d.f, 0, d.a, 6, 6])
+        }
+    },
+    vine: {
+        default: {x:0, y:0, h:0},
+        update: (d, o, t, dt) => {
+            let a:number[][] = [];
+            for(var i = 0; i < Math.floor(d.h/24); i++) a.push([0, 24*i, 0, 0, 7, 24]);
+            if (d.h%24 != 0) a.push([0, 24*i, 0, 0, 7, d.h%24])
+            a.push([2, d.h, 0, 32, 3, 3]);
+            o.sprites('Vine.png', [d.x, d.y], ...a);
+        }
+    },
+    wire: {
+        default: {x:0, y:0, h:10, triggered: false,
+            follow:undefined
+        },
+        update: (d, o, t, dt) => {
+            d.hitbox = [0,
+                d.x, d.y,
+                4, 14+d.h
+            ];
+            if (d.follow == undefined) {
+                o.interacts.forEach(e => {
+                    if (e['__type__'] == 'pinoy') d.follow = e;
+                });
+            }
+            let a:number[][] = [[0,0,0,0,3,7],[0,7+d.h,0,9,3,7]];
+            for(var i = 0; i < Math.floor(d.h/16); i++) a.push([2,7+16*i,15,0,1,16]);
+            if (d.h%16 != 0) a.push([2,7+16*i,15,0,1,d.h%16]);
+            if (d.follow != undefined && algo.rectint(d.hitbox, d.follow.hitbox)) {
+                if (!d.triggered) d.bind.forEach(s => {
+                    s.shoot = 1;
+                    s.cooldown = 0;
+                });
+                d.triggered = true;
+            } else d.triggered = false;
+            o.sprites('Tripwire2Correct.png', [d.x,d.y], ...a);
         }
     }
 };

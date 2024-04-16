@@ -97,6 +97,13 @@ let algo = {
         }
         return -1;
     },
+    rectint: (A,B):boolean => {
+        if (B.length < 5) return false;
+        return (A[1] < B[1] && B[1] < A[1]+A[3] &&
+                A[2] < B[2] && B[2] < A[2]+A[4] ) ||
+               (B[1] < A[1] && A[1] < B[1]+B[3] &&
+                B[2] < A[2] && A[2] < B[2]+B[4] );
+    },
     /*
     collision: (entity:{[index:string]:any}, area?:number):number[] => {
         let collide:number[] = [0, -1];
