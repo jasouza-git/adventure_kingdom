@@ -14,6 +14,9 @@ let level = main => [
         main.entity('wire',{y:main.h-16*5,h:30, bind:[
             main.entity('shooter',{y:main.h-16*4,s:50,a:Math.PI*0.25})
         ]}),
+        main.entity('pressure_plate',{x:50,y:main.h-16*6,h:30, bind:[
+            main.entity('shooter',{y:main.h-16*4,s:50,a:Math.PI*0.25})
+        ]}),
     ],
     [
 

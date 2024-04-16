@@ -11,7 +11,7 @@ let required_files:string[] = [
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shooterv2.png',
     // Objects
-    'Vine.png', 'Tripwire2Correct.png',
+    'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
     'Mcparts.png',
     // Music
@@ -392,7 +392,7 @@ let entities:entities_type = {
             let ofs = 0;
             if (d.shoot > 0) {
                 d.cooldowntmp -= dt;
-                console.log(d.cooldowntmp);
+                //console.log(d.cooldowntmp);
                 if (d.colldowntmp < 1000) ofs = 2;
                 if (d.cooldowntmp <= 0) {
                     d.bind.push(o.entity('arrow', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(-d.a),d.s*Math.sin(-d.a)], parent:d, a:d.a+Math.PI}));
@@ -438,6 +438,33 @@ let entities:entities_type = {
                 d.triggered = true;
             } else d.triggered = false;
             o.sprites('Tripwire2Correct.png', [d.x,d.y], ...a);
+        }
+    },
+    pressure_plate: {
+        default: {x:0, y:0, w:10, triggered: false,
+            follow:undefined
+        },
+        update: (d, o, t, dt) => {
+            d.hitbox = [0,
+                d.x, d.y,
+                4+d.w, 2
+            ];
+            if (d.follow == undefined) {
+                o.interacts.forEach(e => {
+                    if (e['__type__'] == 'pinoy') d.follow = e;
+                });
+            }
+            let a:number[][] = [[0,0,0,0,2,2],[2+d.w,0,2,0,2,2]];
+            for(var i = 0; i < Math.floor(d.w/16); i++) a.push([2+16*i,0,0,2,16,2]);
+            if (d.w%16 != 0) a.push([2+16*i,0,0,2,d.w%16,2]);
+            if (d.follow != undefined && algo.rectint(d.hitbox, d.follow.hitbox)) {
+                if (!d.triggered) d.bind.forEach(s => {
+                    s.shoot = 1;
+                    s.cooldown = 0;
+                });
+                d.triggered = true;
+            } else d.triggered = false;
+            o.sprites('pressure.png', [d.x,d.y], ...a);
         }
     }
 };
