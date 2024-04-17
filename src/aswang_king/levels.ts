@@ -44,7 +44,7 @@ let level = main => [
 		main.entity('plat', {x:2832, y:224, w:3, h:1}),
 		main.entity('plat', {x:2840, y:168, w:1, h:1, dropoff: true, mode:0}),
 	], [
-		main.entity('plat', {x:2880, y:224, w:32, h:1}),
+		main.entity('plat', {x:2880, y:224, w:30, h:1}),
 		main.entity('plat', {x:2904, y:136, w:1, h:1, dropoff: true, mode:0}),
 		main.entity('plat', {x:2960, y:104, w:1, h:1, dropoff: true, mode:0}),
 		main.entity('plat', {x:3032, y:88, w:3, h:1, dropoff: true, mode:0}),
@@ -57,6 +57,7 @@ let level = main => [
 	], [
 		main.entity('plat', {x:3360, y:96, w:3, h:1, dropoff: true, mode:0}),
 		main.entity('plat', {x:3360, y:168, w:0, h:1, dropoff: true, mode:0}),
+		main.entity('plat', {x:3360, y:224, w:2, h:1}),
 		main.entity('plat', {x:3392, y:224, w:16, h:1, mode:0, col:15}),
 		main.entity('plat', {x:3440, y:64, w:6, h:1, dropoff: true, mode:0}),
 		main.entity('plat', {x:3536, y:48, w:2, h:2, dropoff: true, mode:0}),
@@ -103,7 +104,7 @@ let level = main => [
 		main.entity('plat', {x:4752, y:224, w:3, h:1}),
 		main.entity('plat', {x:4768, y:96, w:2, h:1, dropoff: true, mode:0}),
 	], [
-		main.entity('plat', {x:4800, y:224, w:36, h:1}),
+		main.entity('plat', {x:4800, y:224, w:30, h:1}),
 		main.entity('plat', {x:4800, y:96, w:8, h:1, dropoff: true, mode:0}),
 		main.entity('plat', {x:4984, y:136, w:10, h:1, dropoff: true, mode:0}),
 		main.entity('plat', {x:5200, y:104, w:5, h:1, dropoff: true, mode:0}),
@@ -112,8 +113,9 @@ let level = main => [
 		]}),
 	], [
 		main.entity('plat', {x:5632, y:176, w:4, h:4, dropoff: true, mode:0}),
+		main.entity('plat', {x:5280, y:224, w:6, h:1}),
 		main.entity('plat', {x:5280, y:104, w:5, h:1, dropoff: true, mode:0}),
-		main.entity('plat', {x:5376, y:224, w:30, h:1, mode:0, col:15}),
+		main.entity('plat', {x:5376, y:224, w:24, h:1, mode:0, col:15}),
 		main.entity('plat', {x:5744, y:72, w:1, h:1, dropoff: true, mode:0}),
 	], [
 		main.entity('plat', {x:5920, y:176, w:2, h:4, dropoff: true, mode:0}),
@@ -121,10 +123,10 @@ let level = main => [
 		main.entity('plat', {x:6192, y:176, w:2, h:4, dropoff: true, mode:0}),
 		main.entity('plat', {x:6224, y:144, w:1, h:6, dropoff: true, mode:0}),
 		main.entity('plat', {x:5760, y:72, w:1, h:1, dropoff: true, mode:0}),
-		main.entity('plat', {x:5856, y:224, w:30, h:1, mode:0, col:15}),
+		main.entity('plat', {x:5760, y:224, w:30, h:1, mode:0, col:15}),
 	], [
 		main.entity('plat', {x:6240, y:144, w:1, h:6, dropoff: true, mode:0}),
-		main.entity('plat', {x:6336, y:224, w:6, h:1, mode:0, col:15}),
+		main.entity('plat', {x:6240, y:224, w:12, h:1, mode:0, col:15}),
 		main.entity('plat', {x:6432, y:192, w:2, h:3, mode:0, col:15}),
 		main.entity('plat', {x:6464, y:160, w:2, h:5, mode:0, col:15}),
 		main.entity('plat', {x:6496, y:128, w:2, h:7, mode:0, col:15}),
@@ -146,11 +148,12 @@ let level = main => [
 		main.entity('plat', {x:7136, y:176, w:1, h:4, mode:0, col:15}),
 		main.entity('plat', {x:7152, y:224, w:3, h:1, mode:0, col:15}),
 	], [
-		main.entity('plat', {x:7200, y:224, w:50, h:1, mode:0, col:15}),
+		main.entity('plat', {x:7200, y:224, w:30, h:1, mode:0, col:15}),
 		main.entity('plat', {x:7264, y:144, w:8, h:1, dropoff: true, mode:0}),
 		main.entity('plat', {x:7456, y:104, w:8, h:1, dropoff: true, mode:0}),
 	], [
 		main.entity('plat', {x:7680, y:0, w:2, h:10, dropoff: true, mode:0}),
+		main.entity('plat', {x:7680, y:224, w:20, h:1, mode:0, col:15}),
 	], [
 		main.entity('text', {x:8000, title:'Level 2'}),
 		main.entity('plat', {x:8000, y:224, w:13, h:1, mode:2, col:15}),
@@ -191,21 +194,21 @@ let level = main => [
 		main.entity('plat', {x:10032, y:160, w:2, h:5, mode:2, col:15}),
 		main.entity('plat', {x:10064, y:192, w:2, h:3, mode:2, col:15}),
 		main.entity('plat', {x:10096, y:208, w:2, h:2, mode:2, col:15}),
-		main.entity('plat', {x:10128, y:224, w:30, h:1}),
+		main.entity('plat', {x:10128, y:224, w:17, h:1}),
 		main.entity('plat', {x:10176, y:152, w:3, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:10272, y:128, w:3, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:10376, y:112, w:1, h:1, dropoff: true, mode:1}),
 		main.entity('vine', {x:9924, y:0, h:76}),
 	], [
 		main.entity('plat', {x:10400, y:112, w:1, h:1, dropoff: true, mode:1}),
+		main.entity('plat', {x:10400, y:224, w:30, h:1}),
 		main.entity('plat', {x:10472, y:136, w:3, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:10576, y:88, w:3, h:1, dropoff: true, mode:1}),
-		main.entity('plat', {x:10608, y:224, w:30, h:1}),
 		main.entity('plat', {x:10656, y:148, w:3, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:10748, y:124, w:3, h:1, dropoff: true, mode:1}),
 		main.entity('vine', {x:10856, y:0, h:124}),
 	], [
-		main.entity('plat', {x:11088, y:224, w:24, h:1}),
+		main.entity('plat', {x:10880, y:224, w:30, h:1}),
 		main.entity('plat', {x:11096, y:88, w:5, h:1, dropoff: true, mode:2}),
 		main.entity('plat', {x:11176, y:88, w:3, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:11224, y:88, w:4, h:1, dropoff: true, mode:2}),
@@ -217,6 +220,7 @@ let level = main => [
 		main.entity('plat', {x:11472, y:176, w:4, h:4, dropoff: true, mode:2}),
 		main.entity('plat', {x:11776, y:160, w:3, h:5, dropoff: true, mode:2}),
 		main.entity('plat', {x:11360, y:88, w:3, h:1, dropoff: true, mode:2}),
+		main.entity('plat', {x:11360, y:224, w:7, h:1}),
 		main.entity('plat', {x:11472, y:224, w:23, h:1, mode:2, col:15}),
 		main.entity('plat', {x:11584, y:120, w:10, h:1, dropoff: true, mode:2}),
 		main.entity('plat', {x:11836, y:92, w:0, h:1, dropoff: true, mode:2}),
@@ -232,7 +236,7 @@ let level = main => [
 		main.entity('plat', {x:12720, y:160, w:2, h:5, dropoff: true, mode:2}),
 		main.entity('plat', {x:12320, y:128, w:2, h:7, mode:2, col:15}),
 		main.entity('plat', {x:12352, y:96, w:2, h:9, mode:2, col:15}),
-		main.entity('plat', {x:12384, y:224, w:30, h:1, mode:2, col:15}),
+		main.entity('plat', {x:12384, y:224, w:26, h:1, mode:2, col:15}),
 		main.entity('wire', {x:12436, y:124, h:16, bind:[
 			main.entity('shooter', {x:1.2438E+4, y:6.0, s:10, a:4.712388980385}),
 		]}),
@@ -248,7 +252,7 @@ let level = main => [
 		main.entity('plat', {x:13056, y:192, w:2, h:3, dropoff: true, mode:2}),
 		main.entity('plat', {x:13088, y:160, w:2, h:5, dropoff: true, mode:2}),
 		main.entity('plat', {x:13120, y:128, w:2, h:7, dropoff: true, mode:2}),
-		main.entity('plat', {x:12864, y:224, w:30, h:1, mode:2, col:15}),
+		main.entity('plat', {x:12800, y:224, w:30, h:1, mode:2, col:15}),
 		main.entity('wire', {x:13052, y:100, h:16, bind:[
 			main.entity('shooter', {x:1.3054E+4, y:6.0, s:10, a:4.712388980385}),
 		]}),
@@ -258,7 +262,7 @@ let level = main => [
 		main.entity('vine', {x:13140, y:0, h:76}),
 		main.entity('vine', {x:13228, y:0, h:112}),
 	], [
-		main.entity('plat', {x:13344, y:224, w:9, h:1, mode:2, col:15}),
+		main.entity('plat', {x:13280, y:224, w:13, h:1, mode:2, col:15}),
 		main.entity('plat', {x:13488, y:176, w:2, h:4, mode:2, col:15}),
 		main.entity('plat', {x:13520, y:144, w:15, h:6, mode:2, col:15}),
 		main.entity('plat', {x:13552, y:0, w:2, h:7, mode:2, col:15}),
@@ -289,14 +293,14 @@ let level = main => [
 	], [
 		main.entity('plat', {x:14240, y:0, w:1, h:9, mode:2, col:15}),
 		main.entity('plat', {x:14240, y:176, w:4, h:4, mode:2, col:15}),
-		main.entity('plat', {x:14304, y:224, w:30, h:1, mode:2, col:15}),
+		main.entity('plat', {x:14304, y:224, w:26, h:1, mode:2, col:15}),
 		main.entity('plat', {x:14312, y:120, w:4, h:1, dropoff: true, mode:2}),
 		main.entity('vine', {x:14400, y:0, h:184}),
 		main.entity('vine', {x:14480, y:0, h:144}),
 		main.entity('vine', {x:14560, y:0, h:184}),
 		main.entity('vine', {x:14640, y:0, h:144}),
 	], [
-		main.entity('plat', {x:14784, y:224, w:30, h:1, mode:2, col:15}),
+		main.entity('plat', {x:14720, y:224, w:30, h:1, mode:2, col:15}),
 		main.entity('vine', {x:14720, y:0, h:184}),
 		main.entity('vine', {x:14800, y:0, h:144}),
 		main.entity('vine', {x:14880, y:0, h:184}),
@@ -304,12 +308,12 @@ let level = main => [
 		main.entity('vine', {x:15040, y:0, h:184}),
 		main.entity('vine', {x:15120, y:0, h:144}),
 	], [
-		main.entity('plat', {x:15264, y:224, w:30, h:1, mode:2, col:15}),
+		main.entity('plat', {x:15200, y:224, w:30, h:1, mode:2, col:15}),
 		main.entity('vine', {x:15200, y:0, h:184}),
 		main.entity('vine', {x:15280, y:0, h:144}),
 	], [
 		main.entity('plat', {x:15680, y:0, w:2, h:10, mode:2, col:15}),
-		main.entity('plat', {x:15744, y:224, w:16, h:1, mode:2, col:15}),
+		main.entity('plat', {x:15680, y:224, w:20, h:1, mode:2, col:15}),
 		main.entity('plat', {x:15968, y:0, w:2, h:11, mode:2, col:15}),
 	], [
 		main.entity('text', {x:16000, title:'Level 3'}),
@@ -321,12 +325,13 @@ let level = main => [
 		main.entity('plat', {x:16320, y:152, w:8, h:1, dropoff: true, mode:1}),
 	], [
 		main.entity('plat', {x:16480, y:0, w:28, h:1, mode:1, col:15}),
-		main.entity('plat', {x:16480, y:224, w:34, h:1, mode:1, col:15}),
+		main.entity('plat', {x:16480, y:224, w:30, h:1, mode:1, col:15}),
 		main.entity('plat', {x:16512, y:120, w:8, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:16704, y:104, w:8, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:16928, y:0, w:2, h:11, mode:1, col:15}),
 	], [
 		main.entity('plat', {x:16960, y:0, w:30, h:1, mode:1, col:15}),
+		main.entity('plat', {x:16960, y:224, w:4, h:1, mode:1, col:15}),
 		main.entity('plat', {x:17024, y:224, w:26, h:1}),
 		main.entity('plat', {x:17032, y:176, w:8, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:17208, y:128, w:8, h:1, dropoff: true, mode:1}),
@@ -358,7 +363,7 @@ let level = main => [
 		main.entity('plat', {x:18096, y:128, w:2, h:7, mode:1}),
 		main.entity('plat', {x:18128, y:64, w:2, h:2, mode:1, col:11}),
 		main.entity('plat', {x:18128, y:96, w:2, h:9, mode:1, col:2}),
-		main.entity('plat', {x:17920, y:0, w:35, h:1, mode:1, col:15}),
+		main.entity('plat', {x:17920, y:0, w:30, h:1, mode:1, col:15}),
 		main.entity('plat', {x:17920, y:224, w:20, h:1, mode:1, col:15}),
 		main.entity('plat', {x:17968, y:128, w:1, h:4, mode:1, col:15}),
 		main.entity('plat', {x:17984, y:160, w:5, h:1, mode:1, col:15}),
@@ -396,6 +401,7 @@ let level = main => [
 			main.entity('shooter', {x:1.8326E+4, y:22.0, s:0, a:4.712388980385}),
 		]}),
 	], [
+		main.entity('plat', {x:18400, y:0, w:5, h:1, mode:1, col:15}),
 		main.entity('plat', {x:18400, y:80, w:2, h:10, mode:1, col:15}),
 		main.entity('plat', {x:18432, y:224, w:28, h:1, mode:1, col:15}),
 		main.entity('plat', {x:18464, y:80, w:2, h:7, mode:1, col:15}),
@@ -451,7 +457,7 @@ let level = main => [
 			main.entity('shooter', {x:1.935E+4, y:22.0, s:0, a:4.712388980385}),
 		]}),
 	], [
-		main.entity('plat', {x:19360, y:0, w:46, h:1, mode:1, col:15}),
+		main.entity('plat', {x:19360, y:0, w:30, h:1, mode:1, col:15}),
 		main.entity('plat', {x:19360, y:224, w:1, h:1, mode:1, col:15}),
 		main.entity('plat', {x:19376, y:224, w:29, h:1}),
 		main.entity('plat', {x:19416, y:184, w:3, h:1, dropoff: true, mode:1}),
@@ -463,6 +469,7 @@ let level = main => [
 			main.entity('shooter', {x:1.9706E+4, y:22.0, s:0, a:4.712388980385}),
 		]}),
 	], [
+		main.entity('plat', {x:19840, y:0, w:16, h:1, mode:1, col:15}),
 		main.entity('plat', {x:19840, y:224, w:11, h:1}),
 		main.entity('plat', {x:19856, y:96, w:3, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:19936, y:64, w:10, h:1, mode:1, col:15}),
@@ -489,14 +496,16 @@ let level = main => [
 		main.entity('plat', {x:20608, y:176, w:1, h:4, dropoff: true, mode:1}),
 		main.entity('plat', {x:20624, y:192, w:1, h:3, dropoff: true, mode:1}),
 		main.entity('plat', {x:20640, y:208, w:1, h:2, dropoff: true, mode:1}),
-		main.entity('plat', {x:20320, y:0, w:37, h:1, mode:1, col:15}),
-		main.entity('plat', {x:20320, y:224, w:37, h:1, mode:1, col:15}),
+		main.entity('plat', {x:20320, y:0, w:30, h:1, mode:1, col:15}),
+		main.entity('plat', {x:20320, y:224, w:30, h:1, mode:1, col:15}),
 		main.entity('plat', {x:20512, y:72, w:6, h:1, dropoff: true, mode:1}),
 		main.entity('vine', {x:20344, y:16, h:131}),
 		main.entity('vine', {x:20424, y:16, h:168}),
 		main.entity('vine', {x:20696, y:16, h:131}),
 		main.entity('vine', {x:20776, y:16, h:113}),
 	], [
+		main.entity('plat', {x:20800, y:0, w:7, h:1, mode:1, col:15}),
+		main.entity('plat', {x:20800, y:224, w:7, h:1, mode:1, col:15}),
 		main.entity('plat', {x:20848, y:112, w:4, h:1, dropoff: true, mode:1}),
 		main.entity('plat', {x:20912, y:0, w:13, h:15, mode:1, col:15}),
 	]
