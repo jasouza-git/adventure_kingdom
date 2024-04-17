@@ -1,6 +1,5 @@
 let level = main => [
 	[
-        main.entity('background', {house:true}),
 		main.entity('text', {x:0, title:'Level 1'}),
 		main.entity('plat', {x:240, y:128, w:19, h:7, dropoff: true, mode:0}),
 		main.entity('plat', {x:0, y:224, w:19, h:1, mode:0, col:15}),

@@ -23,7 +23,7 @@ let entities:entities_type = {
     // Pinoy Entitiy
     pinoy: {
         default: {
-            x:0, y:0, m:[0,0], hitbox:[], nocollide:[],
+            x:160, y:0, m:[0,0], hitbox:[], nocollide:[],
             crouch: false, // Is character crouching?
             jumping: false,// Is character jumping?
             fright: true,  // Is character facing right?
@@ -125,10 +125,11 @@ let entities:entities_type = {
         update: (d, o, t, dt) => {
             if (d.darkmode) d.dark += (1-d.dark)*dt/1000;
             else d.dark -= d.dark*dt/1000;
+            o.draw('', {color:'skyblue'});
             //o.draw('', {img:'normal bg.png'});
             //o.draw('', {img:'dark bg.png', alpha: d.dark});
             for (var x = -5; x < 7; x++) o.sprites(d.data>>(x+5)&1 ? 'bg normal (no clouds) .png' : 'bg normal (w clouds) .png', [], [64*x, 0, 0, 0, 64, 240, 0, 0, 0, 0, 0, 0.1]);
-            if (d.house) o.sprites('Housesv2.png', [], [-150, 100, 126, 0, 128, 128]);
+            if (d.house) o.sprites('Housesv2.png', [], [0, 100, 126, 0, 128, 128]);
         },
         create: (o, arg) => {
             let d = 0;
@@ -359,7 +360,7 @@ let entities:entities_type = {
     menu: {
         default: {},
         update: (d, o, t, dt) => {
-            o.sprites('Rise_of_the_Aswang_King.png', [-128, 0],
+            o.sprites('Rise_of_the_Aswang_King.png', [0, 0],
                 [0, 0, 0, 0, 256, 144]
             )
         }
@@ -510,23 +511,16 @@ let entities:entities_type = {
         }
     },
     pressure_plate: {
-        default: {x:0, y:0, w:10, triggered: false,
-            follow:undefined
-        },
+        default: {x:0, y:0, w:10, triggered: false},
         update: (d, o, t, dt) => {
             d.hitbox = [0,
                 d.x, d.y,
                 4+d.w, 2
             ];
-            if (d.follow == undefined) {
-                o.interacts.forEach(e => {
-                    if (e['__type__'] == 'pinoy') d.follow = e;
-                });
-            }
             let a:number[][] = [[0,0,0,0,2,2],[2+d.w,0,2,0,2,2]];
             for(var i = 0; i < Math.floor(d.w/16); i++) a.push([2+16*i,0,0,2,16,2]);
             if (d.w%16 != 0) a.push([2+16*i,0,0,2,d.w%16,2]);
-            if (d.follow != undefined && algo.rectint(d.hitbox, d.follow.hitbox)) {
+            if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
                     s.cooldown = 0;
