@@ -19,7 +19,8 @@ interface engine_type {
     physics:(entity:{[index:string]:any}, d?:number)=>boolean,
     entity(type:string, ...arg:any) : {[index:string]:any},
     interacts:{[index:string]:any}[],
-    player:any
+    player:any,
+    btx:CanvasRenderingContext2D
 }
 interface entities_type {
     [entity_id:string]:{
