@@ -26,9 +26,9 @@ main.scene('level', (t, dt) => {
     // Layers
     main.add(bg);
     let l = Math.floor(player.x/480);
+    main.add(lv[l]);
     if (l-2 >= 0) main.add(lv[l-2]);
     if (l-1 >= 0) main.add(lv[l-1]);
-    main.add(lv[l]);
     if (l+1 < lv.length) main.add(lv[l+1]);
     if (l+2 < lv.length) main.add(lv[l+2]);
     main.add(pet, menu, player);
