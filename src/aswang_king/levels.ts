@@ -12,7 +12,7 @@ let level = main => [
 		main.entity('plat', {x:760, y:152, w:8, h:1, dropoff: true, mode:0}),
 		main.entity('plat', {x:880, y:104, w:7, h:1, dropoff: true, mode:0}),
 		main.entity('pressure_plate', {x:776, y:148, w:64, bind:[
-			main.entity('shooter', {x:874.0, y:110.0, s:160, a:3.14159265359}),
+			main.entity('shooter', {x:874.0, y:110.0, s:10, a:3.14159265359}),
 		]}),
 	], [
 		main.entity('plat', {x:1072, y:128, w:11, h:1, dropoff: true, mode:0}),
