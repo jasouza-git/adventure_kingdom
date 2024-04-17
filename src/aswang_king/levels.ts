@@ -2,7 +2,12 @@ let level = main => [
 	[
 		main.entity('text', {x:0, title:'Level 1'}),
 		main.entity('plat', {x:240, y:128, w:15, h:7, dropoff: true, mode:0}),
-		main.entity('plat', {x:0, y:224, w:19, h:1, mode:0, col:15}),
+		main.entity('plat', {x:0, y:224, w:19, h:1, mode:0, col:15, clip: [
+			[1],
+			[0],
+			[0],
+			[0]
+		]}),
 		main.entity('plat', {x:352, y:176, w:8, h:4, mode:0, col:15}),
 	], [
 		main.entity('plat', {x:480, y:128, w:4, h:7, dropoff: true, mode:0}),
