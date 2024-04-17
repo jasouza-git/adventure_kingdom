@@ -123,6 +123,7 @@ class engine {
     public filter:undefined|((d:ImageData)=>ImageData) = undefined;
     private loop():void {                                               // Loop interval to trigger event check and scene
         let now:Date = new Date();
+        this.interacts = [];
         if (this.active_scene.length != 0) {
             Object.keys(this.audios).forEach(audio => {
                 if (!this.audios[audio].hasAttribute('single'))
@@ -328,7 +329,6 @@ class engine {
         if (entities[type].hasOwnProperty('create')) out = entities[type].create(this, ...arg);
         else out = arg[0];
         out = {'__type__':type, ...entities[type].default, ...out};
-        if (out['interact']) this.interacts.push(out);
         return out;
     }
     public entities(type:string, len:number, ...arg:any) : {[index:string]:any}[] {
@@ -338,6 +338,7 @@ class engine {
     }
     private add_single(entity:{[index:string]:any}) {
         if (!entities.hasOwnProperty(entity['__type__'])) throw `Error: No such entity "${entity['__type__']}"`;
+        if (entity['interact']) this.interacts.push(entity);
         // @ts-ignore
         entities[entity['__type__']].update(entity, this, (new Date()).getTime()-this.time_init.getTime(), (new Date()).getTime()-this.time_last.getTime());
         if (this.hitbox_boxed && entity.hitbox) {

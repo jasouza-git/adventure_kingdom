@@ -8,6 +8,7 @@ algo.gravity = 20;
 let main = new engine({z:1, w:320, h:240, load: required_files, camera:[-160,0]});
 main.dom.style.filter = 'contrast(1.1)';
 let lv = level(main);
+let bg = main.entity('background', {house:true});
 let player = main.entity('pinoy', {y:195});
 main.player = player;
 let menu = main.entity('menu');
@@ -23,7 +24,14 @@ main.scene('level', (t, dt) => {
     off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
 
     // Layers
-    main.add(lv[0], pet, menu, player);
+    main.add(bg);
+    let l = Math.floor(player.x/480);
+    if (l-2 >= 0) main.add(lv[l-2]);
+    if (l-1 >= 0) main.add(lv[l-1]);
+    main.add(lv[l]);
+    if (l+1 < lv.length) main.add(lv[l+1]);
+    if (l+2 < lv.length) main.add(lv[l+2]);
+    main.add(pet, menu, player);
 
     // Developer Tools
     if(main.on('x')) lv[0][0].darkmode = !lv[0][0].darkmode;
