@@ -99,10 +99,14 @@ let algo = {
     },
     rectint: (A,B):boolean => {
         if (B.length < 5) return false;
-        return (A[1] < B[1] && B[1] < A[1]+A[3] &&
+        return A[1] < B[1] + B[3] &&
+        A[1] + A[3] > B[1] &&
+        A[2] < B[2] + B[4] &&
+        A[2] +A[4] > B[2];
+        /*return (A[1] < B[1] && B[1] < A[1]+A[3] &&
                 A[2] < B[2] && B[2] < A[2]+A[4] ) ||
                (B[1] < A[1] && A[1] < B[1]+B[3] &&
-                B[2] < A[2] && A[2] < B[2]+B[4] );
+                B[2] < A[2] && A[2] < B[2]+B[4] );*/
     },
     sprite: (n,w) => [n%w, Math.floor(n/w)],
     /*

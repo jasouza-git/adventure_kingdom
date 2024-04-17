@@ -319,6 +319,7 @@ class engine {
     };
 
     // Entity
+    public player:any;
     public interacts:{[index:string]:any}[] = [];
     public entity(type:string, ...arg:any) : {[index:string]:any} {
         if (!entities.hasOwnProperty(type)) throw `Error: No such entity "${type}"`;
