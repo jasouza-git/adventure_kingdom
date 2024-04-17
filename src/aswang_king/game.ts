@@ -9,6 +9,7 @@ let main = new engine({z:1, w:320, h:240, load: required_files, camera:[-160,0]}
 main.dom.style.filter = 'contrast(1.1)';
 let lv = level(main);
 let player = main.entity('pinoy', {y:195});
+main.player = player;
 let menu = main.entity('menu');
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
 let off = 0;
