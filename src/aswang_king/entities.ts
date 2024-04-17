@@ -210,9 +210,10 @@ let entities:entities_type = {
         update: (d, o, t, dt) => {
             if (d.duration <= 0) return;
             let col = algo.physics(dt, d, o);
-            if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1) col.forEach(c => {
+            if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1 && algo.rectint(d.hitbox, o.player.hitbox.splice(0,5)) && o.player.dead == -1) o.player.dead = 0;
+            /*if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1) col.forEach(c => {
                 if (o.interacts[c[0]]['__type__'] == 'pinoy' && o.interacts[c[0]].dead == -1) o.interacts[c[0]].dead = 0;
-            });
+            });*/
             if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
             else {
                 d.m = [0, 0];
