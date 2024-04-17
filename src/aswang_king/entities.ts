@@ -15,7 +15,9 @@ let required_files:string[] = [
     // Player
     'Mcparts.png',
     // Music
-    'song/1st Temp BG Song (New Area).mp3'
+    'song/1st Temp BG Song (New Area).mp3',
+    // Fonts
+    'arcade.ttf'
 ];
 let entities:entities_type = {
     // Pinoy Entitiy
@@ -532,6 +534,13 @@ let entities:entities_type = {
                 d.triggered = true;
             } else d.triggered = false;
             o.sprites('pressure.png', [d.x,d.y], ...a);
+        }
+    },
+    text: {
+        default: {x: 10, y: 20, z:10, text:'', color: '#FFF'},
+        update: (d, o, t, dt) => {
+            o.btx.font = `${d.z*o.z}px arcade`;
+            o.btx.fillText(d.text, d.x-o.camera[0], d.y-o.camera[1]);
         }
     }
 };
