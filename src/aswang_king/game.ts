@@ -46,7 +46,16 @@ main.scene('level', (t, dt) => {
     main.on('gp_j0', e => {
         player.camera = e.x*100;
     });
-    main.on('Enter,gp_1', e => {
+    main.on('u,U', e => {
+        player.camera = -100;
+    });
+    main.on('i,I', e => {
+        player.camera = 0;
+    });
+    main.on('o,O', e => {
+        player.camera = 100;
+    });
+    main.on('j,J,gp_1', e => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
     
