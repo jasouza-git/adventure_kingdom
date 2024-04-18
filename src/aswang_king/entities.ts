@@ -351,7 +351,7 @@ let entities:entities_type = {
             let d:number[] = [];
             for (let i = 0; i < w>>1; i++) d.push(
                 // Grass
-                (Math.random() < 0.6 ? 1 : 0) +
+                (Math.random() < 0.7 ? 1 : 0) +
                 // Tree
                 (Math.random() < 0.1 ? 2 : 0) +
                 // Big Grass
@@ -359,7 +359,7 @@ let entities:entities_type = {
                 // // Bush
                 // (Math.random() < 0.1 ? 8 : 0) +
                 // Special
-                (Math.random() < 0.3 ? 16: 0) +
+                (Math.random() < 0.05 ? 16: 0) +
                 // Dead tree
                 (Math.random() < 0.05? 32: 0)
             );
@@ -595,7 +595,10 @@ let entities:entities_type = {
             d.cooldowntmp -= dt;
             if (d.colldowntmp < 1000) ofs = 2;
             if (d.cooldowntmp <= 0) {
-                if (d.bind.length > 10) d.bind = [];
+                // if (d.bind.length > d.n * 3) {
+                //     d.bind = d.bind.slice(d.bind.length - d.n * 2, d.bind.length - 1);
+                // }
+                d.bind = [];
                 for (let i = 0; i < d.n; i ++) {
                     let a: number = d.min_a + Math.random() * (d.max_a - d.min_a);
                     d.bind.push(o.entity('blab', {x:d.x-Math.cos(a)*5, y:d.y+Math.sin(a)*5, m:[d.s*Math.cos(a),d.s*Math.sin(a)], parent:d, n: d.n}));
@@ -606,9 +609,12 @@ let entities:entities_type = {
         },
     },
     blab: {
-        default: {x:0, y:0, m:[0,0], nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 5000, bind:[]},
+        default: {x:0, y:0, m:[0,0], nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 3000, bind:[]},
         update: (d, o, t, dt) => {
-            if (d.duration <= 0) return;
+            if (d.duration <= 0) {
+                d.hitbox = [];
+                return;
+            }
             d.hitbox = [15,
                 d.x, d.y,
                 8, 5
@@ -637,21 +643,24 @@ let entities:entities_type = {
     poisoned_area: {
         default: {x: 0, y: 0, w: 0, duration: 6000, parent:undefined},
         update: (d, o, t, dt) => {
-            if (d.duration <= 0) return;
+            if (d.duration <= 0) {
+                d.hitbox = [];
+                return;
+            }
             d.hitbox = [0,
                 d.x, d.y,
-                d.w, 5
+                d.w, 10
             ]
-            let bs:number[][] = [];
-            for (let x = 0; x < d.w; x += 30) {
-                bs.push([x, 0, 33, 51, 30, 5]);
-            }
-            d.duration -= dt;
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
                 o.player.in_area_time += dt;
             }
+            let bs:number[][] = [];
+            for (let x = 0; x < d.w; x += 30) {
+                bs.push([x, 0, 33, 51, 30, 5]);
+            }
+            d.duration -= dt;
             o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], ...bs);
         },
     },
