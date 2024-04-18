@@ -659,6 +659,9 @@ let entities:entities_type = {
             o.btx.font = `${d.z*o.z}px arcade`;
             o.btx.fillText(d.text, d.x-o.camera[0], d.y-o.camera[1]);
         }
+    },
+    checkout: {
+        default: {x:0, y: 195}
     }
 };
 
