@@ -11,7 +11,7 @@ let required_files:string[] = [
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lava.png',
     // Entities
-    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shooterv2.png',
+    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Shooterv2.png',
     // Objects
     'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
@@ -21,7 +21,9 @@ let required_files:string[] = [
     // Music
     'song/1st Temp BG Song (New Area).mp3',
     // Fonts
-    'arcade.ttf'
+    'arcade.ttf',
+    // Aswangs
+    'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png'
 ];
 let entities:entities_type = {
     // Pinoy Entitiy
@@ -178,6 +180,7 @@ let entities:entities_type = {
         default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[]},
         update: (d, o, t, dt) => {
             // Hitbox
+            if (!d.follow) return;
             d.hitbox = [ 15,
                 d.x, d.y,
                 26, 15
@@ -428,7 +431,7 @@ let entities:entities_type = {
         },
         update: (d, o, t, dt) => {
             if (d.removed) return;
-
+            d.follow = o.player;
             // Dead
             if (d.dead != -1) {
                 d.hitbox = [];
@@ -467,7 +470,6 @@ let entities:entities_type = {
                     else d.m = [0, 0];
                     if (Math.abs(d.follow.x - d.x) < 10) center = true;
                     
-                    
                     //d.m = [(d.follow.x - d.x)/80, -(d.follow.y - d.y)/80];
                     //if (Math.hypot(d.follow.x - d.x, d.follow.y - d.y) < 30) d.t = 1;
                     //else d.t = 0;
@@ -478,7 +480,6 @@ let entities:entities_type = {
                     d.target = false;
                     d.nofollow = true;
                 } else if(v < 50) d.nofollow = false;
-                //console.log(d.hitbox.slice(0,5),d.follow.hitbox.slice(5));
                 if (algo.rectint(d.hitbox.slice(0,5),d.follow.hitbox.slice(5))) d.dead = 0;
             }
             
@@ -663,6 +664,25 @@ let entities:entities_type = {
             d.duration -= dt;
             o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], ...bs);
         },
+    },
+    white_lady: {
+        default: {},
+        update: (d, o, t, dt) => {
+
+            return;
+        }
+    },
+    tikbalang: {
+        default: {},
+        update: (d, o, t, dt) => {
+            return;
+        }
+    },
+    tiyanak: {
+        default: {},
+        update: (d, o, t, dt) => {
+            return;
+        }
     },
     text: {
         default: {x: 10, y: 20, z:10, text:'', color: '#FFF'},

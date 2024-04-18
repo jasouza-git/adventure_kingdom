@@ -1,9 +1,10 @@
 let level = main => [
 	[
 		main.entity('text', {x:0, title:'Level 1'}),
-		main.entity('plat', {x:240, y:128, w:15, h:7, dropoff: true ,col:1, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6], []]}),
+		main.entity('plat', {x:240, y:128, w:15, h:7, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6], []]}),
 		main.entity('plat', {x:0, y:224, w:22, h:1, mode:0, col:15, clip:[[], [], [0], []]}),
 		main.entity('plat', {x:352, y:176, w:8, h:4, mode:0, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
+		main.entity('mananangal', {x: 30, y:100, p:[30, 100, 200 ,50], ess:200}),
 	], [
 		main.entity('plat', {x:480, y:128, w:4, h:7, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6], [], []]}),
 		main.entity('plat', {x:928, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),
@@ -17,6 +18,8 @@ let level = main => [
 			main.entity('shooter', {x:875.0, y:109.0, bind:[], s:13, a:3.14159265359}),
 		]}),
 		main.entity('atropa_belladonna', {x:736, y:50}),
+		main.entity('white_lady', {x:1024.0, y:208, p:[768, 208, 1280 ,208], ess:100}),
+		main.entity('white_lady', {x:936.0, y:88, p:[880, 88, 992 ,88], ess:100}),
 	], [
 		main.entity('plat', {x:960, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3], [], []]}),
 		main.entity('plat', {x:960, y:104, w:2, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
@@ -27,14 +30,17 @@ let level = main => [
 		main.entity('plat', {x:1344, y:128, w:2, h:7, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6], []]}),
 		main.entity('plat', {x:1376, y:96, w:2, h:9, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
 		main.entity('plat', {x:1408, y:64, w:2, h:11, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8, 9, 10], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], []]}),
-		main.entity('lagablab', {x:1072, y:106, bind:[], min_a:0.261799387799, max_a:3.14159265359}),
+		main.entity('lagablab', {x:1072, y:106, min_a:0.261799387799, max_a:3.14159265359}),
 		main.entity('atropa_belladonna', {x:1200, y:202}),
+		main.entity('white_lady', {x:1160.0, y:112, p:[1072, 112, 1248 ,112], ess:100}),
 	], [
 		main.entity('plat', {x:1440, y:64, w:3, h:11, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10], []]}),
 		main.entity('plat', {x:1488, y:224, w:27, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:1536, y:64, w:13, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
 		main.entity('plat', {x:1792, y:120, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
 		main.entity('atropa_belladonna', {x:1792, y:98}),
+		main.entity('white_lady', {x:1640.0, y:48, p:[1536, 48, 1744 ,48], ess:100}),
+		main.entity('white_lady', {x:1896.0, y:104, p:[1792, 104, 2000 ,104], ess:100}),
 	], [
 		main.entity('plat', {x:1920, y:224, w:23, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:1920, y:120, w:5, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
@@ -42,6 +48,7 @@ let level = main => [
 		main.entity('plat', {x:2288, y:208, w:7, h:2, mode:0, col:15, clip:[[], [1], [0, 1], []]}),
 		main.entity('atropa_belladonna', {x:2088, y:66}),
 		main.entity('lagablab', {x:2240, y:66, min_a:-0.523598775598, max_a:0.785398163397}),
+		main.entity('white_lady', {x:2160.0, y:72, p:[2056, 72, 2264 ,72], ess:100}),
 	], [
 		main.entity('plat', {x:2400, y:208, w:8, h:2, mode:0, col:15, clip:[[], [0, 1], [0, 1], []]}),
 		main.entity('plat', {x:2528, y:176, w:2, h:4, mode:0, col:15, clip:[[], [2, 3], [3], []]}),
@@ -50,6 +57,7 @@ let level = main => [
 		main.entity('plat', {x:2832, y:224, w:3, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:2840, y:168, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
 		main.entity('lagablab', {x:2768, y:18, min_a:0.0, max_a:3.14159265359}),
+		main.entity('white_lady', {x:2696.0, y:208, p:[2560, 208, 2832 ,208], ess:100}),
 	], [
 		main.entity('plat', {x:2880, y:224, w:30, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:2904, y:136, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
@@ -85,6 +93,8 @@ let level = main => [
 		main.entity('atropa_belladonna', {x:3684, y:202}),
 		main.entity('atropa_belladonna', {x:3748, y:186}),
 		main.entity('atropa_belladonna', {x:3812, y:138}),
+		main.entity('white_lady', {x:3520.0, y:208, p:[3392, 208, 3648 ,208], ess:100}),
+		main.entity('white_lady', {x:3496.0, y:48, p:[3440, 48, 3552 ,48], ess:100}),
 	], [
 		main.entity('plat', {x:4224, y:112, w:6, h:8, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6, 7], []]}),
 		main.entity('plat', {x:3840, y:96, w:2, h:9, mode:0, col:15, clip:[[], [4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
@@ -100,6 +110,7 @@ let level = main => [
 		main.entity('atropa_belladonna', {x:3876, y:58}),
 		main.entity('atropa_belladonna', {x:3940, y:138}),
 		main.entity('lagablab', {x:4080, y:26, min_a:3.665191429188, max_a:2.356194490192}),
+		main.entity('white_lady', {x:4288.0, y:96, p:[4224, 96, 4352 ,96], ess:100}),
 	], [
 		main.entity('plat', {x:4320, y:112, w:2, h:8, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7], [], []]}),
 		main.entity('plat', {x:4320, y:224, w:7, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
@@ -121,6 +132,7 @@ let level = main => [
 		main.entity('atropa_belladonna', {x:4532, y:202}),
 		main.entity('atropa_belladonna', {x:4596, y:154}),
 		main.entity('atropa_belladonna', {x:4660, y:58}),
+		main.entity('white_lady', {x:4848.0, y:80, p:[4768, 80, 4928 ,80], ess:100}),
 	], [
 		main.entity('plat', {x:4800, y:224, w:30, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:4800, y:96, w:8, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
@@ -131,6 +143,8 @@ let level = main => [
 		]}),
 		main.entity('atropa_belladonna', {x:4884, y:74}),
 		main.entity('lagablab', {x:5048, y:114, min_a:0.0, max_a:3.14159265359}),
+		main.entity('white_lady', {x:5064.0, y:120, p:[4984, 120, 5144 ,120], ess:100}),
+		main.entity('white_lady', {x:5280.0, y:88, p:[5200, 88, 5360 ,88], ess:100}),
 	], [
 		main.entity('plat', {x:5632, y:176, w:4, h:4, dropoff: true, mode:0, clip:[[], [], [], []]}),
 		main.entity('plat', {x:5280, y:224, w:6, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
@@ -138,6 +152,8 @@ let level = main => [
 		main.entity('plat', {x:5376, y:224, w:24, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:5744, y:72, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
 		main.entity('lagablab', {x:5748, y:49, min_a:0.0, max_a:3.14159265359}),
+		main.entity('white_lady', {x:5568.0, y:208, p:[5376, 208, 5760 ,208], ess:100}),
+		main.entity('white_lady', {x:5816.0, y:208, p:[5616, 208, 6016 ,208], ess:100}),
 	], [
 		main.entity('plat', {x:5920, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),
 		main.entity('plat', {x:5952, y:144, w:2, h:6, dropoff: true, mode:0, clip:[[], [2, 3, 4, 5], [], []]}),
@@ -145,6 +161,9 @@ let level = main => [
 		main.entity('plat', {x:6224, y:144, w:1, h:6, dropoff: true, mode:0, clip:[[], [2, 3, 4, 5], [0, 1, 2, 3, 4, 5], []]}),
 		main.entity('plat', {x:5760, y:72, w:1, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:5760, y:224, w:30, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('white_lady', {x:5928.0, y:208, p:[5776, 208, 6080 ,208], ess:100}),
+		main.entity('white_lady', {x:6152.0, y:208, p:[6000, 208, 6304 ,208], ess:100}),
+		main.entity('white_lady', {x:6288.0, y:208, p:[6144, 208, 6432 ,208], ess:100}),
 	], [
 		main.entity('plat', {x:6240, y:144, w:1, h:6, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5], [], []]}),
 		main.entity('plat', {x:6384, y:96, w:12, h:9, dropoff: true, mode:0, clip:[[], [], [], []]}),
@@ -181,6 +200,8 @@ let level = main => [
 		main.entity('atropa_belladonna', {x:6972, y:202}),
 		main.entity('atropa_belladonna', {x:7036, y:202}),
 		main.entity('atropa_belladonna', {x:7100, y:202}),
+		main.entity('white_lady', {x:6816.0, y:128, p:[6752, 128, 6880 ,128], ess:100}),
+		main.entity('white_lady', {x:6848.0, y:176, p:[6800, 176, 6896 ,176], ess:100}),
 	], [
 		main.entity('plat', {x:7200, y:224, w:30, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:7264, y:144, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
@@ -198,6 +219,9 @@ let level = main => [
 		main.entity('wire', {x:8220, y:164, h:36, bind:[
 			main.entity('shooter', {x:8355.0, y:109.0, bind:[], s:10, a:3.14159265359}),
 		]}),
+		main.entity('tikbalang', {x:8400.0, y:208, p:[8288, 208, 8512 ,208], ess:150}),
+		main.entity('tikbalang', {x:8416.0, y:88, p:[8360, 88, 8472 ,88], ess:150}),
+		main.entity('tikbalang', {x:8560.0, y:208, p:[8448, 208, 8672 ,208], ess:150}),
 	], [
 		main.entity('plat', {x:8480, y:224, w:12, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:8528, y:136, w:7, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
@@ -255,6 +279,7 @@ let level = main => [
 		main.entity('plat', {x:11344, y:88, w:1, h:1, dropoff: true, mode:2, clip:[[], [0], [0], []]}),
 		main.entity('vine', {x:10944, y:0, h:76}),
 		main.entity('vine', {x:11032, y:0, h:88}),
+		main.entity('tikbalang', {x:1.128E+4, y:72, p:[11136, 72, 11424 ,72], ess:150}),
 	], [
 		main.entity('plat', {x:11472, y:176, w:4, h:4, dropoff: true, mode:2, clip:[[], [], [], []]}),
 		main.entity('plat', {x:11744, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
@@ -263,6 +288,9 @@ let level = main => [
 		main.entity('plat', {x:11360, y:224, w:7, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:11472, y:224, w:23, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:11584, y:120, w:10, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('tikbalang', {x:1.1688E+4, y:208, p:[11536, 208, 11840 ,208], ess:150}),
+		main.entity('tikbalang', {x:1.1664E+4, y:104, p:[11584, 104, 11744 ,104], ess:150}),
+		main.entity('tikbalang', {x:1.1936E+4, y:208, p:[11792, 208, 12080 ,208], ess:150}),
 	], [
 		main.entity('plat', {x:12048, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
 		main.entity('plat', {x:12080, y:160, w:2, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [], []]}),
@@ -270,6 +298,8 @@ let level = main => [
 		main.entity('plat', {x:11840, y:92, w:10, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
 		main.entity('plat', {x:12256, y:192, w:2, h:3, mode:2, col:15, clip:[[], [2], [0, 1, 2], []]}),
 		main.entity('plat', {x:12288, y:160, w:2, h:5, mode:2, col:15, clip:[[], [2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('tikbalang', {x:1.192E+4, y:76, p:[11840, 76, 12000 ,76], ess:150}),
+		main.entity('tikbalang', {x:1.2112E+4, y:208, p:[11968, 208, 12256 ,208], ess:150}),
 	], [
 		main.entity('plat', {x:12688, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
 		main.entity('plat', {x:12720, y:160, w:2, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [], []]}),
@@ -288,6 +318,9 @@ let level = main => [
 		main.entity('vine', {x:12612, y:0, h:104}),
 		main.entity('vine', {x:12700, y:0, h:92}),
 		main.entity('vine', {x:12788, y:0, h:124}),
+		main.entity('tikbalang', {x:1.2528E+4, y:208, p:[12384, 208, 12672 ,208], ess:150}),
+		main.entity('tikbalang', {x:1.2736E+4, y:208, p:[12592, 208, 12880 ,208], ess:150}),
+		main.entity('tikbalang', {x:1.2936E+4, y:208, p:[12792, 208, 13080 ,208], ess:150}),
 	], [
 		main.entity('plat', {x:13056, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
 		main.entity('plat', {x:13088, y:160, w:2, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [0, 1, 2, 3, 4], []]}),
@@ -301,6 +334,8 @@ let level = main => [
 		main.entity('vine', {x:13052, y:0, h:124}),
 		main.entity('vine', {x:13140, y:0, h:76}),
 		main.entity('vine', {x:13228, y:0, h:112}),
+		main.entity('tikbalang', {x:1.3136E+4, y:208, p:[12992, 208, 13280 ,208], ess:150}),
+		main.entity('tikbalang', {x:1.3344E+4, y:208, p:[13200, 208, 13488 ,208], ess:150}),
 	], [
 		main.entity('plat', {x:13280, y:224, w:13, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:13488, y:176, w:2, h:4, mode:2, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
@@ -313,6 +348,8 @@ let level = main => [
 		]}),
 		main.entity('vine', {x:13316, y:0, h:56}),
 		main.entity('vine', {x:13404, y:0, h:124}),
+		main.entity('tiyanak', {x:1.3624E+4, y:128, p:[13520, 128, 13728 ,128], ess:150}),
+		main.entity('tiyanak', {x:1.3792E+4, y:128, p:[13664, 128, 13920 ,128], ess:150}),
 	], [
 		main.entity('plat', {x:13760, y:0, w:1, h:2, mode:2, col:15, clip:[[], [0, 1], [0, 1], []]}),
 		main.entity('plat', {x:13760, y:144, w:16, h:6, mode:2, col:15, clip:[[], [0, 1, 2, 3, 4, 5], [2, 3, 4, 5], []]}),
@@ -330,6 +367,11 @@ let level = main => [
 			main.entity('shooter', {x:1.4025E+4, y:37.0, bind:[], s:10, a:4.712388980385}),
 			main.entity('shooter', {x:1.4037E+4, y:37.0, bind:[], s:10, a:4.712388980385}),
 		]}),
+		main.entity('tiyanak', {x:1.3936E+4, y:80, p:[13856, 80, 14016 ,80], ess:150}),
+		main.entity('tiyanak', {x:1.4184E+4, y:160, p:[14064, 160, 14304 ,160], ess:150}),
+		main.entity('tiyanak', {x:1.4104E+4, y:64, p:[14064, 64, 14144 ,64], ess:150}),
+		main.entity('tiyanak', {x:1.4136E+4, y:112, p:[14080, 112, 14192 ,112], ess:150}),
+		main.entity('tiyanak', {x:1.4184E+4, y:48, p:[14144, 48, 14224 ,48], ess:150}),
 	], [
 		main.entity('plat', {x:14240, y:0, w:1, h:9, mode:2, col:15, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7, 8], [], []]}),
 		main.entity('plat', {x:14240, y:176, w:4, h:4, mode:2, col:15, clip:[[], [0, 1, 2, 3], [3], []]}),
@@ -362,12 +404,21 @@ let level = main => [
 		main.entity('plat', {x:16224, y:176, w:2, h:4, mode:1, col:15, clip:[[], [3], [3], []]}),
 		main.entity('plat', {x:16256, y:224, w:14, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:16320, y:152, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('tikbalang', {x:1.6368E+4, y:136, p:[16320, 136, 16416 ,136], ess:200}),
+		main.entity('white_lady', {x:1.64E+4, y:136, p:[16352, 136, 16448 ,136], ess:200}),
+		main.entity('white_lady', {x:1.6432E+4, y:192, p:[16416, 192, 16448 ,192], ess:200}),
 	], [
 		main.entity('plat', {x:16480, y:0, w:28, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:16480, y:224, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:16512, y:120, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:16704, y:104, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:16928, y:0, w:2, h:11, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('tikbalang', {x:1.656E+4, y:104, p:[16512, 104, 16608 ,104], ess:200}),
+		main.entity('white_lady', {x:1.6592E+4, y:104, p:[16544, 104, 16640 ,104], ess:200}),
+		main.entity('white_lady', {x:1.6672E+4, y:192, p:[16656, 192, 16688 ,192], ess:200}),
+		main.entity('tikbalang', {x:1.6752E+4, y:88, p:[16704, 88, 16800 ,88], ess:200}),
+		main.entity('white_lady', {x:1.6784E+4, y:88, p:[16736, 88, 16832 ,88], ess:200}),
+		main.entity('white_lady', {x:1.6912E+4, y:192, p:[16896, 192, 16928 ,192], ess:200}),
 	], [
 		main.entity('plat', {x:16960, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:16960, y:224, w:4, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
@@ -376,7 +427,12 @@ let level = main => [
 		main.entity('plat', {x:17200, y:128, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:17376, y:80, w:4, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
 		main.entity('mananangal', {x:1.724E+4, y:32, p:[16984, 32, 17496 ,32], ess:200}),
+		main.entity('tikbalang', {x:1.708E+4, y:160, p:[17032, 160, 17128 ,160], ess:200}),
+		main.entity('white_lady', {x:1.7112E+4, y:160, p:[17064, 160, 17160 ,160], ess:200}),
+		main.entity('tikbalang', {x:1.7248E+4, y:112, p:[17200, 112, 17296 ,112], ess:200}),
 		main.entity('mananangal', {x:1.748E+4, y:32, p:[17224, 32, 17736 ,32], ess:200}),
+		main.entity('white_lady', {x:1.728E+4, y:112, p:[17232, 112, 17328 ,112], ess:200}),
+		main.entity('tikbalang', {x:1.7408E+4, y:64, p:[17376, 64, 17440 ,64], ess:200}),
 	], [
 		main.entity('plat', {x:17440, y:64, w:2, h:2, dropoff: true, mode:1, col:9, clip:[[], [1], [0, 1], []]}),
 		main.entity('plat', {x:17440, y:0, w:19, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
@@ -396,6 +452,8 @@ let level = main => [
 			main.entity('shooter', {x:1.7895E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 			main.entity('shooter', {x:1.7911E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 		]}),
+		main.entity('tikbalang', {x:1.7616E+4, y:128, p:[17552, 128, 17680 ,128], ess:200}),
+		main.entity('white_lady', {x:1.768E+4, y:128, p:[17616, 128, 17744 ,128], ess:200}),
 		main.entity('mananangal', {x:1.8048E+4, y:32, p:[17792, 32, 18304 ,32], ess:200}),
 	], [
 		main.entity('plat', {x:18064, y:128, w:2, h:2, mode:1, col:9, clip:[[], [], [0, 1], []]}),
@@ -465,8 +523,12 @@ let level = main => [
 			main.entity('shooter', {x:1.8631E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 			main.entity('shooter', {x:1.8647E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 		]}),
+		main.entity('tikbalang', {x:1.8632E+4, y:208, p:[18496, 208, 18768 ,208], ess:200}),
+		main.entity('white_lady', {x:1.8768E+4, y:116, p:[18512, 116, 19024 ,116], ess:200}),
 		main.entity('mananangal', {x:1.876E+4, y:32, p:[18536, 32, 18984 ,32], ess:200}),
+		main.entity('white_lady', {x:1.8752E+4, y:208, p:[18608, 208, 18896 ,208], ess:200}),
 		main.entity('mananangal', {x:1.896E+4, y:32, p:[18736, 32, 19184 ,32], ess:200}),
+		main.entity('tiyanak', {x:1.8944E+4, y:208, p:[18816, 208, 19072 ,208], ess:200}),
 	], [
 		main.entity('plat', {x:18880, y:0, w:25, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:18880, y:80, w:9, h:1, mode:1, col:15, clip:[[], [0], [], []]}),
@@ -500,6 +562,7 @@ let level = main => [
 			main.entity('shooter', {x:1.9339E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 			main.entity('shooter', {x:1.9351E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 		]}),
+		main.entity('tikbalang', {x:1.9328E+4, y:208, p:[19280, 208, 19376 ,208], ess:200}),
 		main.entity('mananangal', {x:1.9656E+4, y:40, p:[19344, 40, 19968 ,40], ess:200}),
 	], [
 		main.entity('plat', {x:19360, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
