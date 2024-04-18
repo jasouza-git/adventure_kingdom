@@ -22,13 +22,14 @@ let off = 0;
 // Level Scene
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
+    
+    // Dead glitch filter
+    off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
 
     if (player.lives[0] < 0) {
         return;
     }
 
-    // Dead glitch filter
-    off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
 
     // Layers
     main.add(bg);
