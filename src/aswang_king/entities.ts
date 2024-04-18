@@ -1,3 +1,528 @@
+let level = main => [
+	[
+		main.entity('text', {x:0, title:'Level 1'}),
+		main.entity('plat', {x:240, y:128, w:15, h:7, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6], []]}),
+		main.entity('plat', {x:0, y:224, w:22, h:1, mode:0, col:15, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:352, y:176, w:8, h:4, mode:0, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
+	], [
+		main.entity('plat', {x:480, y:128, w:4, h:7, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6], [], []]}),
+		main.entity('plat', {x:928, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),
+		main.entity('plat', {x:480, y:176, w:8, h:4, mode:0, col:15, clip:[[], [0, 1, 2, 3], [3], []]}),
+		main.entity('plat', {x:608, y:224, w:22, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:648, y:176, w:4, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:656, y:72, w:9, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:760, y:152, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:880, y:104, w:5, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+		main.entity('pressure_plate', {x:776, y:150, w:64, bind:[
+			main.entity('shooter', {x:875.0, y:109.0, bind:[], s:13, a:3.14159265359}),
+		]}),
+	], [
+		main.entity('plat', {x:960, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3], [], []]}),
+		main.entity('plat', {x:960, y:104, w:2, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:960, y:224, w:20, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:1072, y:128, w:11, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:1280, y:192, w:2, h:3, mode:0, col:15, clip:[[], [2], [0, 1, 2], []]}),
+		main.entity('plat', {x:1312, y:160, w:2, h:5, mode:0, col:15, clip:[[], [2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('plat', {x:1344, y:128, w:2, h:7, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6], []]}),
+		main.entity('plat', {x:1376, y:96, w:2, h:9, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
+		main.entity('plat', {x:1408, y:64, w:2, h:11, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8, 9, 10], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], []]}),
+	], [
+		main.entity('plat', {x:1440, y:64, w:3, h:11, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10], []]}),
+		main.entity('plat', {x:1488, y:224, w:27, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:1536, y:64, w:13, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:1792, y:120, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+	], [
+		main.entity('plat', {x:1920, y:224, w:23, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:1920, y:120, w:5, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:2056, y:88, w:13, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:2288, y:208, w:7, h:2, mode:0, col:15, clip:[[], [1], [0, 1], []]}),
+	], [
+		main.entity('plat', {x:2400, y:208, w:8, h:2, mode:0, col:15, clip:[[], [0, 1], [0, 1], []]}),
+		main.entity('plat', {x:2528, y:176, w:2, h:4, mode:0, col:15, clip:[[], [2, 3], [3], []]}),
+		main.entity('plat', {x:2560, y:224, w:17, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:2764, y:40, w:2, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:2832, y:224, w:3, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:2840, y:168, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+	], [
+		main.entity('plat', {x:2880, y:224, w:30, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:2904, y:136, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:2960, y:104, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:3032, y:88, w:3, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:3120, y:120, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:3184, y:96, w:3, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:3216, y:44, w:2, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:3280, y:136, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:3344, y:96, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:3352, y:168, w:0, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+	], [
+		main.entity('plat', {x:3360, y:96, w:3, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:3360, y:168, w:0, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:3360, y:224, w:2, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:3392, y:224, w:16, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:3440, y:64, w:6, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:3536, y:48, w:2, h:2, dropoff: true, mode:0, clip:[[], [1], [], []]}),
+		main.entity('plat', {x:3624, y:24, w:4, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:3648, y:176, w:2, h:4, mode:0, col:15, clip:[[], [3], [3], []]}),
+		main.entity('plat', {x:3680, y:224, w:2, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:3712, y:160, w:2, h:5, mode:0, col:15, clip:[[], [4], [3, 4], []]}),
+		main.entity('plat', {x:3744, y:208, w:2, h:2, mode:0, col:15, clip:[[], [0, 1], [0, 1], []]}),
+		main.entity('plat', {x:3776, y:112, w:2, h:8, mode:0, col:15, clip:[[], [6, 7], [3, 4, 5, 6, 7], []]}),
+		main.entity('plat', {x:3808, y:160, w:2, h:5, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('pressure_plate', {x:3360, y:94, w:48, bind:[
+			main.entity('shooter', {x:3435.0, y:69.0, bind:[], s:10, a:3.14159265359}),
+		]}),
+		main.entity('pressure_plate', {x:3788, y:110, w:16, bind:[
+			main.entity('shooter', {x:3693.0, y:29.0, bind:[], s:10, a:0.0}),
+		]}),
+	], [
+		main.entity('plat', {x:4224, y:112, w:6, h:8, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6, 7], []]}),
+		main.entity('plat', {x:3840, y:96, w:2, h:9, mode:0, col:15, clip:[[], [4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
+		main.entity('plat', {x:3872, y:80, w:2, h:10, mode:0, col:15, clip:[[], [1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 3, 4, 5, 6, 7, 8, 9], []]}),
+		main.entity('plat', {x:3904, y:112, w:2, h:8, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7], [3, 4, 5, 6, 7], []]}),
+		main.entity('plat', {x:3936, y:160, w:2, h:5, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('plat', {x:3968, y:112, w:2, h:8, mode:0, col:15, clip:[[], [3, 4, 5, 6, 7], [7], []]}),
+		main.entity('plat', {x:4000, y:224, w:20, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:4016, y:72, w:3, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:4080, y:48, w:7, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:4160, y:192, w:10, h:2, mode:0, col:15, clip:[[], [], [0, 1], []]}),
+		main.entity('plat', {x:4192, y:144, w:8, h:2, dropoff: true, mode:0, clip:[[], [], [0, 1], []]}),
+	], [
+		main.entity('plat', {x:4320, y:112, w:2, h:8, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7], [], []]}),
+		main.entity('plat', {x:4320, y:224, w:7, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:4320, y:192, w:2, h:2, mode:0, col:15, clip:[[], [0, 1], [], []]}),
+		main.entity('plat', {x:4320, y:144, w:2, h:2, dropoff: true, mode:0, clip:[[], [0, 1], [], []]}),
+		main.entity('plat', {x:4432, y:128, w:2, h:7, mode:0, col:15, clip:[[], [6], [6], []]}),
+		main.entity('plat', {x:4464, y:224, w:2, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:4496, y:176, w:2, h:4, mode:0, col:15, clip:[[], [3], [3], []]}),
+		main.entity('plat', {x:4528, y:224, w:2, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:4560, y:112, w:2, h:8, mode:0, col:15, clip:[[], [7], [4, 5, 6, 7], []]}),
+		main.entity('plat', {x:4592, y:176, w:2, h:4, mode:0, col:15, clip:[[], [0, 1, 2, 3], [0, 1, 2, 3], []]}),
+		main.entity('plat', {x:4624, y:96, w:2, h:9, mode:0, col:15, clip:[[], [5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
+		main.entity('plat', {x:4656, y:80, w:2, h:10, mode:0, col:15, clip:[[], [1, 2, 3, 4, 5, 6, 7, 8, 9], [2, 3, 4, 5, 6, 7, 8, 9], []]}),
+		main.entity('plat', {x:4688, y:112, w:2, h:8, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7], [6, 7], []]}),
+		main.entity('plat', {x:4720, y:208, w:2, h:2, mode:0, col:15, clip:[[], [0, 1], [1], []]}),
+		main.entity('plat', {x:4752, y:224, w:3, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:4768, y:96, w:2, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+	], [
+		main.entity('plat', {x:4800, y:224, w:30, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:4800, y:96, w:8, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:4984, y:136, w:10, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:5200, y:104, w:5, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+		main.entity('pressure_plate', {x:5096, y:134, w:32, bind:[
+			main.entity('shooter', {x:5195.0, y:109.0, bind:[], s:17, a:3.14159265359}),
+		]}),
+	], [
+		main.entity('plat', {x:5632, y:176, w:4, h:4, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:5280, y:224, w:6, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:5280, y:104, w:5, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:5376, y:224, w:24, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:5744, y:72, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+	], [
+		main.entity('plat', {x:5920, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),
+		main.entity('plat', {x:5952, y:144, w:2, h:6, dropoff: true, mode:0, clip:[[], [2, 3, 4, 5], [], []]}),
+		main.entity('plat', {x:6192, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),
+		main.entity('plat', {x:6224, y:144, w:1, h:6, dropoff: true, mode:0, clip:[[], [2, 3, 4, 5], [0, 1, 2, 3, 4, 5], []]}),
+		main.entity('plat', {x:5760, y:72, w:1, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:5760, y:224, w:30, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+	], [
+		main.entity('plat', {x:6240, y:144, w:1, h:6, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5], [], []]}),
+		main.entity('plat', {x:6384, y:96, w:12, h:9, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:6240, y:224, w:12, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:6432, y:192, w:2, h:3, mode:0, col:15, clip:[[], [2], [0, 1, 2], []]}),
+		main.entity('plat', {x:6464, y:160, w:2, h:5, mode:0, col:15, clip:[[], [2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('plat', {x:6496, y:128, w:2, h:7, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6], []]}),
+		main.entity('plat', {x:6528, y:96, w:2, h:9, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
+		main.entity('plat', {x:6560, y:64, w:2, h:11, mode:0, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8, 9, 10], [10], []]}),
+		main.entity('plat', {x:6592, y:224, w:8, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:6656, y:44, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+	], [
+		main.entity('plat', {x:6736, y:64, w:11, h:11, dropoff: true, mode:0, clip:[[], [], [2, 3, 4, 5, 6, 7, 8, 9, 10], []]}),
+		main.entity('plat', {x:6912, y:96, w:3, h:9, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7, 8], [], []]}),
+		main.entity('plat', {x:6720, y:224, w:18, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:6752, y:144, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:6800, y:96, w:7, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:6800, y:192, w:6, h:1, mode:0, dropoff: true, clip:[[], [], [], []]}),
+		main.entity('plat', {x:7008, y:112, w:1, h:8, mode:0, col:15, clip:[[], [7], [7], []]}),
+		main.entity('plat', {x:7024, y:224, w:3, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:7072, y:144, w:1, h:6, mode:0, col:15, clip:[[], [5], [5], []]}),
+		main.entity('plat', {x:7088, y:224, w:3, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:7136, y:176, w:1, h:4, mode:0, col:15, clip:[[], [3], [3], []]}),
+		main.entity('plat', {x:7152, y:224, w:3, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+	], [
+		main.entity('plat', {x:7200, y:224, w:30, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:7264, y:144, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+		main.entity('plat', {x:7456, y:104, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
+	], [
+		main.entity('plat', {x:7680, y:0, w:2, h:10, dropoff: true, mode:0, col:15, clip:[[], [], [], []]}),
+		main.entity('plat', {x:7680, y:224, w:20, h:1, mode:0, col:15, clip:[[], [0], [], []]}),
+	], [
+		main.entity('text', {x:8000, title:'Level 2'}),
+		main.entity('plat', {x:8000, y:224, w:13, h:1, mode:2, col:15, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:8208, y:192, w:5, h:3, mode:2, col:15, clip:[[], [2], [2], []]}),
+		main.entity('plat', {x:8288, y:224, w:12, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:8360, y:104, w:7, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('plat', {x:8368, y:176, w:7, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('wire', {x:8220, y:164, h:36, bind:[
+			main.entity('shooter', {x:8355.0, y:109.0, bind:[], s:10, a:3.14159265359}),
+		]}),
+	], [
+		main.entity('plat', {x:8480, y:224, w:12, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:8528, y:136, w:7, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('plat', {x:8672, y:192, w:5, h:3, mode:2, col:15, clip:[[], [2], [0, 1, 2], []]}),
+		main.entity('plat', {x:8752, y:176, w:1, h:4, mode:2, col:15, clip:[[], [1, 2, 3], [0, 1, 2, 3], []]}),
+		main.entity('plat', {x:8768, y:160, w:2, h:5, mode:2, col:15, clip:[[], [1, 2, 3, 4], [1, 4], []]}),
+		main.entity('plat', {x:8800, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:8800, y:224, w:10, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('vine', {x:8844, y:0, h:132}),
+		main.entity('vine', {x:8927, y:0, h:92}),
+	], [
+		main.entity('plat', {x:8960, y:224, w:22, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:9280, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:9312, y:128, w:8, h:7, mode:2, col:15, clip:[[], [6, 3], [3, 6], []]}),
+		main.entity('vine', {x:9010, y:0, h:148}),
+		main.entity('vine', {x:9093, y:0, h:60}),
+		main.entity('vine', {x:9176, y:0, h:112}),
+		main.entity('vine', {x:9260, y:0, h:92}),
+	], [
+		main.entity('plat', {x:9440, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:9440, y:224, w:30, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('vine', {x:9484, y:0, h:156}),
+		main.entity('vine', {x:9572, y:0, h:80}),
+		main.entity('vine', {x:9660, y:0, h:104}),
+		main.entity('vine', {x:9748, y:0, h:28}),
+		main.entity('vine', {x:9836, y:0, h:124}),
+	], [
+		main.entity('plat', {x:9920, y:224, w:3, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:9936, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:9968, y:128, w:4, h:7, mode:2, col:15, clip:[[], [6, 3], [2, 3, 4, 5, 6], []]}),
+		main.entity('plat', {x:10032, y:160, w:2, h:5, mode:2, col:15, clip:[[], [0, 1, 2, 3, 4], [2, 3, 4], []]}),
+		main.entity('plat', {x:10064, y:192, w:2, h:3, mode:2, col:15, clip:[[], [0, 1, 2], [1, 2], []]}),
+		main.entity('plat', {x:10096, y:208, w:2, h:2, mode:2, col:15, clip:[[], [0, 1], [1], []]}),
+		main.entity('plat', {x:10128, y:224, w:17, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:10176, y:152, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:10272, y:128, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:10368, y:112, w:2, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('vine', {x:9924, y:0, h:76}),
+	], [
+		main.entity('plat', {x:10400, y:112, w:1, h:1, dropoff: true, mode:1, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:10400, y:224, w:30, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:10472, y:136, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:10576, y:88, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:10656, y:148, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:10748, y:124, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('vine', {x:10856, y:0, h:124}),
+	], [
+		main.entity('plat', {x:10880, y:224, w:30, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:11104, y:88, w:5, h:1, dropoff: true, mode:2, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:11184, y:88, w:3, h:1, dropoff: true, mode:1, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:11232, y:88, w:4, h:1, dropoff: true, mode:2, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:11296, y:88, w:3, h:1, dropoff: true, mode:1, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:11344, y:88, w:1, h:1, dropoff: true, mode:2, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:10944, y:0, h:76}),
+		main.entity('vine', {x:11032, y:0, h:88}),
+	], [
+		main.entity('plat', {x:11472, y:176, w:4, h:4, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('plat', {x:11744, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
+		main.entity('plat', {x:11776, y:160, w:3, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [], []]}),
+		main.entity('plat', {x:11360, y:88, w:4, h:1, dropoff: true, mode:2, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:11360, y:224, w:7, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:11472, y:224, w:23, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:11584, y:120, w:10, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+	], [
+		main.entity('plat', {x:12048, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
+		main.entity('plat', {x:12080, y:160, w:2, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [], []]}),
+		main.entity('plat', {x:11840, y:224, w:26, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:11840, y:92, w:10, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('plat', {x:12256, y:192, w:2, h:3, mode:2, col:15, clip:[[], [2], [0, 1, 2], []]}),
+		main.entity('plat', {x:12288, y:160, w:2, h:5, mode:2, col:15, clip:[[], [2, 3, 4], [0, 1, 2, 3, 4], []]}),
+	], [
+		main.entity('plat', {x:12688, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
+		main.entity('plat', {x:12720, y:160, w:2, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [], []]}),
+		main.entity('plat', {x:12320, y:128, w:2, h:7, mode:2, col:15, clip:[[], [2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6], []]}),
+		main.entity('plat', {x:12352, y:96, w:2, h:9, mode:2, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8], [5, 8], []]}),
+		main.entity('plat', {x:12384, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:12384, y:224, w:26, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('wire', {x:12436, y:124, h:16, bind:[
+			main.entity('shooter', {x:1.2437E+4, y:5.0, bind:[], s:10, a:4.712388980385}),
+		]}),
+		main.entity('wire', {x:12700, y:68, h:16, bind:[
+			main.entity('shooter', {x:1.2701E+4, y:5.0, bind:[], s:10, a:4.712388980385}),
+		]}),
+		main.entity('vine', {x:12436, y:0, h:156}),
+		main.entity('vine', {x:12524, y:0, h:80}),
+		main.entity('vine', {x:12612, y:0, h:104}),
+		main.entity('vine', {x:12700, y:0, h:92}),
+		main.entity('vine', {x:12788, y:0, h:124}),
+	], [
+		main.entity('plat', {x:13056, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
+		main.entity('plat', {x:13088, y:160, w:2, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('plat', {x:13120, y:128, w:2, h:7, dropoff: true, mode:2, clip:[[], [2, 3, 4, 5, 6], [], []]}),
+		main.entity('plat', {x:12800, y:224, w:30, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('wire', {x:13052, y:100, h:16, bind:[
+			main.entity('shooter', {x:1.3053E+4, y:5.0, bind:[], s:10, a:4.712388980385}),
+		]}),
+		main.entity('vine', {x:12876, y:0, h:76}),
+		main.entity('vine', {x:12964, y:0, h:56}),
+		main.entity('vine', {x:13052, y:0, h:124}),
+		main.entity('vine', {x:13140, y:0, h:76}),
+		main.entity('vine', {x:13228, y:0, h:112}),
+	], [
+		main.entity('plat', {x:13280, y:224, w:13, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:13488, y:176, w:2, h:4, mode:2, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
+		main.entity('plat', {x:13520, y:144, w:15, h:6, mode:2, col:15, clip:[[], [2, 3, 4, 5], [0, 1, 2, 3, 4, 5], []]}),
+		main.entity('plat', {x:13552, y:0, w:2, h:7, mode:2, col:15, clip:[[], [], [6, 0, 1], []]}),
+		main.entity('plat', {x:13584, y:96, w:9, h:1, mode:2, col:15, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:13584, y:0, w:11, h:2, mode:2, col:15, clip:[[], [0, 1], [0, 1], []]}),
+		main.entity('wire', {x:13404, y:92, h:16, bind:[
+			main.entity('shooter', {x:1.3405E+4, y:5.0, bind:[], s:10, a:4.712388980385}),
+		]}),
+		main.entity('vine', {x:13316, y:0, h:56}),
+		main.entity('vine', {x:13404, y:0, h:124}),
+	], [
+		main.entity('plat', {x:13760, y:0, w:1, h:2, mode:2, col:15, clip:[[], [0, 1], [0, 1], []]}),
+		main.entity('plat', {x:13760, y:144, w:16, h:6, mode:2, col:15, clip:[[], [0, 1, 2, 3, 4, 5], [2, 3, 4, 5], []]}),
+		main.entity('plat', {x:13776, y:0, w:2, h:7, mode:2, col:15, clip:[[], [0, 1], [0, 1], []]}),
+		main.entity('plat', {x:13808, y:0, w:15, h:2, mode:2, col:15, clip:[[], [0, 1], [0], []]}),
+		main.entity('plat', {x:13856, y:96, w:10, h:1, mode:2, col:15, clip:[[], [], [], []]}),
+		main.entity('plat', {x:14016, y:176, w:14, h:4, mode:2, col:15, clip:[[], [0, 1, 2, 3], [0, 1, 2, 3], []]}),
+		main.entity('plat', {x:14048, y:0, w:11, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:14064, y:80, w:1, h:4, mode:2, col:15, clip:[[], [], [0, 3], []]}),
+		main.entity('plat', {x:14080, y:80, w:4, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:14080, y:128, w:7, h:1, mode:2, col:15, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:14144, y:64, w:5, h:2, mode:2, col:15, clip:[[], [1], [0, 1], []]}),
+		main.entity('plat', {x:14224, y:0, w:1, h:9, mode:2, col:15, clip:[[], [0, 4, 5], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
+		main.entity('pressure_plate', {x:14016, y:174, w:32, bind:[
+			main.entity('shooter', {x:1.4025E+4, y:37.0, bind:[], s:10, a:4.712388980385}),
+			main.entity('shooter', {x:1.4037E+4, y:37.0, bind:[], s:10, a:4.712388980385}),
+		]}),
+	], [
+		main.entity('plat', {x:14240, y:0, w:1, h:9, mode:2, col:15, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7, 8], [], []]}),
+		main.entity('plat', {x:14240, y:176, w:4, h:4, mode:2, col:15, clip:[[], [0, 1, 2, 3], [3], []]}),
+		main.entity('plat', {x:14304, y:224, w:26, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:14312, y:120, w:4, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('vine', {x:14400, y:0, h:184}),
+		main.entity('vine', {x:14480, y:0, h:144}),
+		main.entity('vine', {x:14560, y:0, h:184}),
+		main.entity('vine', {x:14640, y:0, h:144}),
+	], [
+		main.entity('plat', {x:14720, y:224, w:30, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:14720, y:0, h:184}),
+		main.entity('vine', {x:14800, y:0, h:144}),
+		main.entity('vine', {x:14880, y:0, h:184}),
+		main.entity('vine', {x:14960, y:0, h:144}),
+		main.entity('vine', {x:15040, y:0, h:184}),
+		main.entity('vine', {x:15120, y:0, h:144}),
+	], [
+		main.entity('plat', {x:15200, y:224, w:30, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:15200, y:0, h:184}),
+		main.entity('vine', {x:15280, y:0, h:144}),
+	], [
+		main.entity('plat', {x:15680, y:0, w:2, h:10, mode:2, col:15, clip:[[], [], [], []]}),
+		main.entity('plat', {x:15680, y:224, w:20, h:1, mode:2, col:15, clip:[[], [0], [], []]}),
+	], [
+		main.entity('text', {x:16000, title:'Level 3'}),
+		main.entity('plat', {x:16000, y:0, w:1, h:11, mode:1, col:15, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:16000, y:224, w:14, h:1, mode:1, col:15, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:16016, y:0, w:29, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:16224, y:176, w:2, h:4, mode:1, col:15, clip:[[], [3], [3], []]}),
+		main.entity('plat', {x:16256, y:224, w:14, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:16320, y:152, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+	], [
+		main.entity('plat', {x:16480, y:0, w:28, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:16480, y:224, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:16512, y:120, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:16704, y:104, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:16928, y:0, w:2, h:11, mode:1, col:15, clip:[[], [0], [0], []]}),
+	], [
+		main.entity('plat', {x:16960, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:16960, y:224, w:4, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:17024, y:224, w:26, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:17032, y:176, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:17200, y:128, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:17376, y:80, w:4, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('mananangal', {x:1.724E+4, y:32, p:[16984, 32, 17496 ,32], ess:200}),
+		main.entity('mananangal', {x:1.748E+4, y:32, p:[17224, 32, 17736 ,32], ess:200}),
+	], [
+		main.entity('plat', {x:17440, y:64, w:2, h:2, dropoff: true, mode:1, col:9, clip:[[], [1], [0, 1], []]}),
+		main.entity('plat', {x:17440, y:0, w:19, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:17440, y:224, w:19, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:17472, y:48, w:2, h:3, dropoff: true, mode:1, col:9, clip:[[], [1, 2], [], []]}),
+		main.entity('plat', {x:17552, y:144, w:12, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:17744, y:0, w:2, h:5, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:17744, y:112, w:2, h:8, mode:1, col:15, clip:[[], [7, 2], [2, 3, 4, 5, 6, 7], []]}),
+		main.entity('plat', {x:17776, y:0, w:9, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:17776, y:144, w:2, h:6, mode:1, col:15, clip:[[], [0, 1, 2, 3, 4, 5], [2, 3, 4, 5], []]}),
+		main.entity('plat', {x:17808, y:176, w:2, h:4, mode:1, col:15, clip:[[], [0, 1, 2, 3], [3], []]}),
+		main.entity('plat', {x:17840, y:224, w:2, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:17872, y:160, w:1, h:5, mode:1, col:15, clip:[[], [4], [2, 4], []]}),
+		main.entity('plat', {x:17888, y:192, w:1, h:1, dropoff: true, mode:1, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:17888, y:224, w:2, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('pressure_plate', {x:17888, y:222, w:32, bind:[
+			main.entity('shooter', {x:1.7895E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.7911E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('mananangal', {x:1.8048E+4, y:32, p:[17792, 32, 18304 ,32], ess:200}),
+	], [
+		main.entity('plat', {x:18064, y:128, w:2, h:2, mode:1, col:9, clip:[[], [], [0, 1], []]}),
+		main.entity('plat', {x:18064, y:160, w:2, h:5, mode:1, clip:[[], [], [0, 1, 2, 3, 4], []]}),
+		main.entity('plat', {x:18096, y:96, w:2, h:2, mode:1, col:9, clip:[[], [], [0, 1], []]}),
+		main.entity('plat', {x:18096, y:128, w:2, h:7, mode:1, clip:[[], [0, 1, 2, 3, 4, 5, 6], [0, 1, 2, 3, 4, 5, 6], []]}),
+		main.entity('plat', {x:18128, y:64, w:2, h:2, mode:1, col:11, clip:[[], [], [], []]}),
+		main.entity('plat', {x:18128, y:96, w:2, h:9, mode:1, col:2, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7, 8], [], []]}),
+		main.entity('plat', {x:17920, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:17920, y:224, w:20, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:17968, y:128, w:1, h:4, mode:1, col:15, clip:[[], [], [2], []]}),
+		main.entity('plat', {x:17984, y:160, w:5, h:1, mode:1, col:15, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:18096, y:176, w:3, h:1, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:18224, y:176, w:1, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:18240, y:144, w:1, h:6, mode:1, col:15, clip:[[], [5, 2], [5], []]}),
+		main.entity('plat', {x:18256, y:224, w:5, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:18320, y:176, w:1, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:18336, y:144, w:2, h:6, mode:1, col:15, clip:[[], [5, 2], [0, 1, 2, 3, 4, 5], []]}),
+		main.entity('plat', {x:18368, y:112, w:2, h:8, mode:1, col:15, clip:[[], [2, 3, 4, 5, 6, 7], [0, 1, 2, 3, 4, 5, 6, 7], []]}),
+		main.entity('pressure_plate', {x:17920, y:222, w:32, bind:[
+			main.entity('shooter', {x:1.7927E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.7943E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.7959E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('pressure_plate', {x:17984, y:158, w:80, bind:[
+			main.entity('shooter', {x:1.7991E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8007E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8023E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8039E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8055E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('pressure_plate', {x:18160, y:222, w:80, bind:[
+			main.entity('shooter', {x:1.8167E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8183E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8199E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8215E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8231E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('pressure_plate', {x:18256, y:222, w:80, bind:[
+			main.entity('shooter', {x:1.8263E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8279E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8295E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8311E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8327E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('mananangal', {x:1.8208E+4, y:48, p:[17952, 48, 18464 ,48], ess:200}),
+	], [
+		main.entity('plat', {x:18400, y:0, w:5, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:18400, y:80, w:2, h:10, mode:1, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8, 9], [9], []]}),
+		main.entity('plat', {x:18432, y:224, w:28, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:18464, y:80, w:2, h:7, mode:1, col:15, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:18480, y:0, w:2, h:3, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:18496, y:80, w:15, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:18512, y:0, w:23, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:18544, y:176, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:18704, y:144, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:18736, y:48, w:4, h:3, mode:1, col:15, clip:[[], [2], [2], []]}),
+		main.entity('plat', {x:18800, y:80, w:5, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:18864, y:176, w:1, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('pressure_plate', {x:18592, y:174, w:48, bind:[
+			main.entity('shooter', {x:1.8599E+4, y:101.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8615E+4, y:101.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8631E+4, y:101.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('pressure_plate', {x:18608, y:78, w:48, bind:[
+			main.entity('shooter', {x:1.8615E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8631E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8647E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('mananangal', {x:1.876E+4, y:32, p:[18536, 32, 18984 ,32], ess:200}),
+		main.entity('mananangal', {x:1.896E+4, y:32, p:[18736, 32, 19184 ,32], ess:200}),
+	], [
+		main.entity('plat', {x:18880, y:0, w:25, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:18880, y:80, w:9, h:1, mode:1, col:15, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:18880, y:176, w:6, h:1, dropoff: true, mode:1, clip:[[], [0], [], []]}),
+		main.entity('plat', {x:18880, y:224, w:20, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:19008, y:144, w:4, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:19056, y:112, w:1, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:19072, y:64, w:2, h:8, mode:1, col:15, clip:[[], [5, 3], [0, 1, 2, 3, 4, 5], []]}),
+		main.entity('plat', {x:19104, y:64, w:6, h:6, mode:1, col:15, clip:[[], [0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], []]}),
+		main.entity('plat', {x:19200, y:64, w:2, h:11, mode:1, col:15, clip:[[], [10, 0, 1, 2, 3, 4, 5], [10], []]}),
+		main.entity('plat', {x:19232, y:224, w:8, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:19280, y:0, w:2, h:11, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:19312, y:0, w:3, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('pressure_plate', {x:18880, y:78, w:48, bind:[
+			main.entity('shooter', {x:1.8887E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8903E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8919E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('pressure_plate', {x:18896, y:174, w:48, bind:[
+			main.entity('shooter', {x:1.8903E+4, y:101.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8919E+4, y:101.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.8935E+4, y:101.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('pressure_plate', {x:19232, y:222, w:32, bind:[
+			main.entity('shooter', {x:1.9239E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.9251E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.9263E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('pressure_plate', {x:19320, y:222, w:32, bind:[
+			main.entity('shooter', {x:1.9327E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.9339E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:1.9351E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('mananangal', {x:1.9656E+4, y:40, p:[19344, 40, 19968 ,40], ess:200}),
+	], [
+		main.entity('plat', {x:19360, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:19360, y:224, w:1, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:19376, y:224, w:29, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:19416, y:184, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:19504, y:148, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:19592, y:120, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:19680, y:92, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:19768, y:68, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('pressure_plate', {x:19696, y:90, w:16, bind:[
+			main.entity('shooter', {x:1.9703E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('mananangal', {x:1.9768E+4, y:40, p:[19568, 40, 19968 ,40], ess:200}),
+	], [
+		main.entity('plat', {x:19840, y:0, w:16, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:19840, y:224, w:11, h:1, clip:[[], [0], [0], []], mode:3}),
+		main.entity('plat', {x:19856, y:96, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:19936, y:64, w:10, h:1, mode:1, col:15, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:19944, y:140, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('plat', {x:20016, y:176, w:9, h:4, mode:1, col:15, clip:[[], [3], [1, 2, 3], []]}),
+		main.entity('plat', {x:20096, y:0, w:2, h:8, mode:1, col:15, clip:[[], [0, 4], [0], []]}),
+		main.entity('plat', {x:20128, y:0, w:12, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:20160, y:192, w:2, h:3, mode:1, col:15, clip:[[], [0, 1, 2], [1, 2], []]}),
+		main.entity('plat', {x:20192, y:208, w:2, h:2, mode:1, col:15, clip:[[], [0, 1], [1], []]}),
+		main.entity('plat', {x:20224, y:224, w:6, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('pressure_plate', {x:20016, y:174, w:32, bind:[
+			main.entity('shooter', {x:2.0023E+4, y:85.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:2.0035E+4, y:85.0, bind:[], s:0, a:4.712388980385}),
+			main.entity('shooter', {x:2.0047E+4, y:85.0, bind:[], s:0, a:4.712388980385}),
+		]}),
+		main.entity('vine', {x:20264, y:16, h:168}),
+	], [
+		main.entity('plat', {x:20480, y:208, w:1, h:2, dropoff: true, mode:1, clip:[[], [], [0, 1], []]}),
+		main.entity('plat', {x:20496, y:192, w:1, h:3, dropoff: true, mode:1, clip:[[], [1, 2], [0, 1, 2], []]}),
+		main.entity('plat', {x:20512, y:176, w:1, h:4, dropoff: true, mode:1, clip:[[], [1, 2, 3], [0, 1, 2, 3], []]}),
+		main.entity('plat', {x:20528, y:160, w:1, h:5, dropoff: true, mode:1, clip:[[], [1, 2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('plat', {x:20544, y:144, w:3, h:6, dropoff: true, mode:1, clip:[[], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5], []]}),
+		main.entity('plat', {x:20592, y:160, w:1, h:5, dropoff: true, mode:1, clip:[[], [0, 1, 2, 3, 4], [1, 2, 3, 4], []]}),
+		main.entity('plat', {x:20608, y:176, w:1, h:4, dropoff: true, mode:1, clip:[[], [0, 1, 2, 3], [1, 2, 3], []]}),
+		main.entity('plat', {x:20624, y:192, w:1, h:3, dropoff: true, mode:1, clip:[[], [0, 1, 2], [1, 2], []]}),
+		main.entity('plat', {x:20640, y:208, w:1, h:2, dropoff: true, mode:1, clip:[[], [0, 1], [], []]}),
+		main.entity('plat', {x:20320, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:20320, y:224, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:20512, y:72, w:6, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('vine', {x:20344, y:16, h:131}),
+		main.entity('vine', {x:20424, y:16, h:168}),
+		main.entity('vine', {x:20696, y:16, h:131}),
+		main.entity('vine', {x:20776, y:16, h:113}),
+	], [
+		main.entity('plat', {x:20800, y:0, w:7, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:20800, y:224, w:7, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('plat', {x:20848, y:112, w:4, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:20912, y:0, w:13, h:15, mode:1, col:15, clip:[[], [0, 14, 7], [], []]}),
+	]
+];
+export {level}
+
 import { entities_type } from "../types";
 import { algo } from "../algorithms";
 
@@ -7,7 +532,7 @@ let required_files:string[] = [
     // Background
     'Housesv2.png', 'bg normal (no clouds) .png', 'bg normal (w clouds) .png',
     // Platforms
-    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lagablab, bubble and random vegetation.png',
+    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lagablab, bubble and random vegetation.png', 'Lava.png'
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shooterv2.png',
     // Objects
@@ -241,21 +766,31 @@ let entities:entities_type = {
         default: {x:0, y:0, w:0, h:0, hitbox:[], dropoff:false, interact:true, col:1, mode:0, clip:undefined},
         update: (d, o, t, dt) => {
             let bs:number[][] = [];
-            for (let y = 0; y < d.h*2; y++) {
-                for (let x = 0; x < d.w*2; x++) {
-                    let a = [
-                        8*x, 8*y,
-                        x == 0 ? 23 : x+1 == d.w*2 ? 31 : 27,
-                        (y == 0 ? 22 : y+1 == d.h*2 ? 34 : 30)+[0,64,128][d.mode],
-                        8, 8
-                    ];
-                    if (d.clip != undefined) {
-                        if (y == 0 && d.clip[0].indexOf(x>>1) != -1) a[3] += 8;
-                        if (x == 0 && d.clip[1].indexOf(y>>1) != -1) a[2] += 4;
-                        if (x+1 == d.w*2 && d.clip[2].indexOf(y>>1) != -1) a[2] -= 4;
-                        if (y+1 == d.h*2 && d.clip[3].indexOf(x>>1) != -1) a[3] -= 4;
+            // [[x, y, x_offset_in_asset, y_offset_in_asset, asset_width, asset_height], ...]
+            let spriteName = "";
+            if (d.mode == 3) {
+                spriteName = "Lava.png";
+                for (let x = 0; x < d.w; x++) {
+                    bs.push([x * 16, 0, 0, 0, 16, 16]);
+                }
+            } else {
+                spriteName = "Blocks.png"
+                for (let y = 0; y < d.h*2; y++) {
+                    for (let x = 0; x < d.w*2; x++) {
+                        let a = [
+                            8*x, 8*y,
+                            x == 0 ? 23 : x+1 == d.w*2 ? 31 : 27,
+                            (y == 0 ? 22 : y+1 == d.h*2 ? 34 : 30)+[0,64,128][d.mode],
+                            8, 8
+                        ];
+                        if (d.clip != undefined) {
+                            if (y == 0 && d.clip[0].indexOf(x>>1) != -1) a[3] += 8;
+                            if (x == 0 && d.clip[1].indexOf(y>>1) != -1) a[2] += 4;
+                            if (x+1 == d.w*2 && d.clip[2].indexOf(y>>1) != -1) a[2] -= 4;
+                            if (y+1 == d.h*2 && d.clip[3].indexOf(x>>1) != -1) a[3] -= 4;
+                        }
+                        bs.push(a);
                     }
-                    bs.push(a);
                 }
             }
             for (let x = 0; x < d.w; x++) {
@@ -297,7 +832,7 @@ let entities:entities_type = {
                     //else if(d.mode == 2) 
                 }
             }
-            o.sprites('Blocks.png', [d.x, d.y], ...bs);
+            o.sprites(spriteName, [d.x, d.y], ...bs);
             d.hitbox = [ d.col,
                 d.x, d.y,
                 d.w*16, d.h*16
@@ -473,6 +1008,7 @@ let entities:entities_type = {
         default: {x:0, y:0, h:0},
         update: (d, o, t, dt) => {
             let a:number[][] = [];
+            // x, y, x_offset_in_asset, y_offset_in_asset, asset_width, asset_height
             for(var i = 0; i < Math.floor(d.h/24); i++) a.push([0, 24*i, 0, 0, 7, 24]);
             if (d.h%24 != 0) a.push([0, 24*i, 0, 0, 7, d.h%24])
             a.push([2, d.h, 0, 32, 3, 3]);
