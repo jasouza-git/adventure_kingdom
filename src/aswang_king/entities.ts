@@ -9,13 +9,15 @@ let required_files:string[] = [
     // Background
     'Housesv2.png', 'bg normal (no clouds) .png', 'bg normal (w clouds) .png',
     // Platforms
-    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lagablab, bubble and random vegetation.png', 'Lava.png',
+    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lava.png',
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shooterv2.png',
     // Objects
     'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
     'Mcparts.png',
+    // Poisonous Plants
+    'Atropa Belladonav2.png', 'Lagablab, bubble and random vegetation.png', 
     // Music
     'song/1st Temp BG Song (New Area).mp3',
     // Fonts
@@ -35,6 +37,9 @@ let entities:entities_type = {
             swinging: 0,   // Current swining position (0->1)
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
+            poisoned: -1,
+            speed_rate: 1,
+            poison_a: 0.11,
             lives: 3
         },
         update: (d, o, t, dt) => {
@@ -73,7 +78,14 @@ let entities:entities_type = {
                     16, 29
                 );
 
-
+                if (d.poisoned >= 0 && d.poison_duration > 0) {
+                    d.poison_duration -= dt;
+                    d.speed_rate = 0.6 - (d.poison_a * (5 - d.poison_duration / 1000));
+                } else {
+                    d.poisoned = -1;
+                    d.speed_rate = 1;
+                }
+                
                 leg = c(
                     d.ground == -1 ? 8 :
                     d.crouch ? 7 :
@@ -89,6 +101,8 @@ let entities:entities_type = {
                 );
             } 
             if (d.dead != -1) {
+                d.poisoned = -1;
+                d.speed_rate = 1;
                 d.hitbox = [ 15,
                     d.x+12, o.h,
                     8, 29
@@ -105,7 +119,6 @@ let entities:entities_type = {
                     d.fright = true;
                 }
             }
-
             // Rendering
             o.sprites('Mcparts.png', [d.x, d.dead == -1 ? d.y : d.dead < 0.5 ? d.y-10*Math.sin(d.dead*Math.PI) : o.h+22-Math.sin(d.dead*Math.PI)*(o.h-d.y+32)],
                 // Leg
@@ -113,6 +126,12 @@ let entities:entities_type = {
                 // Body
                 [0, d.crouch ? 2 : 0, 32*body[0] , 32*body[1], 32, 32, 1-d.fright]
             );
+
+            if (d.poisoned == 0) {
+                o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], [0, 0, 37, 13, 21, 17])
+            } else if (d.poisoned == 1) {
+                o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], [0, 0, 69, 13, 21, 17])
+            }
 
         }
     },
@@ -250,6 +269,7 @@ let entities:entities_type = {
                 for (let x = 0; x < d.w; x++) {
                     bs.push([x * 16, 0, 0, 0, 16, 16]);
                 }
+                if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
             } else {
                 spriteName = "Blocks.png"
                 for (let y = 0; y < d.h*2; y++) {
@@ -285,17 +305,17 @@ let entities:entities_type = {
                     else if (d.mode == 2) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 32, 0, 32, 32]);
                 }
                 // Bush (10%)
-                if (d.data[x]&8) {
-                    if (d.mode == 0) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
-                    else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 0, 128, 32, 32]);
-                    else if(d.mode == 2) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,64,32,32]);
-                }
-                // Big grass (20%)
-                if (d.data[x]&4) {
-                    if (d.mode == 0) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,32,0,32,32]);
-                    else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 32, 32, 32, 32]);
-                    else if(d.mode == 2) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,64,0,32,32]);
-                }
+                // if (d.data[x]&8) {
+                //     if (d.mode == 0) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
+                //     else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 0, 128, 32, 32]);
+                //     else if(d.mode == 2) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,64,32,32]);
+                // }
+                // // Big grass (20%)
+                // if (d.data[x]&4) {
+                //     if (d.mode == 0) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,32,0,32,32]);
+                //     else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 32, 32, 32, 32]);
+                //     else if(d.mode == 2) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,64,0,32,32]);
+                // }
                 // Tree (10%)
                 if (d.data[x]&2) {
                     if (d.mode == 0) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 64*(Math.floor(t/500)%2), 0, 64, 64]);
@@ -324,9 +344,9 @@ let entities:entities_type = {
                 // Tree
                 (Math.random() < 0.1 ? 2 : 0) +
                 // Big Grass
-                (Math.random() < 0.2 ? 4 : 0) +
-                // Bush
-                (Math.random() < 0.1 ? 8 : 0) +
+                // (Math.random() < 0.2 ? 4 : 0) +
+                // // Bush
+                // (Math.random() < 0.1 ? 8 : 0) +
                 // Special
                 (Math.random() < 0.1 ? 16: 0) +
                 // Dead tree
@@ -543,6 +563,31 @@ let entities:entities_type = {
             } else d.triggered = false;
             o.sprites('pressure.png', [d.x,d.y], ...a);
         }
+    },
+    atropa_belladonna: {
+        default: {x: 0, y: 0},
+        update: (d, o, t, dt) => {
+            d.hitbox = [0,
+                d.x, d.y,
+                22, 22
+            ]
+            if (algo.rectint(d.hitbox, o.player.hitbox)) {
+                o.player.poisoned = 0;
+                o.player.poison_duration = 5000;
+                d.in_area_time += dt;
+                if (d.in_area_time > 2000) o.player.poisoned = 1;
+                if (d.in_area_time > 3000) o.player.dead = 0;
+            } else {
+                d.in_area_time = 0;
+            }
+            o.sprites('Atropa Belladonav2.png', [d.x, d.y], [0, 0, 6, 10, 22, 22])
+        }
+    },
+    lagablab: {
+        default: {x: 0, y: 0},
+        update(d, o, t, dt) {
+            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, 6, 9, 23, 23])
+        },
     },
     text: {
         default: {x: 10, y: 20, z:10, text:'', color: '#FFF'},
