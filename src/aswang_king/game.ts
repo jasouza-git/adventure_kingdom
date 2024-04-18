@@ -28,6 +28,8 @@ main.scene('level', (t, dt) => {
     off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
 
     if (player.lives[0] < 0) {
+        menu.over = true;
+        main.add(menu);
         return;
     }
 
@@ -72,7 +74,10 @@ main.scene('level', (t, dt) => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
     
-    if(main.on('w,W, ,ArrowUp,gp_2') && player.ground != -1) {
+    if (player.climable && main.on('w,W')) {
+        player.climing = true;
+    }
+    if(main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
     } else if (main.on('s,S,ArrowDown,gp_s')) {
         player.crouch = true;

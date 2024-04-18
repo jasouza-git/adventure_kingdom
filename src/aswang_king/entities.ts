@@ -7,7 +7,7 @@ let required_files:string[] = [
     // Menu
     'Rise_of_the_Aswang_King.png',
     // Background
-    'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png',
+    'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png', 'Game Over.png',
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lava.png',
     // Entities
@@ -15,7 +15,7 @@ let required_files:string[] = [
     // Objects
     'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
-    'Mcparts.png', 'Heart.png',
+    'Mcpartsv3.png', 'Heart.png',
     // Poisonous Plants
     'Atropa Belladonav2.png', 'Lagablab, bubble and random vegetation.png', 
     // SFX
@@ -42,7 +42,11 @@ let entities:entities_type = {
             hitbyarrow: ()=>{},
             gameover: ()=>{},
             poisoned: -1,
-            speed_rate: 1
+            speed_rate: 1,
+            points: 0,
+            max_x: 0,
+            climable: true,
+            climing: false
         },
         update: (d, o, t, dt) => {
             let c = n => [n%6, Math.floor(n/6)];
@@ -54,13 +58,18 @@ let entities:entities_type = {
                     8, 29
                 ];
 
+                // Max X for points
+                if (d.x > d.max_x) d.max_x = d.x;
+
                 // Movement
-                d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
-                let cols = algo.physics(dt, d, o);
-                if (d.crouch && !d.jumping) cols.forEach(c => {
-                    if (c[1]==2 && o.interacts[c[0]].dropoff) d.nocollide.push(c[0]);
-                });
-                else d.nocollide = [];
+                if (d.climing == false) {
+                    d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+                    let cols = algo.physics(dt, d, o);
+                    if (d.crouch && !d.jumping) cols.forEach(c => {
+                        if (c[1]==2 && o.interacts[c[0]].dropoff) d.nocollide.push(c[0]);
+                    });
+                    else d.nocollide = [];
+                }
                 if (d.y >= o.h-32) {
                     d.dead = 0;
                     return;
@@ -92,6 +101,8 @@ let entities:entities_type = {
                     d.speed_rate = 1;
                 }
                 
+                if (d.climing) {
+                }
                 leg = c(
                     d.ground == -1 ? 8 :
                     d.crouch ? 7 :
@@ -133,7 +144,7 @@ let entities:entities_type = {
                 }
             }
             // Rendering
-            o.sprites('Mcparts.png', [d.x, d.dead == -1 ? d.y : d.dead < 0.5 ? d.y-10*Math.sin(d.dead*Math.PI) : o.h+22-Math.sin(d.dead*Math.PI)*(o.h-d.y+32)],
+            o.sprites('Mcpartsv3.png', [d.x, d.dead == -1 ? d.y : d.dead < 0.5 ? d.y-10*Math.sin(d.dead*Math.PI) : o.h+22-Math.sin(d.dead*Math.PI)*(o.h-d.y+32)],
                 // Leg
                 [0, 0, 32*leg[0], 32*leg[1], 32, 32, 1-d.fright],
                 // Body
@@ -442,8 +453,12 @@ let entities:entities_type = {
         }
     },
     menu: {
-        default: {},
+        default: {house:false, over:false},
         update: (d, o, t, dt) => {
+            if (d.over) {
+                o.sprites('Game Over.png', [], [0, 0, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
+                return;
+            }
             if (d.house) o.sprites('Housesv2.png', [], [0, 100, 126, 0, 128, 128]);
             o.sprites('Rise_of_the_Aswang_King.png', [0, 0],
                 [0, 0, 0, 0, 256, 144]
@@ -562,12 +577,17 @@ let entities:entities_type = {
     vine: {
         default: {x:0, y:0, h:0},
         update: (d, o, t, dt) => {
+            d.hitbox = [0,
+                d.x,d.y,
+                8, d.h
+            ]
             let a:number[][] = [];
             // x, y, x_offset_in_asset, y_offset_in_asset, asset_width, asset_height
             for(var i = 0; i < Math.floor(d.h/24); i++) a.push([0, 24*i, 0, 0, 7, 24]);
             if (d.h%24 != 0) a.push([0, 24*i, 0, 0, 7, d.h%24])
             a.push([2, d.h, 0, 32, 3, 3]);
             o.sprites('Vine.png', [d.x, d.y], ...a);
+            if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.climable = true;
         }
     },
     wire: {
