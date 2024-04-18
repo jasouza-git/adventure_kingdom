@@ -556,4 +556,4 @@ let level = main => [
 		main.entity('plat', {x:20912, y:0, w:13, h:15, mode:1, col:15, clip:[[], [0, 14, 7], [], []]}),
 	]
 ];
-export {level}
+export {level};
