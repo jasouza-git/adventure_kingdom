@@ -302,7 +302,6 @@ let entities:entities_type = {
                 d.duration -= dt;
             }
 
-
             o.sprites('Arrow.png', [d.x, d.y],
                 [0, 0, 0, 0, 8, 5, 0, 0, d.a, 4, 3]
             );
