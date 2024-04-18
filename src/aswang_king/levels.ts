@@ -340,8 +340,6 @@ let level = main => [
 		main.entity('plat', {x:17032, y:176, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:17200, y:128, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:17376, y:80, w:4, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
-		main.entity('mananangal', {x:1.724E+4, y:32, p:[16984, 32, 17496 ,32], ess:200}),
-		main.entity('mananangal', {x:1.748E+4, y:32, p:[17224, 32, 17736 ,32], ess:200}),
 	], [
 		main.entity('plat', {x:17440, y:64, w:2, h:2, dropoff: true, mode:1, col:9, clip:[[], [1], [0, 1], []]}),
 		main.entity('plat', {x:17440, y:0, w:19, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
@@ -361,7 +359,6 @@ let level = main => [
 			main.entity('shooter', {x:1.7895E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 			main.entity('shooter', {x:1.7911E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 		]}),
-		main.entity('mananangal', {x:1.8048E+4, y:32, p:[17792, 32, 18304 ,32], ess:200}),
 	], [
 		main.entity('plat', {x:18064, y:128, w:2, h:2, mode:1, col:9, clip:[[], [], [0, 1], []]}),
 		main.entity('plat', {x:18064, y:160, w:2, h:5, mode:1, clip:[[], [], [0, 1, 2, 3, 4], []]}),
@@ -406,7 +403,6 @@ let level = main => [
 			main.entity('shooter', {x:1.8311E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 			main.entity('shooter', {x:1.8327E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 		]}),
-		main.entity('mananangal', {x:1.8208E+4, y:48, p:[17952, 48, 18464 ,48], ess:200}),
 	], [
 		main.entity('plat', {x:18400, y:0, w:5, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:18400, y:80, w:2, h:10, mode:1, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8, 9], [9], []]}),
@@ -430,8 +426,6 @@ let level = main => [
 			main.entity('shooter', {x:1.8631E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 			main.entity('shooter', {x:1.8647E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 		]}),
-		main.entity('mananangal', {x:1.876E+4, y:32, p:[18536, 32, 18984 ,32], ess:200}),
-		main.entity('mananangal', {x:1.896E+4, y:32, p:[18736, 32, 19184 ,32], ess:200}),
 	], [
 		main.entity('plat', {x:18880, y:0, w:25, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:18880, y:80, w:9, h:1, mode:1, col:15, clip:[[], [0], [], []]}),
@@ -465,7 +459,6 @@ let level = main => [
 			main.entity('shooter', {x:1.9339E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 			main.entity('shooter', {x:1.9351E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 		]}),
-		main.entity('mananangal', {x:1.9656E+4, y:40, p:[19344, 40, 19968 ,40], ess:200}),
 	], [
 		main.entity('plat', {x:19360, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:19360, y:224, w:1, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
@@ -478,7 +471,6 @@ let level = main => [
 		main.entity('pressure_plate', {x:19696, y:90, w:16, bind:[
 			main.entity('shooter', {x:1.9703E+4, y:21.0, bind:[], s:0, a:4.712388980385}),
 		]}),
-		main.entity('mananangal', {x:1.9768E+4, y:40, p:[19568, 40, 19968 ,40], ess:200}),
 	], [
 		main.entity('plat', {x:19840, y:0, w:16, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:19840, y:224, w:11, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
