@@ -9,7 +9,7 @@ let required_files:string[] = [
     // Background
     'Housesv2.png', 'bg normal (no clouds) .png', 'bg normal (w clouds) .png',
     // Platforms
-    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lagablab, bubble and random vegetation.png', 'Lava.png'
+    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lagablab, bubble and random vegetation.png', 'Lava.png',
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shooterv2.png',
     // Objects
