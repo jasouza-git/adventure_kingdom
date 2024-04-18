@@ -26,9 +26,9 @@ main.scene('level', (t, dt) => {
     // Layers
     main.add(bg);
     let l = Math.floor(player.x/480);
+    main.add(lv[l]);
     if (l-2 >= 0) main.add(lv[l-2]);
     if (l-1 >= 0) main.add(lv[l-1]);
-    main.add(lv[l]);
     if (l+1 < lv.length) main.add(lv[l+1]);
     if (l+2 < lv.length) main.add(lv[l+2]);
     main.add(pet, menu, player);
@@ -51,14 +51,14 @@ main.scene('level', (t, dt) => {
     });
     
     if(main.on('w,W, ,ArrowUp,gp_2') && player.ground != -1) {
-        player.m[1] = 20;
+        player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
     } else if (main.on('s,S,ArrowDown,gp_s')) {
         player.crouch = true;
         player.m[0] = 0;
     } else if (player.crouch) {
         player.crouch = player.jumping = false;
-    } else if(main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8;
-    else if(main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8;
+    } else if(main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8 * player.speed_rate;
+    else if(main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8 * player.speed_rate;
     else player.m[0] = 0;
 });
 main.render();
