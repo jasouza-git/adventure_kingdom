@@ -39,6 +39,7 @@ let entities:entities_type = {
             ground: -1,    // Collider character is on
             poisoned: -1,
             speed_rate: 1,
+            in_area_time: 0,
             lives: 3
         },
         update: (d, o, t, dt) => {
@@ -77,13 +78,23 @@ let entities:entities_type = {
                     16, 29
                 );
 
+                // Poison
+                if (d.in_area_time >= 3000) {
+                    d.dead = 0;
+                    d.poisoned = -1
+                } else if (d.in_area_time >= 2000) {
+                    d.poisoned = 1;
+                }
+
                 if (d.poisoned >= 0 && d.poison_duration > 0) {
                     d.poison_duration -= dt;
                     d.speed_rate *= 1 - (0.25 * d.poison_duration / 100000)
                     if (d.speed_rate <= 0.2) d.speed_rate = 0.2;
                 } else {
                     d.poisoned = -1;
+                    d.poison_duration = 0;
                     d.speed_rate = 1;
+                    d.in_area_time = 0;
                 }
                 
                 leg = c(
@@ -230,6 +241,10 @@ let entities:entities_type = {
         default: {x:0, y:0, m:[0,0], a:0, nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 3000},
         update: (d, o, t, dt) => {
             if (d.duration <= 0) return;
+            d.hitbox = [15,
+                d.x, d.y,
+                8, 5
+            ];
             let col = algo.physics(dt, d, o);
             if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1 && algo.rectint(d.hitbox, o.player.hitbox.splice(0,5)) && o.player.dead == -1) o.player.dead = 0;
             /*if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1) col.forEach(c => {
@@ -241,14 +256,9 @@ let entities:entities_type = {
                 d.duration -= dt;
             }
 
-
             o.sprites('Arrow.png', [d.x, d.y],
                 [0, 0, 0, 0, 8, 5, 0, 0, d.a, 4, 3]
             );
-            d.hitbox = [15,
-                d.x, d.y,
-                8, 5
-            ];
             if (o.player && algo.rectint(d.hitbox, o.player.hitbox.slice(5))) d.duration = 0;
         },
         create: (o, arg) => {
@@ -268,7 +278,7 @@ let entities:entities_type = {
                 d.w*16, d.h*16
             ];
             if (d.mode == 3) {
-                let v = Math.floor((t / 500) % 2);
+                let v = Math.floor((t / 250) % 2);
                 for (let x = 0; x < d.w; x += 2) {
                     bs.push([x * 16, 0, (v == 0 ? 0 : 34), 0, 16, 16]);
                     bs.push([(x + 1) * 16, 0, (v == 0 ? 16 : 50), 0, 16, 16]);
@@ -514,9 +524,7 @@ let entities:entities_type = {
         }
     },
     wire: {
-        default: {x:0, y:0, h:10, triggered: false,
-            follow:undefined
-        },
+        default: {x:0, y:0, h:10, triggered: false, follow:undefined},
         update: (d, o, t, dt) => {
             d.hitbox = [0,
                 d.x, d.y,
@@ -575,39 +583,76 @@ let entities:entities_type = {
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
-                d.in_area_time += dt;
-                if (d.in_area_time > 2000) o.player.poisoned = 1;
-                if (d.in_area_time > 3000) o.player.dead = 0;
-            } else {
-                d.in_area_time = 0;
+                o.player.in_area_time += dt;
             }
             o.sprites('Atropa Belladonav2.png', [d.x, d.y], [0, 0, 6, 10, 22, 22])
         }
     },
     lagablab: {
-        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 3000},
+        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 1000, n: 5, bind:[], s:10, min_a: 0, max_a: Math.PI * 0.5},
         update(d, o, t, dt) {
             let ofs = 0;
-            // if (d.shoot > 0) {
-                // d.cooldowntmp -= dt;
-                // //console.log(d.cooldowntmp);
-                // if (d.colldowntmp < 1000) ofs = 2;
-                // if (d.cooldowntmp <= 0) {
-                //     d.bind.push(o.entity('blab', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(d.a),d.s*Math.sin(d.a)], parent:d, a:-d.a+Math.PI}));
-                //     d.shoot--;
-                //     d.cooldowntmp = d.cooldown;
-                // }
-            // }
-
+            d.cooldowntmp -= dt;
+            if (d.colldowntmp < 1000) ofs = 2;
+            if (d.cooldowntmp <= 0) {
+                for (let i = 0; i < d.n; i ++) {
+                    let a: number = d.min_a + Math.random() * (d.max_a - d.min_a);
+                    d.bind.push(o.entity('blab', {x:d.x-Math.cos(a)*5, y:d.y+Math.sin(a)*5, m:[d.s*Math.cos(a),d.s*Math.sin(a)], parent:d, n: d.n}));
+                }
+                d.cooldowntmp = d.cooldown;
+            }
             o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, 6, 9, 23, 23])
         },
     },
     blab: {
-        default: {x: 0, y: 0},
-        update(d, o, t, dt) {
-
-            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, 36, 67, 9, 9])
-        }
+        default: {x:0, y:0, m:[0,0], nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 5000, bind:[]},
+        update: (d, o, t, dt) => {
+            if (d.duration <= 0) return;
+            d.hitbox = [15,
+                d.x, d.y,
+                8, 5
+            ];
+            let col = algo.physics(dt, d, o);
+            if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1 && algo.rectint(d.hitbox, o.player.hitbox.splice(0,5)) && o.player.dead == -1) {
+                o.player.poisoned = 0;
+                o.player.poison_duration = 5000;
+                d.in_area_time += dt;
+            }
+            if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
+            else {
+                d.m = [0, 0];
+                d.duration -= dt;
+            }
+            let v = Math.floor((t / 250) % 2);
+            
+            if (d.m[0] == 0 && d.m[1] == 0) {
+                d.duration = 0;
+                d.bind = [];
+                d.bind.push(o.entity('poisoned_area', {x: d.x - 30 * 1 + 4, y: d.y + 3, w: 30 * 2, duration: 3000, parent:d}));
+            }
+            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, (v == 0 ? 36 : 68), 67, 9, 9])
+        },
+    },
+    poisoned_area: {
+        default: {x: 0, y: 0, w: 0, duration: 6000, parent:undefined},
+        update: (d, o, t, dt) => {
+            if (d.duration <= 0) return;
+            d.hitbox = [0,
+                d.x, d.y,
+                d.w, 5
+            ]
+            let bs:number[][] = [];
+            for (let x = 0; x < d.w; x += 30) {
+                bs.push([x, 0, 33, 51, 30, 5]);
+            }
+            d.duration -= dt;
+            if (algo.rectint(d.hitbox, o.player.hitbox)) {
+                o.player.poisoned = 0;
+                o.player.poison_duration = 5000;
+                o.player.in_area_time += dt;
+            }
+            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], ...bs);
+        },
     },
     text: {
         default: {x: 10, y: 20, z:10, text:'', color: '#FFF'},
