@@ -80,7 +80,6 @@ let entities:entities_type = {
                 if (d.poisoned >= 0 && d.poison_duration > 0) {
                     d.poison_duration -= dt;
                     d.speed_rate *= 1 - (0.25 * d.poison_duration / 100000)
-                    console.log (d.speed_rate)
                     if (d.speed_rate <= 0.2) d.speed_rate = 0.2;
                 } else {
                     d.poisoned = -1;
@@ -264,15 +263,19 @@ let entities:entities_type = {
         update: (d, o, t, dt) => {
             let bs:number[][] = [];
             // [[x, y, x_offset_in_asset, y_offset_in_asset, asset_width, asset_height], ...]
-            let spriteName = "";
+            d.hitbox = [ d.col,
+                d.x, d.y,
+                d.w*16, d.h*16
+            ];
             if (d.mode == 3) {
-                spriteName = "Lava.png";
-                for (let x = 0; x < d.w; x++) {
-                    bs.push([x * 16, 0, 0, 0, 16, 16]);
+                let v = Math.floor((t / 500) % 2);
+                for (let x = 0; x < d.w; x += 2) {
+                    bs.push([x * 16, 0, (v == 0 ? 0 : 34), 0, 16, 16]);
+                    bs.push([(x + 1) * 16, 0, (v == 0 ? 16 : 50), 0, 16, 16]);
                 }
                 if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
+                o.sprites('Lava.png', [d.x, d.y], ...bs);
             } else {
-                spriteName = "Blocks.png"
                 for (let y = 0; y < d.h*2; y++) {
                     for (let x = 0; x < d.w*2; x++) {
                         let a = [
@@ -290,51 +293,48 @@ let entities:entities_type = {
                         bs.push(a);
                     }
                 }
+                for (let x = 0; x < d.w; x++) {
+                    if (d.clip != undefined && d.clip[0].indexOf(x) != -1) continue;
+                    // Dead Tree (5%)
+                    if (d.data[x]&32) {
+                        if (d.mode == 0) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 0, 64, 64, 64]);
+                        //else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 96, 96, 32, 32]);
+                        else if (d.mode == 2) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 64, 64, 64, 64]);
+                    }
+                    // Special (10%)
+                    if (d.data[x]&16) {
+                        if (d.mode == 0) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 0, 0, 32, 32]);
+                        else if (d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 0, 64, 32, 32]);
+                        else if (d.mode == 2) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 32, 0, 32, 32]);
+                    }
+                    // Bush (10%)
+                    // if (d.data[x]&8) {
+                    //     if (d.mode == 0) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
+                    //     else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 0, 128, 32, 32]);
+                    //     else if(d.mode == 2) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,64,32,32]);
+                    // }
+                    // // Big grass (20%)
+                    // if (d.data[x]&4) {
+                    //     if (d.mode == 0) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,32,0,32,32]);
+                    //     else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 32, 32, 32, 32]);
+                    //     else if(d.mode == 2) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,64,0,32,32]);
+                    // }
+                    // Tree (10%)
+                    if (d.data[x]&2) {
+                        if (d.mode == 0) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 64*(Math.floor(t/500)%2), 0, 64, 64]);
+                        else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 96, 96, 32, 32]);
+                        else if (d.mode == 2) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 128+64*(Math.floor(t/500)%2), 0, 64, 64]);
+                    }
+                    // Grass (50%)
+                    if (d.data[x]&1) {
+                        if (d.mode == 0) o.sprites('Flowers.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
+                        else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 64, 32, 32, 32]);
+                        //else if(d.mode == 2) 
+                    }
+                }
+                o.sprites('Blocks.png', [d.x, d.y], ...bs);
             }
-            for (let x = 0; x < d.w; x++) {
-                if (d.clip != undefined && d.clip[0].indexOf(x) != -1) continue;
-                // Dead Tree (5%)
-                if (d.data[x]&32) {
-                    if (d.mode == 0) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 0, 64, 64, 64]);
-                    //else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 96, 96, 32, 32]);
-                    else if (d.mode == 2) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 64, 64, 64, 64]);
-                }
-                // Special (10%)
-                if (d.data[x]&16) {
-                    if (d.mode == 0) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 0, 0, 32, 32]);
-                    else if (d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 0, 64, 32, 32]);
-                    else if (d.mode == 2) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 32, 0, 32, 32]);
-                }
-                // Bush (10%)
-                // if (d.data[x]&8) {
-                //     if (d.mode == 0) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
-                //     else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 0, 128, 32, 32]);
-                //     else if(d.mode == 2) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,0,64,32,32]);
-                // }
-                // // Big grass (20%)
-                // if (d.data[x]&4) {
-                //     if (d.mode == 0) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,32,0,32,32]);
-                //     else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 32, 32, 32, 32]);
-                //     else if(d.mode == 2) o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [32*x,-32,64,0,32,32]);
-                // }
-                // Tree (10%)
-                if (d.data[x]&2) {
-                    if (d.mode == 0) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 64*(Math.floor(t/500)%2), 0, 64, 64]);
-                    else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 96, 96, 32, 32]);
-                    else if (d.mode == 2) o.sprites('Treesv2.png', [d.x, d.y], [32*x, -64, 128+64*(Math.floor(t/500)%2), 0, 64, 64]);
-                }
-                // Grass (50%)
-                if (d.data[x]&1) {
-                    if (d.mode == 0) o.sprites('Flowers.png', [d.x, d.y], [32*x,-32,0,0,32,32]);
-                    else if(d.mode == 1) o.sprites('Bgitems.png', [d.x, d.y], [32*x, -32, 64, 32, 32, 32]);
-                    //else if(d.mode == 2) 
-                }
-            }
-            o.sprites(spriteName, [d.x, d.y], ...bs);
-            d.hitbox = [ d.col,
-                d.x, d.y,
-                d.w*16, d.h*16
-            ];
+            
         },
         create: (o, arg) => {
             let w = arg.w || 0;
@@ -585,10 +585,29 @@ let entities:entities_type = {
         }
     },
     lagablab: {
-        default: {x: 0, y: 0},
+        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 3000},
         update(d, o, t, dt) {
+            let ofs = 0;
+            // if (d.shoot > 0) {
+                // d.cooldowntmp -= dt;
+                // //console.log(d.cooldowntmp);
+                // if (d.colldowntmp < 1000) ofs = 2;
+                // if (d.cooldowntmp <= 0) {
+                //     d.bind.push(o.entity('blab', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(d.a),d.s*Math.sin(d.a)], parent:d, a:-d.a+Math.PI}));
+                //     d.shoot--;
+                //     d.cooldowntmp = d.cooldown;
+                // }
+            // }
+
             o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, 6, 9, 23, 23])
         },
+    },
+    blab: {
+        default: {x: 0, y: 0},
+        update(d, o, t, dt) {
+
+            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, 36, 67, 9, 9])
+        }
     },
     text: {
         default: {x: 10, y: 20, z:10, text:'', color: '#FFF'},
