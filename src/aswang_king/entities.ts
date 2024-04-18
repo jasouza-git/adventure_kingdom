@@ -474,7 +474,6 @@ let entities:entities_type = {
                     //if (Math.hypot(d.follow.x - d.x, d.follow.y - d.y) < 30) d.t = 1;
                     //else d.t = 0;
                 }
-                
                 let v = Math.min(Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.hypot(d.p[2]-d.x, d.p[3]-d.y));
                 if (v > 100 && (Math.min(d.p[0],d.p[2]) > d.x || Math.max(d.p[0],d.p[2]) < d.x)) {
                     d.target = false;
@@ -482,6 +481,7 @@ let entities:entities_type = {
                 } else if(v < 50) d.nofollow = false;
                 if (algo.rectint(d.hitbox.slice(0,5),d.follow.hitbox.slice(5))) d.dead = 0;
             }
+            if (algo.rectint(d.hitbox,d.follow.hitbox)) d.follow.dead = 0;
             
             let dd = d.dead == -1 ? 0 : Math.round(d.dead*2);
             let dr = d.dead == -1 ? 1 : 1-d.dead;
@@ -666,22 +666,51 @@ let entities:entities_type = {
         },
     },
     white_lady: {
-        default: {},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 4, dead: -1, removed: false},
         update: (d, o, t, dt) => {
-
-            return;
+            if (d.removed) return;
+            let hitboxSize = [21, 27];
+            let detectSize = [150, 70];
+            let actionR = [-50, -20, 300, 150];
+            let dead_time = 1000;
+            let asset_name = 'White Ladyv3.png';
+            let origins = [[8, 2], [40, 2], [72, 2]];
+            let sizes = [[21, 27], [21, 27], [21, 27]];
+            let dead_origins = [[72, 34], [8, 66]];
+            let dead_sizes = [[21, 27], [21, 27]];
+            aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, false);
         }
     },
     tikbalang: {
-        default: {},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 6, dead: -1, removed: false},
         update: (d, o, t, dt) => {
-            return;
+            if (d.removed) return;
+            let hitboxSize = [17, 32];
+            let detectSize = [150, 70];
+            let actionR = [-50, -20, 300, 150];
+            let dead_time = 1000;
+            let asset_name = 'Tikbalangv2.png';
+            let origins = [[8, 0], [35, 0], [72, 0]];
+            let sizes = [[17, 32], [22, 31], [17, 32]];
+            let dead_origins = [[7, 33], [39, 33]];
+            let dead_sizes = [[18, 31], [18, 31]];
+            aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, false);
         }
     },
     tiyanak: {
-        default: {},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 10, dead: -1, removed: false},
         update: (d, o, t, dt) => {
-            return;
+            if (d.removed) return;
+            let hitboxSize = [10, 14];
+            let detectSize = [100, 30];
+            let actionR = [0, 0, 150, 50];
+            let dead_time = 1000;
+            let asset_name = 'Tiyanakv2.png';
+            let origins = [[2, 2], [18, 3], [34, 2], [50, 2], [66, 3]];
+            let sizes = [[10, 14], [10, 13], [11, 14], [10, 14], [10, 13]];
+            let dead_origins = [[1, 25], [17, 27]];
+            let dead_sizes = [[14, 7], [13, 5]];
+            aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, true);
         }
     },
     text: {
@@ -692,5 +721,62 @@ let entities:entities_type = {
         }
     }
 };
+
+function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, fright_reverse) {
+    if (d.dead != -1) {
+        d.hitbox = [];
+        d.timer -= dt;
+        let v = (d.timer > dead_time / 2) ? 0 : 1;
+        o.sprites(asset_name, [d.x, d.y], [0, 0, dead_origins[v][0], dead_origins[v][1], dead_sizes[v][0], dead_sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
+        if (d.timer <= 0) d.removed = true;
+        return;
+    } else {
+        // Hitbox
+        d.timer = dead_time;
+        d.hitbox = [ 15,
+            d.x, d.y,
+            hitboxSize[0], hitboxSize[1],
+        ];
+        // Follow AI
+        if (d.follow != undefined && d.follow.dead == -1) {
+            let dist = Math.hypot(d.x - d.follow.x, d.y - d.follow.y);
+            if (!algo.rectint(d.actionRange, d.follow.hitbox)) d.follow = undefined;
+            else d.m[0] = (d.follow.x == d.x) ? 0 : ((d.follow.x > d.x) ? d.s : -d.s);
+            if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
+        } else {
+            // patrol
+            if (d.m[0] == 0) d.m[0] = -d.s/2;
+            if (d.x <= d.p[0]) d.m[0] = d.s/2;
+            else if (d.x >= d.p[2]) d.m[0] = -d.s/2;
+        }
+        // Movement
+        d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+        d.detectBox = [
+            0,
+            d.fright ? d.x : d.x - (detectSize[0] - d.hitbox[3]),d.y - (detectSize[1] - d.hitbox[4]), 
+            detectSize[0], detectSize[1],
+        ];
+        d.actionRange = [
+            0,
+            d.fright ? d.x + actionR[0] : d.x - actionR[0] - (actionR[2] - d.hitbox[3]),d.y - actionR[1] - (actionR[3] - d.hitbox[4]), 
+            actionR[2], actionR[3]
+        ]
+        d.hitbox = d.hitbox.concat(d.detectBox).concat(d.actionRange);
+        
+        if (algo.rectint(d.detectBox, o.player.hitbox)) d.follow = o.player;
+        if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
+            d.dead = 0;
+            return;
+        }
+
+        algo.physics(dt, d, o);
+        if (d.ground != -1) {
+            d.nocollide.splice(1);
+        }
+        // Render
+        let v = (Math.abs(d.m[0])>0.15?1+Math.floor(t/100)%(origins.length - 1):0);
+        o.sprites(asset_name, [d.x, d.y], [0, 0, origins[v][0], origins[v][1], sizes[v][0], sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
+    }
+}
 
 export {entities, required_files};
