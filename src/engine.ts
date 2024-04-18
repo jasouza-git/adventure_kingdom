@@ -133,6 +133,7 @@ class engine {
             this.scenes[this.active_scene](now.getTime() - this.time_init.getTime(), now.getTime() - this.time_last.getTime());
             this.path = '';
             Object.keys(this.audios).forEach(audio => {
+                if (this.audios[audio].hasAttribute('single')) return;
                 if (this.audios[audio].hasAttribute('active'))
                     this.audios[audio].play();
                 else
@@ -196,17 +197,19 @@ class engine {
     }
     public play(audio:string, single?:boolean, volume?:number) {
         if (single) {
-            this.audios[audio] = new Audio();
-            this.audios[audio].src = this.loaded[audio] as string;
-            this.audios[audio].play();
-            this.audios[audio].setAttribute('single','');
+            var id = audio+String(Number(new Date()));
+            this.audios[id] = new Audio();
+            this.audios[id].src = this.loaded[audio] as string;
+            this.audios[id].play();
+            this.audios[id].setAttribute('single','');
+            this.audios[id].onended = () => delete this.audios[id];
         } else {
             if (!this.audios[audio]) {
                 this.audios[audio] = new Audio();
                 this.audios[audio].loop = true;
-                if (volume != undefined) this.audios[audio].volume = parseFloat(String(volume));
                 this.audios[audio].src = this.loaded[audio] as string;
             }
+            if (volume != undefined) this.audios[audio].volume = parseFloat(String(volume));
             this.audios[audio].setAttribute('active','');
         }
     }

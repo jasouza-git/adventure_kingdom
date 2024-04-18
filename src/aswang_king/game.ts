@@ -11,10 +11,13 @@ let lv = level(main);
 let bg = main.entity('background', {house:true});
 let player = main.entity('pinoy', {y:195});
 main.player = player;
-let menu = main.entity('menu');
+let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
 let off = 0;
 let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/1st Temp BG Song (New Area).mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
+
+player.died = () => main.play('song/Dying.mp3', true);
+player.hitbyarrow = () => main.play('song/arrow hit.mp3', true);
 
 // Level Scene
 main.scene('level', (t, dt) => {
@@ -29,15 +32,15 @@ main.scene('level', (t, dt) => {
     for (var n = -2; n <= 2; n++) {
         if (l+n >= 0 && l+n < lv.length) main.add(lv[l+n]);
     }
-    main.add(pet, menu, main.player);
+    main.add(menu, pet, main.player);
 
     // Music
     if (player.ground != -1 && player.ground < main.interacts.length && [0,1,2].indexOf(main.interacts[player.ground].mode) != -1) {
         bg_song_fade_to = main.interacts[player.ground].mode;
     }
     for (var i = 0; i < bg_song.length; i++) {
-        bg_song[i] += (i == bg_song_fade_to ? 1-bg_song[i] : -bg_song[i])*dt/100;
-        //main.play(bg_songs[i], false, bg_song[i]);
+        bg_song[i] += (i == bg_song_fade_to ? 1-bg_song[i] : -bg_song[i])*dt/1000;
+        main.play(bg_songs[i], false, bg_song[i]);
     }
 
     // Developer Tools

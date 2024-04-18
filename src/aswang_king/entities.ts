@@ -14,6 +14,8 @@ let required_files:string[] = [
     'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
     'Mcparts.png',
+    // Sound Effects
+    'song/Dying.mp3', 'song/arrow hit.mp3',
     // Music
     'song/1st Temp BG Song (New Area).mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3',
     // Fonts
@@ -33,10 +35,13 @@ let entities:entities_type = {
             swinging: 0,   // Current swining position (0->1)
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
-            lives: 3
+            lives: [3,3],
+            died: ()=>{},
+            hitbyarrow: ()=>{}
         },
         update: (d, o, t, dt) => {
             let c = n => [n%6, Math.floor(n/6)];
+            if (d.dead == 0) d.died();
             let leg = [0,0], body = [0,0];
             if (d.dead == -1) {
                 // Hitbox
@@ -52,7 +57,10 @@ let entities:entities_type = {
                     if (c[1]==2 && o.interacts[c[0]].dropoff) d.nocollide.push(c[0]);
                 });
                 else d.nocollide = [];
-                if (d.y >= o.h-32) d.dead = 0;
+                if (d.y >= o.h-32) {
+                    d.dead = 0;
+                    d.died();
+                }
                 
                 // Camera
                 if (d.camera != undefined) {
@@ -97,7 +105,7 @@ let entities:entities_type = {
                 d.dead += (1-d.dead)*dt/300;
                 if (d.dead > 0.99) {
                     d.dead = -1;
-                    d.x = Math.floor(d.x/480)*480;
+                    d.x = 0;
                     d.y = 195;
                     d.m = [0,0];
                     d.fright = true;
@@ -245,7 +253,10 @@ let entities:entities_type = {
         update: (d, o, t, dt) => {
             if (d.duration <= 0) return;
             algo.physics(dt, d, o);
-            if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) o.player.dead = 0;
+            if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
+                o.player.dead = 0;
+                o.player.hitbyarrow();
+            }
             if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
             else {
                 d.m = [0, 0];
@@ -393,9 +404,10 @@ let entities:entities_type = {
     menu: {
         default: {},
         update: (d, o, t, dt) => {
+            if (d.house) o.sprites('Housesv2.png', [], [0, 100, 126, 0, 128, 128]);
             o.sprites('Rise_of_the_Aswang_King.png', [0, 0],
                 [0, 0, 0, 0, 256, 144]
-            )
+            );
         }
     },
     mananangal: {
