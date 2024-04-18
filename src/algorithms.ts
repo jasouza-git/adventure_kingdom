@@ -134,14 +134,17 @@ let algo = {
         // Momentum
         
     }*/
-    rseed: (seed:number):number => {
+    rand: (seed:number):number => {
         let x = Math.sin(seed++) * 10000;
         return x - Math.floor(x);
     },
     prng: (seed:number, len:number, pos:number):number[] => {
         let chunk:number[] = [];
-        for (let i = 0; i < len; i++) chunk.push(algo.rseed(seed + pos*len + i));
+        for (let i = 0; i < len; i++) chunk.push(algo.rand(seed + pos*len + i));
         return chunk;
+    },
+    mod: (a:number, b:number) => {
+        return ((a % b) + b) % b;
     }
 
 };

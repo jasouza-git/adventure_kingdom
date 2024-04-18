@@ -7,7 +7,7 @@ let required_files:string[] = [
     // Menu
     'Rise_of_the_Aswang_King.png',
     // Background
-    'Housesv2.png', 'bg normal (no clouds) .png', 'bg normal (w clouds) .png',
+    'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png',
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lava.png',
     // Entities
@@ -15,11 +15,11 @@ let required_files:string[] = [
     // Objects
     'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
-    'Mcparts.png',
+    'Mcparts.png', 'Heart.png',
     // Poisonous Plants
     'Atropa Belladonav2.png', 'Lagablab, bubble and random vegetation.png', 
-    // Music
-    'song/1st Temp BG Song (New Area).mp3',
+    // SFX
+    'SFX Final/Dying.mp3', 'SFX Final/arrow hit.mp3', 'SFX Final/gameover.mp3',
     // Fonts
     'arcade.ttf',
     // Aswangs
@@ -39,10 +39,12 @@ let entities:entities_type = {
             swinging: 0,   // Current swining position (0->1)
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
+            lives: [3,3],
+            died: ()=>{},
+            hitbyarrow: ()=>{},
+            gameover: ()=>{},
             poisoned: -1,
             speed_rate: 1,
-            in_area_time: 0,
-            lives: 3
         },
         update: (d, o, t, dt) => {
             let c = n => [n%6, Math.floor(n/6)];
@@ -61,7 +63,10 @@ let entities:entities_type = {
                     if (c[1]==2 && o.interacts[c[0]].dropoff) d.nocollide.push(c[0]);
                 });
                 else d.nocollide = [];
-                if (d.y >= o.h-32) d.dead = 0;
+                if (d.y >= o.h-32) {
+                    d.dead = 0;
+                    return;
+                }
                 
                 // Camera
                 if (d.camera != undefined) {
@@ -113,6 +118,13 @@ let entities:entities_type = {
                     12
                 );
             } 
+            if (d.dead == 0) {
+                d.lives[0]--;
+                o.play('SFX Final/Dying.mp3', true);
+            }
+            if(d.lives[0] < 0) {
+                o.play('SFX Final/gameover.mp3', true);
+            }
             if (d.dead != -1) {
                 d.poisoned = -1;
                 d.speed_rate = 1;
@@ -151,19 +163,54 @@ let entities:entities_type = {
     // Background Entity
     background: {
         default: {
-            darkmode: false,
-            dark: 0,
+            day: 1,
+            night: false,
             house: false,
             data: 0,
         },
         update: (d, o, t, dt) => {
-            if (d.darkmode) d.dark += (1-d.dark)*dt/1000;
-            else d.dark -= d.dark*dt/1000;
-            o.draw('', {color:'skyblue'});
+            // Sky
+            if (d.night) d.day -= d.day*dt/500;
+            else d.day += (1-d.day)*dt/500;
+            let g = o.btx.createLinearGradient(0, 0, 0, o.h);
+            let h = 5;
+            g.addColorStop(0, `rgb(0,${140*d.day},${240*d.day})`); // rgb(0,140,240) -> rgb(0,0,0)
+            g.addColorStop(1, `rgb(${107-25*d.day},${210*d.day+5},${250*d.day+5})`); // rgb(82, 215, 255) -> rgb(107,5,5)
+            o.btx.fillStyle = g;
+            o.btx.fillRect(0,0,o.w,o.h);
+
+            // Moon
+            let a = t/10000%(1.2*Math.PI)+0.9*Math.PI
+            o.btx.globalAlpha = 1-d.day;
+            o.sprites('moonSprite.png', [o.w/2+Math.cos(a)*o.w/4, 3*o.h/4+Math.sin(a)*o.h/4],
+                [0, 0, 4, 35, 24, 23, 0, 0, 0, 0, 0, 0, 0]
+            );
+            o.btx.globalAlpha = 1;
+            
+            // Clouds
+            o.sprites('Cloudsv1 (1).png', [],
+                [0, 16, 4, 20, 16, 16, 0, 0, 0, 0, 0, 0],
+                [16,16, 20,20, 16, 16],
+                [32,16, 36+4,20, 16, 16],
+                [16, 0, 20, 4, 16, 16]
+            );
+
+            // Mountains
+            o.btx.fillStyle = ['#23348A','#9A8625','#5BA200'][Math.round(d.day*2)];
+            o.btx.fillRect(0,o.h-8*h,o.w,h*8);
+            for (var y = 0; y < h; y++) {
+                for (var x = 0; x < o.w/16+4; x++) {
+                    if (Math.pow(algo.rand(x+y*y+1),(h-y)*0.5) > 0.5) o.sprites('mountainsprite.png', [],
+                        [algo.mod(x*16-o.camera[0]*y/h/10+64,o.w+64)-64, o.h-20-(h-y)*8, 0, Math.round(2-d.day*2)*32, 64, 32, 0, 0, 0, 0, 0, 0, 1]
+                    );
+                }
+            }
+
+            
             //o.draw('', {img:'normal bg.png'});
             //o.draw('', {img:'dark bg.png', alpha: d.dark});
-            for (var x = -5; x < 7; x++) o.sprites(d.data>>(x+5)&1 ? 'bg normal (no clouds) .png' : 'bg normal (w clouds) .png', [], [64*x, 0, 0, 0, 64, 240, 0, 0, 0, 0, 0, 0.1]);
-            if (d.house) o.sprites('Housesv2.png', [], [0, 100, 126, 0, 128, 128]);
+            //for (var x = -5; x < 7; x++) o.sprites(d.data>>(x+5)&1 ? 'bg normal (no clouds) .png' : 'bg normal (w clouds) .png', [], [64*x, 0, 0, 0, 64, 240, 0, 0, 0, 0, 0, 0.1]);
+            //if (d.house) o.sprites('Housesv2.png', [], [0, 100, 126, 0, 128, 128]);
         },
         create: (o, arg) => {
             let d = 0;
@@ -186,18 +233,20 @@ let entities:entities_type = {
                 26, 15
             ];
             // Follow AI
-            if (d.follow != undefined && d.follow.dead == -1) {
-                d.m[0] = Math.abs(d.follow.x+(d.follow.x>d.x?-15:15)-d.x)<15?0:d.follow.x>d.x?7:-7;//(d.follow.x+(d.follow.x>d.x?-10:10)-d.x)/10;
-                if (Math.abs(d.follow.y-d.y) > o.h) {
-                    d.x = d.follow.x;
-                    d.y = d.follow.y;
+            if (o.player != undefined && o.player.dead == -1) {
+                d.m[0] = Math.abs(o.player.x+(o.player.x>d.x?-15:15)-d.x)<15?0:o.player.x>d.x?7:-7;//(o.player.x+(o.player.x>d.x?-10:10)-d.x)/10;
+                if (Math.abs(o.player.y-d.y) > o.h) {
+                    d.x = o.player.x;
+                    d.y = o.player.y;
                 }
                 // Jump
-                if (d.follow.ground != -1 && o.interacts[d.follow.ground].y < d.y && !d.jumping) {
-                    d.m[1] = 20;//16;
-                    d.jumping = true;
-                } else if (d.follow.ground != -1 && d.ground != -1 && o.interacts[d.follow.ground].y > d.y+16) {
-                    d.nocollide.push(d.ground);
+                if (o.interacts[o.player.ground] != undefined) {
+                    if (o.player.ground != -1 && o.interacts[o.player.ground].y < d.y && !d.jumping) {
+                        d.m[1] = 20;//16;
+                        d.jumping = true;
+                    } else if (o.player.ground != -1 && d.ground != -1 && o.interacts[o.player.ground].y > d.y+16) {
+                        d.nocollide.push(d.ground);
+                    }
                 }
             } else d.m[0] = 0;
                 
@@ -241,18 +290,18 @@ let entities:entities_type = {
         }
     },
     arrow: {
-        default: {x:0, y:0, m:[0,0], a:0, nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 3000},
+        default: {x:0, y:0, m:[0,0], a:0, nocollide:['pinoy'], ground:-1, hitbox:[], parent:undefined, duration: 3000},
         update: (d, o, t, dt) => {
             if (d.duration <= 0) return;
             d.hitbox = [15,
                 d.x, d.y,
                 8, 5
             ];
-            let col = algo.physics(dt, d, o);
-            if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1 && algo.rectint(d.hitbox, o.player.hitbox.splice(0,5)) && o.player.dead == -1) o.player.dead = 0;
-            /*if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1) col.forEach(c => {
-                if (o.interacts[c[0]]['__type__'] == 'pinoy' && o.interacts[c[0]].dead == -1) o.interacts[c[0]].dead = 0;
-            });*/
+            algo.physics(dt, d, o);
+            if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
+                o.player.dead = 0;
+                o.play('SFX Final/arrow hit.mp3', true);
+            }
             if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
             else {
                 d.m = [0, 0];
@@ -407,9 +456,12 @@ let entities:entities_type = {
     menu: {
         default: {},
         update: (d, o, t, dt) => {
+            if (d.house) o.sprites('Housesv2.png', [], [0, 100, 126, 0, 128, 128]);
             o.sprites('Rise_of_the_Aswang_King.png', [0, 0],
                 [0, 0, 0, 0, 256, 144]
-            )
+            );
+            
+            if (o.player != undefined) for(let i = 0; i < o.player.lives[1]; i++) o.sprites('Heart.png', [], [2+i*18, 2, i < o.player.lives[0] ? 0 : 16, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
         }
     },
     mananangal: {
@@ -454,25 +506,24 @@ let entities:entities_type = {
 
                 let center = false;
                 // AI
+                // Should follow path?
                 if (!d.target && d.p != undefined) {
+                    // Find vector to current point (d.pn) given magnitude and angle
                     let v = d.pn == 0 ? [Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.atan2(d.y-d.p[1], d.p[0]-d.x)]
                                     : [Math.hypot(d.p[2]-d.x, d.p[3]-d.y), Math.atan2(d.y-d.p[3], d.p[2]-d.x)];
+                    // Switch current point if close enough
                     if (v[0] < 10) d.pn = 1-d.pn;
-                    d.v = v;
+                    // Absolute vector using angle
                     d.m = [Math.cos(v[1])*d.speed/2, Math.sin(v[1])*d.speed/2];
-                    if (algo.rectint(d.follow.hitbox, d.hitbox.slice(5))) d.target = true;
-                    if (Math.abs(Math.cos(v[1])) < 0.2) center = true;
-                    //o.sprites('Mananangalv3.png', [p[0], p[1]+Math.sin(t/200)*0.5], [0, 0, 0, 0, 32, 32, d.m[0] < 0]);
-                } else if (d.follow != undefined) {
-                    let h = Math.hypot(d.follow.x - d.x, d.follow.y - d.y);
-                    let a = Math.atan2(d.y-d.follow.y, d.follow.x-d.x);
+                    // If player enters detection range of the aswang's second hitbox (d.hitbox.slice(0,5))
+                    if (algo.rectint(o.player.hitbox, d.hitbox.slice(5))) d.target = true;
+                } else if (o.player != undefined) {
+                    // Get hypotenus and angle to player
+                    let h = Math.hypot(o.player.x - d.x, o.player.y - d.y);
+                    let a = Math.atan2(d.y-o.player.y, o.player.x-d.x);
+                    // Chase player if far enough else stay
                     if (h > 20) d.m = [Math.cos(a)*d.speed, Math.sin(a)*d.speed];
                     else d.m = [0, 0];
-                    if (Math.abs(d.follow.x - d.x) < 10) center = true;
-                    
-                    //d.m = [(d.follow.x - d.x)/80, -(d.follow.y - d.y)/80];
-                    //if (Math.hypot(d.follow.x - d.x, d.follow.y - d.y) < 30) d.t = 1;
-                    //else d.t = 0;
                 }
                 let v = Math.min(Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.hypot(d.p[2]-d.x, d.p[3]-d.y));
                 if (v > 100 && (Math.min(d.p[0],d.p[2]) > d.x || Math.max(d.p[0],d.p[2]) < d.x)) {
@@ -497,17 +548,23 @@ let entities:entities_type = {
         }
     },
     shooter: {
-        default: {x:0, y:0, f:0, a:0, shoot:0, cooldowntmp:0, cooldown: 1000, bind:[], speed:0, collide:[], s:10},
+        default: {x:0, y:0, f:0, a:0, shoot:0, cooldowntmp:0, cooldown: 0, bind:[], speed:0, collide:[], s:10},
         update: (d, o, t, dt) => {
             let ofs = 0;
             if (d.shoot > 0) {
-                d.cooldowntmp -= dt;
+                /*d.cooldowntmp -= dt;
                 //console.log(d.cooldowntmp);
                 if (d.colldowntmp < 1000) ofs = 2;
-                if (d.cooldowntmp <= 0) {
+                if (d.cooldowntmp <= 0) {*/
                     d.bind.push(o.entity('arrow', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(d.a),d.s*Math.sin(d.a)], parent:d, a:-d.a+Math.PI}));
                     d.shoot--;
-                    d.cooldowntmp = d.cooldown;
+                /*    d.cooldowntmp = d.cooldown;
+                }*/
+            }
+            for (var i = 0; i < d.bind.length; i++) {
+                if (d.bind[i].duration <= 0) {
+                    d.bind.splice(i,1);
+                    i--;
                 }
             }
             o.sprites('Shooterv2.png', [], [d.x-6, d.y-6, 32*ofs, 0, 13, 12, Math.PI/2 < d.a && d.a < 3*Math.PI/2 ? 1 : 0, 0, Math.PI/2 < d.a && d.a < 3*Math.PI/2 ? Math.PI-d.a : -d.a, 6, 6])
@@ -531,27 +588,23 @@ let entities:entities_type = {
                 d.x, d.y,
                 4, 14+d.h
             ];
-            if (d.follow == undefined) {
+            if (o.player == undefined) {
                 o.interacts.forEach(e => {
-                    if (e['__type__'] == 'pinoy') d.follow = e;
+                    if (e['__type__'] == 'pinoy') o.player = e;
                 });
             }
-            let off:number = 0;
-            if (d.follow != undefined && algo.rectint(d.hitbox, d.follow.hitbox)) {
+            if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
-                    s.cooldown = 0;
                 });
                 d.triggered = true;
-                off = 1;
             } else {
                 d.triggered = false;
-                off = 0;
             }
             let a:number[][] = [[0,0,0,0,3,7],[0,7+d.h,0,9,3,7]];
             for(var i = 0; i < Math.floor(d.h/16); i++) a.push([2,7+16*i,15,0,1,16]);
             if (d.h%16 != 0) a.push([2,7+16*i,15,0,1,d.h%16]);
-            o.sprites('Tripwire2Correct.png', [d.x,d.y+off*10], ...a);
+            o.sprites('Tripwire2Correct.png', [d.x,d.y], ...a);
         }
     },
     pressure_plate: {
@@ -564,14 +617,14 @@ let entities:entities_type = {
             let a:number[][] = [[0,0,0,0,2,2],[2+d.w,0,2,0,2,2]];
             for(var i = 0; i < Math.floor(d.w/16); i++) a.push([2+16*i,0,0,2,16,2]);
             if (d.w%16 != 0) a.push([2+16*i,0,0,2,d.w%16,2]);
-            if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) {
+            //console.log(d);
+            if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
-                    s.cooldown = 0;
                 });
                 d.triggered = true;
             } else d.triggered = false;
-            o.sprites('pressure.png', [d.x,d.y], ...a);
+            o.sprites('pressure.png', [d.x,d.y+(d.triggered?1:0)], ...a);
         }
     },
     atropa_belladonna: {
@@ -719,6 +772,9 @@ let entities:entities_type = {
             o.btx.font = `${d.z*o.z}px arcade`;
             o.btx.fillText(d.text, d.x-o.camera[0], d.y-o.camera[1]);
         }
+    },
+    checkout: {
+        default: {x:0, y: 195} 
     }
 };
 
