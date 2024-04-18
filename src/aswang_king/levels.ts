@@ -4,8 +4,6 @@ let level = main => [
 		main.entity('plat', {x:240, y:128, w:15, h:7, dropoff: true ,col:1, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6], []]}),
 		main.entity('plat', {x:0, y:224, w:22, h:1, mode:0, col:15, clip:[[], [], [0], []]}),
 		main.entity('plat', {x:352, y:176, w:8, h:4, mode:0, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
-
-		main.entity('lagablab', {x:200, y:106, bind:[], min_a:0.261799387799, max_a:3.14159265359}),
 	], [
 		main.entity('plat', {x:480, y:128, w:4, h:7, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6], [], []]}),
 		main.entity('plat', {x:928, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),

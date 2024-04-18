@@ -589,12 +589,13 @@ let entities:entities_type = {
         }
     },
     lagablab: {
-        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 1000, n: 5, bind:[], s:10, min_a: 0, max_a: Math.PI * 0.5},
+        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 3000, n: 3, bind:[], s:10, min_a: 0, max_a: Math.PI * 0.5},
         update(d, o, t, dt) {
             let ofs = 0;
             d.cooldowntmp -= dt;
             if (d.colldowntmp < 1000) ofs = 2;
             if (d.cooldowntmp <= 0) {
+                if (d.bind.length > 10) d.bind = [];
                 for (let i = 0; i < d.n; i ++) {
                     let a: number = d.min_a + Math.random() * (d.max_a - d.min_a);
                     d.bind.push(o.entity('blab', {x:d.x-Math.cos(a)*5, y:d.y+Math.sin(a)*5, m:[d.s*Math.cos(a),d.s*Math.sin(a)], parent:d, n: d.n}));
