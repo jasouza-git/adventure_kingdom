@@ -194,7 +194,7 @@ class engine {
         }
         return this.check_event(event, action);
     }
-    public play(audio:string, single?:boolean) {
+    public play(audio:string, single?:boolean, volume?:number) {
         if (single) {
             this.audios[audio] = new Audio();
             this.audios[audio].src = this.loaded[audio] as string;
@@ -203,6 +203,8 @@ class engine {
         } else {
             if (!this.audios[audio]) {
                 this.audios[audio] = new Audio();
+                this.audios[audio].loop = true;
+                if (volume != undefined) this.audios[audio].volume = parseFloat(String(volume));
                 this.audios[audio].src = this.loaded[audio] as string;
             }
             this.audios[audio].setAttribute('active','');
