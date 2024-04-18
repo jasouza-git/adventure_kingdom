@@ -351,7 +351,7 @@ let entities:entities_type = {
             let d:number[] = [];
             for (let i = 0; i < w>>1; i++) d.push(
                 // Grass
-                (Math.random() < 0.5 ? 1 : 0) +
+                (Math.random() < 0.6 ? 1 : 0) +
                 // Tree
                 (Math.random() < 0.1 ? 2 : 0) +
                 // Big Grass
@@ -359,7 +359,7 @@ let entities:entities_type = {
                 // // Bush
                 // (Math.random() < 0.1 ? 8 : 0) +
                 // Special
-                (Math.random() < 0.1 ? 16: 0) +
+                (Math.random() < 0.3 ? 16: 0) +
                 // Dead tree
                 (Math.random() < 0.05? 32: 0)
             );
