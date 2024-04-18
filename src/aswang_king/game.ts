@@ -3,9 +3,13 @@ import {required_files} from "./entities.ts";
 import {engine} from "../engine.ts";
 import {level} from "./levels.ts";
 
+// Media
+let sfx = ['SFX Final/Dying.mp3', 'SFX Final/arrow hit.mp3', 'SFX Final/gameover.mp3'];
+let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/Final Peaceful Environment.mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
+
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-let main = new engine({z:1, w:320, h:240, load: required_files, camera:[-160,0]});
+let main = new engine({z:1, w:320, h:240, load: [...required_files, ...sfx, ...bg_songs], camera:[-160,0]});
 main.dom.style.filter = 'contrast(1.1)';
 let lv = level(main);
 let bg = main.entity('background', {house:true});
@@ -14,14 +18,14 @@ main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
 let off = 0;
-let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/1st Temp BG Song (New Area).mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
-
-player.died = () => main.play('song/Dying.mp3', true);
-player.hitbyarrow = () => main.play('song/arrow hit.mp3', true);
 
 // Level Scene
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
+
+    if (player.lives[0] < 0) {
+        return;
+    }
 
     // Dead glitch filter
     off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
