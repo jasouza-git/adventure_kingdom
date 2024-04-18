@@ -46,7 +46,6 @@ let entities:entities_type = {
             poisoned: -1,
             speed_rate: 1,
             in_area_time: 0,
-            lives: 3
         },
         update: (d, o, t, dt) => {
             let c = n => [n%6, Math.floor(n/6)];
