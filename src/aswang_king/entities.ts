@@ -39,7 +39,6 @@ let entities:entities_type = {
             ground: -1,    // Collider character is on
             poisoned: -1,
             speed_rate: 1,
-            poison_a: 0.11,
             lives: 3
         },
         update: (d, o, t, dt) => {
@@ -80,7 +79,9 @@ let entities:entities_type = {
 
                 if (d.poisoned >= 0 && d.poison_duration > 0) {
                     d.poison_duration -= dt;
-                    d.speed_rate = 0.6 - (d.poison_a * (5 - d.poison_duration / 1000));
+                    d.speed_rate *= 1 - (0.25 * d.poison_duration / 100000)
+                    console.log (d.speed_rate)
+                    if (d.speed_rate <= 0.2) d.speed_rate = 0.2;
                 } else {
                     d.poisoned = -1;
                     d.speed_rate = 1;
