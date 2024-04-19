@@ -64,6 +64,9 @@ let entities:entities_type = {
                 // Max X for points
                 if (d.x > d.max_x) d.max_x = d.x;
 
+                // Max X for points
+                if (d.x > d.max_x) d.max_x = d.x;
+
                 // Movement
                 if (d.climing == false) {
                     d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
