@@ -363,7 +363,6 @@ let plts = main => [
 		main.entity('plat', {x:20640, y:208, w:1, h:2, dropoff: true, mode:1, clip:[[], [0, 1], [], []]}),
 		main.entity('plat', {x:20320, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:20320, y:224, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
-		main.entity('plat', {x:20512, y:72, w:6, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 	], [
 		main.entity('plat', {x:20800, y:0, w:7, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:20800, y:224, w:7, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
@@ -666,6 +665,7 @@ let level = main => [
 		]}),
 		main.entity('vine', {x:20264, y:16, h:168}),
 	], [
+		main.entity('king', {x:20550, y:51, ess:1000}),
 		main.entity('vine', {x:20344, y:16, h:131}),
 		main.entity('vine', {x:20424, y:16, h:168}),
 		main.entity('vine', {x:20696, y:16, h:131}),
