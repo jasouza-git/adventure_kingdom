@@ -833,8 +833,8 @@ let entities:entities_type = {
             let asset_name = 'Tiyanakv2.png';
             let origins = [[2, 2], [18, 3], [34, 2], [50, 2], [66, 3]];
             let sizes = [[10, 14], [10, 13], [11, 14], [10, 14], [10, 13]];
-            let dead_origins = [[1, 25], [17, 27]];
-            let dead_sizes = [[14, 7], [13, 5]];
+            let dead_origins = [[1, 18], [17, 18]];
+            let dead_sizes = [[14, 14], [13, 14]];
             aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, true);
         }
     },
@@ -849,13 +849,14 @@ let entities:entities_type = {
         default: {x:0, y: 195} 
     },
     king: {
-        default: {x:0, y:100, m:[0, 0], status: 0, attack_method: 0, collide:['pinoy'], follow: undefined, speed: 6, 
+        default: {x:0, y:100, m:[0, 0], status: 0, attack_method: 0, collide:['pinoy'], follow: undefined, speed: 0.7, 
 
-            cooldown: 6000, cur_cooldown: 3000,
+            cooldown: 5000, cur_cooldown: 1000,
             blab_n: 5, blab_z: 0, bind: [],
             charging_vector: [0, 0], prepare_vector:[0, 0], charge_s: 20, prepare_s: -0.25, cur_charge_t: 0, prepare_t: 120, cur_prepare_t: 120, charging: false,
             drop_prepare_s: -0.25, drop_pt: 200, cur_drop_pt: 200, drop_s: 30, drop_charge: false,
-            attackBox: [],
+            attackBox: [], lives: [30, 30], protect_t: 500, cur_protect_t: 500, healing: 2,
+            hit_t: 2000, cur_hit_t: 2000, full_attack_n: 4, cur_attack_n: 4, aswang_n: 3, dying_t: 6000, cur_dying_t: 6000, dying: false, dead: -1,
             
             bodyOrigins: [[[96, 0], [133, 0]], [[97, 52], [134, 52]], [[170, 0], [207, 0]], [[171, 52], [209, 52]]],
             leftWingOrigins: [[[97, 108]], [[167, 108]], [[97, 134]], [[167, 134]]],
@@ -869,130 +870,222 @@ let entities:entities_type = {
             handSize: [[23, 21], [17, 23], [24, 27]],
             handStatus: 0,
             headStatus: 0,
+            fre: 0,
+            aswangs: [
+                ['white_lady', {x:20557, y:20, p:[20224, 192, 20891 ,192], ess:200}],
+		        ['tiyanak', {x:20563, y:20, p:[20224, 208, 20902 ,208], ess:200}],
+		        ['tikbalang', {x:20559, y:20, p:[20224, 192, 20895 ,192], ess:200}],
+            ]
         },
         update: (d, o, t, dt) => {
-            d.hitbox = [15,
-                d.x, d.y,
-                37, 65 
-            ]
-            d.follow = o.player;
-            if (d.charging) {
-                if (d.cur_prepare_t > 0) {
-                    d.cur_prepare_t -= 1;
-                    d.x += d.prepare_vector[0];
-                    d.y += d.prepare_vector[1];
-                } else if (d.cur_charge_t > 0) {
-                    d.cur_charge_t -= 1;
-                    d.x += d.charging_vector[0];
-                    d.y += d.charging_vector[1];
-                    d.attackBox = d.hitbox;
-                    if (d.drop_charge) {
-                        d.attackBox = offsetRectWithFright(d.hitbox, [0, -100, -50, 100 + d.hitbox[3], 50 + d.hitbox[4]], true);
-                        if (d.y + d.hitbox[4] >= 216) d.y = 240 - 16 * 1 - d.hitbox[4];
+            if (d.dead == 0) return;
+            if (!d.dying) {
+                d.hitbox = [15,
+                    d.x, d.y,
+                    37, 65 
+                ]
+                if (d.cur_protect_t <= 0) {
+                    if (o.player.hitbox.slice(5).length == 5 && algo.rectint(d.hitbox, o.player.hitbox.slice(5))) {
+                        d.lives[1] -= 1;
+                        console.log(d.lives[1]);
+                        d.cur_protect_t = d.protect_t;
+                        d.cur_hit_t = d.hit_t;
+                    }
+                } else d.cur_protect_t -= dt;
+
+                if (d.charging) {
+                    if (d.cur_prepare_t > 0) {
+                        d.cur_prepare_t -= 1;
+                        d.x += d.prepare_vector[0];
+                        d.y += d.prepare_vector[1];
+                    } else if (d.cur_charge_t > 0) {
+                        d.cur_charge_t -= 1;
+                        d.x += d.charging_vector[0];
+                        d.y += d.charging_vector[1];
+                        if (d.drop_charge) {
+                            d.attackBox = offsetRectWithFright(d.hitbox, [0, -100, -20, 200 + d.hitbox[3], 30 + d.hitbox[4]], true);
+                            if (d.y + d.hitbox[4] >= 216) d.y = 240 - 16 * 1 - d.hitbox[4];
+                        } else {
+                            d.attackBox = offsetRectWithFright(d.hitbox, [0, -20, -20, 40 + d.hitbox[3], 40 + d.hitbox[4]], true);
+                        }
+                    } else {
+                        if (d.y <= 8) d.y = 16 * 3;
+                        if (d.y + d.hitbox[4] >= 232) d.y = 240 - 16 * 3 - d.hitbox[4];
+                        d.drop_charge = false;
+                        d.charging = false;
+                        d.attackBox = [];
+                    }
+                }
+                d.hitbox = d.hitbox.concat(d.attackBox);
+                if (d.follow != undefined) {
+                    if (algo.rectint(d.attackBox, d.follow.hitbox)) d.follow.dead = 0;
+                    let fire = false;
+                    d.cur_cooldown -= dt;
+                    if (d.cur_cooldown <= 0) {
+                        fire = true;
+                        d.cur_cooldown = d.cooldown;
+                    }
+                    let fright = d.follow.x >= d.x;
+                    let attackRange = offsetRectWithFright(d.hitbox, [0, -100, -20, 200 + d.hitbox[3], 60 + d.hitbox[4]], fright);
+                    let is_above = (d.follow.y + d.follow.hitbox[4]) < attackRange[2];
+                    let is_under = (d.follow.y) > (attackRange[2] + attackRange[4]);
+                    let is_x_exist = (d.follow.x + d.follow.hitbox[3]) >= attackRange[1] && (d.follow.x) <= (attackRange[1] + attackRange[3]);
+                    if (is_x_exist) {
+                        if (is_under) d.attack_method = 2;
+                        else d.attack_method = 1;
+                    } else {
+                        if (is_above) d.attack_method = 1;
+                        else d.attack_method = 0;
+                    }
+                    if (fire) {
+                        if (d.lives[1] <= d.lives[0] / 4 && d.cur_attack_n >= d.full_attack_n) {
+                            d.cur_attack_n = 0;
+                            d.cur_cooldown = d.cooldown * 2;
+                            d.bind = [];
+                            d.lives[1] += d.healing;
+                            for (let i = 0; i < d.aswang_n; i += 1) {
+                                let v = Math.floor(Math.random() * 3);
+                                let curAswang = d.aswangs[v];
+                                let p = Math.floor(curAswang[1].p[0] + (Math.random() * (curAswang[1].p[2] - curAswang[1].p[0])));
+                                curAswang[1].x = p;
+                                d.bind.push(o.entity(curAswang[0], curAswang[1]));
+                            }
+                        } else if (d.attack_method == 0) { // "Blab Long Range Attack"
+                            let mousePoint = [d.x + d.hitbox[3] / 2 - 5, d.y + 8];
+                            let max_s = 22;
+                            let min_s = 12;
+                            let step = ((max_s - min_s) / (d.blab_n - 1));
+                            max_s = d.blab_z == 1 ? max_s - step / 2 : max_s;
+                            min_s = d.blab_z == 1 ? min_s - step / 2 : min_s;
+                            let a = fright ? 1/4 * Math.PI : 3/4 * Math.PI ;
+                            // d.headStatus = 1;
+                            d.bind = [];
+                            for (let s = min_s; s <= max_s; s += step) {
+                                d.bind.push(o.entity('blab', {x:mousePoint[0]-Math.cos(a)*5, y:mousePoint[1]+Math.sin(a)*5, m:[s*Math.cos(a),s*Math.sin(a)], area_w: 1, parent:d, n: 3}));
+                            }
+                            d.blab_z = d.blab_z == 1 ? 0 : 1;
+                        } else if (d.attack_method == 1) { // "Fast Charge"
+                            let followerPoint = [d.follow.x + d.follow.hitbox[3] / 2, d.follow.y + d.follow.hitbox[4] / 2];
+                            let kingPoint = [d.x + d.hitbox[3] / 2, d.y + d.hitbox[4] / 2];
+                            let x_off = followerPoint[0] - kingPoint[0];
+                            let y_off = followerPoint[1] - kingPoint[1];
+                            let theta = Math.atan(y_off / x_off);
+                            let dis = Math.hypot(x_off, y_off);
+                            d.charging = true;
+                            d.charging_target = followerPoint;
+                            d.charging_vector = [(fright ? d.charge_s : -d.charge_s) * Math.cos(theta), (fright ? d.charge_s : -d.charge_s) * Math.sin(theta)];
+                            d.prepare_vector  = [(fright ? d.prepare_s : -d.prepare_s) * Math.cos(theta), (fright ? d.prepare_s : -d.prepare_s) * Math.sin(theta)];
+                            d.cur_prepare_t = d.prepare_t;
+                            d.cur_charge_t = Math.ceil(dis / d.charge_s) + 5;
+                        } else if (d.attack_method == 2) { // "Heavy Attack"
+                            // d.headStatus = 0;
+                            d.charging = true;
+                            d.charging_vector = [0, d.drop_s];
+                            d.prepare_vector  = [0, d.drop_prepare_s];
+                            d.cur_prepare_t = d.prepare_t;
+                            d.cur_charge_t = Math.floor((224 - (d.y + d.hitbox[4])) / d.charge_s);
+                            d.drop_charge = true;
+                        }
+                        d.cur_attack_n += 1;
+                    } else if (d.charging == false) {
+                        let distance_range = offsetRectWithFright(attackRange, [0, 40, -40, -80 + attackRange[3], 60 + attackRange[4]], true);
+                        if (algo.rectint(d.follow.hitbox, distance_range)) {
+                            d.x += fright ? -d.speed * 0.6 : d.speed * 0.6;
+                            d.y += -d.speed * 0.6;
+                        } else {
+                            let followerPoint = [d.follow.x + d.follow.hitbox[3] / 2, d.follow.y + d.follow.hitbox[4] / 2];
+                            let kingPoint = [d.x + d.hitbox[3] / 2, d.y + d.hitbox[4] / 2];
+                            let x_off = followerPoint[0] - kingPoint[0];
+                            let y_off = followerPoint[1] - kingPoint[1];
+                            let theta = Math.atan(y_off / x_off);
+                            d.x += (fright ? d.speed : -d.speed) * Math.cos(theta);
+                            d.y += (fright ? d.speed : -d.speed) * Math.sin(theta);
+                        }
+                        d.hitbox = d.hitbox.concat(distance_range);
+                    }
+                    d.hitbox = d.hitbox.concat(attackRange);
+                } else {
+                    let detect_range = offsetRectWithFright(d.hitbox, [0, -300, -200, 600 + d.hitbox[3], 400 + d.hitbox[4]], true);
+                    d.hitbox = d.hitbox.concat(detect_range);
+                    if (algo.rectint(o.player.hitbox, detect_range)) d.follow = o.player;
+                }
+
+                if (d.lives[1] > d.lives[0] / 2) {
+                    d.headStatus = 0;
+                    d.status = 0;
+                } else if (d.lives[1] > d.lives[0] / 4) {
+                    d.headStatus = 1;
+                    d.status = 1;
+                } else if (d.lives[1] > d.lives[0] / 6) {
+                    d.headStatus = 1;
+                    d.status = 1;
+                } else if (d.lives[1] == 0) {
+                    d.cur_dying_t = d.dying_t;
+                    d.dying = true;
+                    d.headStatus = 2;
+                    d.status = 3;
+                    for (let i = 0; i < d.bind.length; i ++) {
+                        d.bind[i].dead = 0;
                     }
                 } else {
-                    if (d.y <= 8) d.y = 16 * 3;
-                    if (d.y + d.hitbox[4] >= 232) d.y = 240 - 16 * 3 - d.hitbox[4];
-                    d.drop_charge = false;
-                    d.charging = false;
-                    d.attackBox = [];
+                    d.headStatus = 2;
+                    d.status = Math.floor(t / (50 + 500 / (Math.floor(d.lives[0] / 5) - d.lives[1])) % 2) + 1;
                 }
-            }
-            d.hitbox = d.hitbox.concat(d.attackBox);
-            if (d.follow != undefined) {
-
-                if (algo.rectint(d.attackBox, d.follow.hitbox)) d.follow.dead = 0;
-
-                let fire = false;
-                d.cur_cooldown -= dt;
-                if (d.cur_cooldown <= 0) {
-                    fire = true;
-                    d.cur_cooldown = d.cooldown;
-                }
-                let fright = d.follow.x >= d.x;
-                let attackRange = offsetRectWithFright(d.hitbox, [0, -100, -50, 200 + d.hitbox[3], 100 + d.hitbox[4]], fright);
-
-                // let is_above = (d.follow.y + d.follow.hitbox[4]) < attackRange[2];
-                let is_under = (d.follow.y) > (attackRange[2] + attackRange[4]);
-                let is_x_exist = (d.follow.x + d.follow.hitbox[3]) >= attackRange[1] && (d.follow.x) <= (attackRange[1] + attackRange[3]);
-
-                if (is_x_exist) {
-                    if (is_under) d.attack_method = 2;
-                    else d.attack_method = 1;
-                } else {
-                    if (is_under) d.attack_method = 1;
-                    else d.attack_method = 0;
+    
+                d.handStatus = d.charging ? 1 : 2;
+    
+                if (d.cur_hit_t >= 0) {
+                    d.cur_hit_t -= dt;
+                    if (d.cur_hit_t > d.hit_t / 1.25) {
+                        d.headStatus = 1;
+                        d.handStatus = 0;
+                        d.status = 2;
+                    } else {
+                        d.headStatus = 1;
+                    }
                 }
                 
-                if (fire) {
-                    if (d.attack_method == 0) { // "Blab Long Range Attack"
-                        let mousePoint = [d.x + d.hitbox[3] / 2 - 5, d.y + 8];
-                        // let followerPoint = [d.follow.x + d.follow.hitbox[3] / 2, d.follow.y + d.follow.hitbox[4]];
-                        // let x_off = followerPoint[0] - mousePoint[0];
-                        // let y_off = followerPoint[1] - mousePoint[1];
-                        let max_s = 22;
-                        let min_s = 12;
-                        let step = ((max_s - min_s) / (d.blab_n - 1));
-                        max_s = d.blab_z == 1 ? max_s - step / 2 : max_s;
-                        min_s = d.blab_z == 1 ? min_s - step / 2 : min_s;
-                        let a = fright ? 1/4 * Math.PI : 3/4 * Math.PI ;
-                        d.headStatus = 1;
-                        for (let s = min_s; s <= max_s; s += step) {
-                            d.bind.push(o.entity('blab', {x:mousePoint[0]-Math.cos(a)*5, y:mousePoint[1]+Math.sin(a)*5, m:[s*Math.cos(a),s*Math.sin(a)], area_w: 1, parent:d, n: 3}));
-                        }
-                        d.blab_z = d.blab_z == 1 ? 0 : 1;
-                    } else if (d.attack_method == 1) { // "Fast Charge"
-                        let followerPoint = [d.follow.x + d.follow.hitbox[3] / 2, d.follow.y + d.follow.hitbox[4] / 2];
-                        let kingPoint = [d.x + d.hitbox[3] / 2, d.y + d.hitbox[4] / 2];
-                        let x_off = followerPoint[0] - kingPoint[0];
-                        let y_off = followerPoint[1] - kingPoint[1];
-                        let theta = Math.atan(y_off / x_off);
-                        let dis = Math.hypot(x_off, y_off);
-                        d.charging = true;
-                        d.charging_target = followerPoint;
-                        d.charging_vector = [(fright ? d.charge_s : -d.charge_s) * Math.cos(theta), (fright ? d.charge_s : -d.charge_s) * Math.sin(theta)];
-                        d.prepare_vector  = [(fright ? d.prepare_s : -d.prepare_s) * Math.cos(theta), (fright ? d.prepare_s : -d.prepare_s) * Math.sin(theta)];
-                        d.cur_prepare_t = d.prepare_t;
-                        d.cur_charge_t = Math.ceil(dis / d.charge_s) + 5;
-                    } else if (d.attack_method == 2) { // "Heavy Attack"
-                        d.headStatus = 0;
-                        d.charging = true;
-                        d.charging_vector = [0, d.drop_s];
-                        d.prepare_vector  = [0, d.drop_prepare_s];
-                        d.cur_prepare_t = d.prepare_t;
-                        d.cur_charge_t = Math.floor((224 - (d.y + d.hitbox[4])) / d.charge_s);
-                        d.drop_charge = true;
-                    }
-                }
-                d.hitbox = d.hitbox.concat(attackRange);
+                d.fre = Math.sin(t / 200);
             } else {
-
-
+                d.hitbox = [];
+                d.cur_dying_t -= dt;
+                if (d.cur_dying_t > d.dying_t * 0.6) {
+                    d.status = 2;
+                    d.fre = Math.sin(t / 200);
+                } else if (d.cur_dying_t > d.dying_t * 0.3) {
+                    d.status = 3;
+                } else if (d.cur_dying_t > 0) {
+                    d.status = 3;
+                    d.y += 3;
+                } else {
+                    d.bind = [];
+                    d.status = 3;
+                    d.dead = 0;
+                }
             }
-
-            let fre = Math.sin(t / 200);
-            let wing_a_1 = fre + 30 / 180 * Math.PI;
-            let wing_a_2 = fre + -30 / 180 * Math.PI;
-            let wing_a_3 = fre - 60 / 180 * Math.PI;   
+            let wing_a_1 = d.fre + 30 / 180 * Math.PI;
+            let wing_a_2 = d.fre + -30 / 180 * Math.PI;
+            let wing_a_3 = d.fre - 60 / 180 * Math.PI;   
             let bodyStatus = Math.floor(t / 1000 % 2);
-
             o.sprites('Aswang KingV2.png', [d.x, d.y],
                 // Left wings
-                [-28, 5 + fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_1, d.wingSize[0][0], d.wingSize[0][1]],
-                [-33, 10 + fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_2, d.wingSize[0][0], d.wingSize[0][1]],
-                [-28, 15 + fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_3, d.wingSize[0][0], d.wingSize[0][1]],
+                [-28, 5 + d.fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_1, d.wingSize[0][0], d.wingSize[0][1]],
+                [-33, 10 + d.fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_2, d.wingSize[0][0], d.wingSize[0][1]],
+                [-28, 15 + d.fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_3, d.wingSize[0][0], d.wingSize[0][1]],
                 // Right wings
-                [33, 5 + fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_1, 0, d.wingSize[0][1]],
-                [38, 10 + fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_2, 0, d.wingSize[0][1]],
-                [33, 15 + fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_3, 0, d.wingSize[0][1]],
+                [33, 5 + d.fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_1, 0, d.wingSize[0][1]],
+                [38, 10 + d.fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_2, 0, d.wingSize[0][1]],
+                [33, 15 + d.fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_3, 0, d.wingSize[0][1]],
                 // Body
-                [0, 13 + fre, d.bodyOrigins[d.status][bodyStatus][0], d.bodyOrigins[d.status][bodyStatus][1], d.bodySize[bodyStatus][0], d.bodySize[bodyStatus][1], 0, 0, 0, 0],
+                [0, 13 + d.fre, d.bodyOrigins[d.status][bodyStatus][0], d.bodyOrigins[d.status][bodyStatus][1], d.bodySize[bodyStatus][0], d.bodySize[bodyStatus][1], 0, 0, 0, 0],
                 // Head
-                [13, 1 + fre * 2, d.headOrigins[d.status][d.headStatus][0], d.headOrigins[d.status][d.headStatus][1], d.headSize[d.headStatus][0], d.headSize[d.headStatus][1], 0, 0, 0, 0],
+                [13, 1 + d.fre * 2, d.headOrigins[d.status][d.headStatus][0], d.headOrigins[d.status][d.headStatus][1], d.headSize[d.headStatus][0], d.headSize[d.headStatus][1], 0, 0, 0, 0],
                 // Left hand
-                [d.handStatus == 1 ? -18 : -25 , d.handStatus ? 21 : 21 + fre * 2, d.leftHandOrigins[d.status][d.handStatus][0], d.leftHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? (8 * 180 / Math.PI) :(-0.4-fre * 0.2), d.handSize[d.handStatus][0], d.handSize[d.handStatus][1]],
+                [d.handStatus == 1 ? -18 : -25 , d.handStatus ? 12 : 12 + d.fre * 2, d.leftHandOrigins[d.status][d.handStatus][0], d.leftHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? (8 * 180 / Math.PI) :(-0.4-d.fre * 0.2), d.handSize[d.handStatus][0], d.handSize[d.handStatus][1]],
+                [d.handStatus == 1 ? -14 : -21 , d.handStatus ? 25 : 25 + d.fre * 2, d.leftHandOrigins[d.status][d.handStatus][0], d.leftHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? (8 * 180 / Math.PI) :(-0.4-d.fre * 0.2), d.handSize[d.handStatus][0], d.handSize[d.handStatus][1]],
                 // Right hand
-                [d.handStatus == 1 ? 37 : 37, d.handStatus ? 21 : 21 + fre * 2, d.rightHandOrigins[d.status][d.handStatus][0], d.rightHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? -(8 * 180 / Math.PI) : (0.4 + fre * 0.2), 0, d.handSize[d.handStatus][1]],
+                [d.handStatus == 1 ? 37 : 37, d.handStatus ? 12 : 12 + d.fre * 2, d.rightHandOrigins[d.status][d.handStatus][0], d.rightHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? -(8 * 180 / Math.PI) : (0.4 + d.fre * 0.2), 0, d.handSize[d.handStatus][1]],
+                [d.handStatus == 1 ? 33 : 33, d.handStatus ? 25 : 25 + d.fre * 2, d.rightHandOrigins[d.status][d.handStatus][0], d.rightHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? -(8 * 180 / Math.PI) : (0.4 + d.fre * 0.2), 0, d.handSize[d.handStatus][1]],
             )
         }
     },
