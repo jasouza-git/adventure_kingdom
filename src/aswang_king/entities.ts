@@ -19,14 +19,16 @@ let required_files:string[] = [
     // Poisonous Plants
     'Atropa Belladonav2.png', 'Lagablab, bubble and random vegetation.png', 
     // SFX
-    'SFX Final/Dying.mp3', 'SFX Final/arrow hit.mp3', 'SFX Final/gameover.mp3',
+    'sfx/Dying.mp3', 'sfx/arrow hit.mp3', 'sfx/gameover.mp3', 'sfx/arrow shoot.mp3', 'sfx/sword attack 1.mp3', 'sfx/sword attack 2.mp3',
+    'sfx/pressure plate activated.mp3', 'sfx/blab_drop.mp3',
     // Fonts
     'arcade.ttf',
     // Aswangs
-    'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png'
+    'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png',
+    // Aswangs sfx
+    'sfx/mananangal sound.mp3'
 ];
 let entities:entities_type = {
-    // Pinoy Entitiy
     pinoy: {
         default: {
             x:160, y:0, m:[0,0], hitbox:[], nocollide:[],
@@ -35,20 +37,18 @@ let entities:entities_type = {
             fright: true,  // Is character facing right?
             camera: 0,     // Camera on player offset, if undefined then no set
             swing: false,  // Is character swinging sword?
-            interact:true, // Physics entities interacts
             swinging: 0,   // Current swining position (0->1)
+            plswing: false,// Already played the swing audio?
+            interact:true, // Physics entities interacts
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
-            lives: [3,3],
-            died: ()=>{},
-            hitbyarrow: ()=>{},
-            gameover: ()=>{},
+            lives: [3,3],  // Lives [A,B] meaning A lives left out of B lives
             poisoned: -1,
             speed_rate: 1,
-            points: 0,
-            max_x: 0,
-            climable: true,
-            climing: false
+            points: 0,     // Accumulatd points
+            highscore: 0,  // Highscore
+            max_x: 0,      // Maximum distance traveled by the player
+            climb: -1,     // Climbing (-1 not climbing, 1 hanging, 0->2 climbing animation)
         },
         update: (d, o, t, dt) => {
             // console.log("pinoy", t, dt);
@@ -64,11 +64,8 @@ let entities:entities_type = {
                 // Max X for points
                 if (d.x > d.max_x) d.max_x = d.x;
 
-                // Max X for points
-                if (d.x > d.max_x) d.max_x = d.x;
-
                 // Movement
-                if (d.climing == false) {
+                if (d.climb == -1) {
                     d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
                     let cols = algo.physics(dt, d, o);
                     if (d.crouch && !d.jumping) cols.forEach(c => {
@@ -76,22 +73,28 @@ let entities:entities_type = {
                     });
                     else d.nocollide = [];
                 }
+
+                // Kill if hit out of screen
                 if (d.y >= o.h-32) {
                     d.dead = 0;
                     return;
                 }
                 
-                // Camera
+                // Camera follow player
                 if (d.camera != undefined) {
-                    //o.camera[0] = d.x-o.w/2;
                     o.camera[0] += (d.x+d.camera-o.w/2-o.camera[0])*dt/100;
                 }
 
                 // Sword
                 if (d.swing && d.dead == -1) {
+                    if (!d.plswing) o.play(`sfx/sword attack ${Math.round(Math.random()+1)}.mp3`, true, 0.3);
+                    d.plswing = true;
                     d.swinging += (1-d.swinging)*dt/100;
                     if (d.swinging > 0.9) d.swing = false;
-                } else d.swinging -= d.swinging*dt/100;
+                } else {
+                    d.swinging -= d.swinging*dt/100;
+                    d.plswing = false;
+                }
                 let s = Math.round(d.swinging*2.4);
                 if (s > 0) d.hitbox.push(0,
                     d.x+(d.fright?20:-4), d.y,
@@ -105,7 +108,6 @@ let entities:entities_type = {
                 } else if (d.in_area_time >= 2000) {
                     d.poisoned = 1;
                 }
-
                 if (d.poisoned >= 0 && d.poison_duration > 0) {
                     d.poison_duration -= dt;
                     d.speed_rate *= 1 - (0.25 * d.poison_duration / 100000)
@@ -117,8 +119,6 @@ let entities:entities_type = {
                     d.in_area_time = 0;
                 }
                 
-                if (d.climing) {
-                }
                 leg = c(
                     d.ground == -1 ? 8 :
                     d.crouch ? 7 :
@@ -135,10 +135,7 @@ let entities:entities_type = {
             } 
             if (d.dead == 0) {
                 d.lives[0]--;
-                o.play('SFX Final/Dying.mp3', true);
-            }
-            if(d.lives[0] < 0) {
-                o.play('SFX Final/gameover.mp3', true);
+                o.play('sfx/Dying.mp3', true);
             }
             if (d.dead != -1) {
                 d.poisoned = -1;
@@ -175,7 +172,6 @@ let entities:entities_type = {
 
         }
     },
-    // Background Entity
     background: {
         default: {
             day: 1,
@@ -250,7 +246,7 @@ let entities:entities_type = {
             // Follow AI
             if (o.player != undefined && o.player.dead == -1) {
                 d.m[0] = Math.abs(o.player.x+(o.player.x>d.x?-15:15)-d.x)<15?0:o.player.x>d.x?7:-7;//(o.player.x+(o.player.x>d.x?-10:10)-d.x)/10;
-                if (Math.abs(o.player.y-d.y) > o.h) {
+                if (Math.abs(o.player.y-d.y) > o.h || Math.abs(o.player.x-d.x) > o.w) {
                     d.x = o.player.x;
                     d.y = o.player.y;
                 }
@@ -285,17 +281,26 @@ let entities:entities_type = {
     arrow: {
         default: {x:0, y:0, m:[0,0], a:0, nocollide:['pinoy'], ground:-1, hitbox:[], parent:undefined, duration: 3000},
         update: (d, o, t, dt) => {
+            // Arrow expires
             if (d.duration <= 0) return;
+            // Arrow hitbox
             d.hitbox = [15,
                 d.x, d.y,
                 8, 5
             ];
+            // Gravity and collisions
             algo.physics(dt, d, o);
-            printLog(d.hitbox, o.player.hitbox, 312);
+            // Player hits arrow
+            if (algo.rectint(d.hitbox, o.player.hitbox.slice(5))) {
+                d.duration = 0;
+                return;
+            }
+            // Arrow hits player
             if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
                 o.player.dead = 0;
-                o.play('SFX Final/arrow hit.mp3', true);
+                o.play('sfx/arrow hit.mp3', true);
             }
+            // Arrow is in air or ground
             if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
             else {
                 d.m = [0, 0];
@@ -305,10 +310,10 @@ let entities:entities_type = {
             o.sprites('Arrow.png', [d.x, d.y],
                 [0, 0, 0, 0, 8, 5, 0, 0, d.a, 4, 3]
             );
-            if (o.player.hitbox.slice(5).length == 5) {
+            /*if (o.player.hitbox.slice(5).length == 5) {
                 printLog(d.hitbox, o.player.hitbox.slice(5), 326);
                 if (o.player && algo.rectint(d.hitbox, o.player.hitbox.slice(5))) d.duration = 0;
-            }
+            }*/
         },
         create: (o, arg) => {
             return {
@@ -332,7 +337,7 @@ let entities:entities_type = {
                     bs.push([x * 16, 0, (v == 0 ? 0 : 34), 0, 16, 16]);
                     bs.push([(x + 1) * 16, 0, (v == 0 ? 16 : 50), 0, 16, 16]);
                 }
-                printLog(d.hitbox, o.player.hitbox, 351);
+                //printLog(d.hitbox, o.player.hitbox, 351);
                 if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
                 o.sprites('Lava.png', [d.x, d.y], ...bs);
             } else {
@@ -455,15 +460,48 @@ let entities:entities_type = {
         default: {house:false, over:false},
         update: (d, o, t, dt) => {
             if (d.over) {
+                if (d.over_notinit == undefined) {
+                    o.play('sfx/gameover.mp3', true);
+                    d.over_notinit = true;
+                }
+                // Fade
+                o.btx.globalAlpha = Math.max(0.001, 0.05*(1-dt/1000));
+                // Game over
                 o.sprites('Game Over.png', [], [0, 0, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
+                if (o.player != undefined) {
+                    let p = Math.round(o.player.max_x/10 + o.player.points);
+                    o.btx.fillStyle = '#fff';
+                    o.btx.strokeStyle = '#000';
+                    o.btx.font = `10px arcade`;
+                    o.btx.textAlign = 'center';
+                    o.btx.textBaseline = 'middle';
+                    o.btx.fillText('Score', o.w/4, 3*o.h/4);
+                    o.btx.fillText('Highscore', 3*o.w/4, 3*o.h/4);
+                    o.btx.font = `15px arcade`;
+                    o.btx.fillText(String(p), o.w/4, 3*o.h/4+20);
+                    o.btx.fillText(String(o.player.highscore), 3*o.w/4, 3*o.h/4+20);
+                    o.btx.globalAlpha = 1;
+                }
                 return;
-            }
+            } else delete d.over_notinit;
             if (d.house) o.sprites('Housesv2.png', [], [0, 100, 126, 0, 128, 128]);
             o.sprites('Rise_of_the_Aswang_King.png', [0, 0],
                 [0, 0, 0, 0, 256, 144]
             );
             
-            if (o.player != undefined) for(let i = 0; i < o.player.lives[1]; i++) o.sprites('Heart.png', [], [2+i*18, 2, i < o.player.lives[0] ? 0 : 16, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+            // Display player details
+            if (o.player != undefined) {
+                // Hearts
+                for(let i = 0; i < o.player.lives[1]; i++) o.sprites('Heart.png', [], [2+i*18, 2, i < o.player.lives[0] ? 0 : 16, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+                // Points
+                let p = Math.round(o.player.max_x/10 + o.player.points);
+                o.btx.fillStyle = '#fff';
+                o.btx.strokeStyle = '#000';
+                o.btx.font = `${d.z*o.z}px arcade`;
+                o.btx.textAlign = 'end';
+                o.btx.textBaseline = 'top';
+                o.btx.fillText(String(p), o.w-2, 2);
+            }
         }
     },
     mananangal: {
@@ -519,13 +557,17 @@ let entities:entities_type = {
                     d.m = [Math.cos(v[1])*d.speed/2, Math.sin(v[1])*d.speed/2];
                     // If player enters detection range of the aswang's second hitbox (d.hitbox.slice(0,5))
                     printLog(d.hitbox.slice(5), o.player.hitbox, 537);
-                    if (algo.rectint(o.player.hitbox, d.hitbox.slice(5))) d.target = true;
+                    if (algo.rectint(o.player.hitbox, d.hitbox.slice(5))) {
+                        o.play('sfx/mananangal sound.mp3', true);
+                        d.target = true;
+                    }
                 } else if (o.player != undefined) {
                     // Get hypotenus and angle to player
                     let h = Math.hypot(o.player.x - d.x, o.player.y - d.y);
                     let a = Math.atan2(d.y-o.player.y, o.player.x-d.x);
                     // Chase player if far enough else stay
-                    if (h > 20) d.m = [Math.cos(a)*d.speed, Math.sin(a)*d.speed];
+                    if (h > 200) d.target = false;
+                    else if (h > 20) d.m = [Math.cos(a)*d.speed, Math.sin(a)*d.speed];
                     else d.m = [0, 0];
                 }
                 let v = Math.min(Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.hypot(d.p[2]-d.x, d.p[3]-d.y));
@@ -535,10 +577,10 @@ let entities:entities_type = {
                 } else if(v < 50) d.nofollow = false;
                 //console.log(d.hitbox.slice(0,5),o.player.hitbox.slice(5));
                 if (o.player.hitbox.slice(5).length == 5) {
-                    printLog(d.hitbox.slice(0, 5), o.player.hitbox.slice(5), 553);
+                    //printLog(d.hitbox.slice(0, 5), o.player.hitbox.slice(5), 553);
                     if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) d.dead = 0;
                 }
-                printLog(d.hitbox, d.follow.hitbox, 556);
+                //printLog(d.hitbox, d.follow.hitbox, 556);
                 if (algo.rectint(d.hitbox,d.follow.hitbox)) d.follow.dead = 0;
             }
             
@@ -564,6 +606,7 @@ let entities:entities_type = {
                 //console.log(d.cooldowntmp);
                 if (d.colldowntmp < 1000) ofs = 2;
                 if (d.cooldowntmp <= 0) {*/
+                    o.play('sfx/arrow shoot.mp3', true);
                     d.bind.push(o.entity('arrow', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(d.a),d.s*Math.sin(d.a)], parent:d, a:-d.a+Math.PI}));
                     d.shoot--;
                 /*    d.cooldowntmp = d.cooldown;
@@ -591,7 +634,7 @@ let entities:entities_type = {
             if (d.h%24 != 0) a.push([0, 24*i, 0, 0, 7, d.h%24])
             a.push([2, d.h, 0, 32, 3, 3]);
             o.sprites('Vine.png', [d.x, d.y], ...a);
-            printLog(d.hitbox, o.player.hitbox, 608);
+            //printLog(d.hitbox, o.player.hitbox, 608);
             if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.climable = true;
         }
     },
@@ -604,13 +647,7 @@ let entities:entities_type = {
                 d.x, d.y,
                 4, 14+d.h
             ];
-            if (o.player == undefined || o.player.length == 0) {
-                alert("asf");
-                o.interacts.forEach(e => {
-                    if (e['__type__'] == 'pinoy') o.player = e;
-                });
-            }
-            printLog(d.hitbox, o.player.hitbox, 625);
+            //printLog(d.hitbox, o.player.hitbox, 625);
             if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
@@ -626,7 +663,10 @@ let entities:entities_type = {
         }
     },
     pressure_plate: {
-        default: {x:0, y:0, w:10, triggered: false},
+        default: {x:0, y:0, w:10,
+            triggered: false, // Is currently triggered?
+            pltrigger: false  // Played trigger audio?
+        },
         update: (d, o, t, dt) => {
             d.hitbox = [0,
                 d.x, d.y,
@@ -635,13 +675,17 @@ let entities:entities_type = {
             let a:number[][] = [[0,0,0,0,2,2],[2+d.w,0,2,0,2,2]];
             for(var i = 0; i < Math.floor(d.w/16); i++) a.push([2+16*i,0,0,2,16,2]);
             if (d.w%16 != 0) a.push([2+16*i,0,0,2,d.w%16,2]);
-            printLog(d.hitbox, o.player.hitbox, 652);
+            //printLog(d.hitbox, o.player.hitbox, 652);
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
                 });
                 d.triggered = true;
             } else d.triggered = false;
+            if (d.triggered && !d.pltrigger) {
+                o.play('sfx/pressure plate activated.mp3', true);
+                d.pltrigger = true;
+            } else if (!d.triggered) d.pltrigger = false;
             o.sprites('pressure.png', [d.x,d.y+(d.triggered?1:0)], ...a);
         }
     },
@@ -652,7 +696,7 @@ let entities:entities_type = {
                 d.x, d.y,
                 22, 22
             ]
-            printLog(d.hitbox, o.player.hitbox, 668);
+            //printLog(d.hitbox, o.player.hitbox, 668);
             // console.log(t, dt);
             // console.log(o.player, o.player.hitbox)
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
@@ -692,10 +736,9 @@ let entities:entities_type = {
             }
             d.hitbox = [15,
                 d.x, d.y,
-                8, 5
+                9, 9
             ];
-            let col = algo.physics(dt, d, o);
-            printLog(d.hitbox, o.player.hitbox.slice(0, 5), 710);
+            algo.physics(dt, d, o);
             if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
@@ -714,7 +757,10 @@ let entities:entities_type = {
                 if (d.m[0] == 0 && d.m[1] == 0) {
                     d.duration = 0;
                     d.bind = [];
-                    d.bind.push(o.entity('poisoned_area', {x: d.x - 30 * d.area_w / 2 + 4, y: d.y + 3, w: 30 * d.area_w, duration: 3000, parent:d}));
+                    let px = d.x - 30 * d.area_w / 2 + 4;
+                    d.bind.push(o.entity('poisoned_area', {x: px, y: d.y + 5, w: 30 * d.area_w, duration: 3000, parent:d}));
+                    console.log(Math.exp(-Math.abs(px - o.player.x)/100));
+                    if (o.player != undefined) o.play('sfx/blab_drop.mp3', true, Math.exp(-Math.abs(px - o.player.x)/100));
                 }
                 o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, (v == 0 ? 36 : 68), 67, 9, 9])
             }
@@ -799,7 +845,7 @@ let entities:entities_type = {
             o.btx.fillText(d.text, d.x-o.camera[0], d.y-o.camera[1]);
         }
     },
-    checkout: {
+    checkpoint: {
         default: {x:0, y: 195} 
     },
     king: {
@@ -1068,6 +1114,13 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             else d.m[0] = (d.follow.x == d.x) ? 0 : ((d.follow.x > d.x) ? d.s : -d.s);
             printLog(d.hitbox, o.player.hitbox, 836);
             if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
+            
+            if (o.interacts[o.player.ground] != undefined) {
+                if (o.player.ground != -1 && o.interacts[o.player.ground].y < d.y && !d.jumping) {
+                    d.m[1] = 20;//16;
+                    d.jumping = true;
+                }
+            }
         } else {
             // patrol
             if (d.m[0] == 0) d.m[0] = -d.s/2;
@@ -1100,6 +1153,7 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
         algo.physics(dt, d, o);
         if (d.ground != -1) {
             d.nocollide.splice(1);
+            d.jumping = false;
         }
         // Render
         let v = (Math.abs(d.m[0])>0.15?1+Math.floor(t/100)%(origins.length - 1):0);

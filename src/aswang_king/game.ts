@@ -4,12 +4,11 @@ import {engine} from "../engine.ts";
 import {plts, level} from "./levels.ts";
 
 // Media
-let sfx = ['SFX Final/Dying.mp3', 'SFX Final/arrow hit.mp3', 'SFX Final/gameover.mp3'];
 let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/Final Peaceful Environment.mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-let main = new engine({z:1, w:320, h:240, load: [...required_files, ...sfx, ...bg_songs], camera:[-160,0]});
+let main = new engine({z:1, w:320, h:240, load: [...required_files, ...bg_songs], camera:[-160,0]});
 main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
@@ -31,7 +30,7 @@ main.scene('level', (t, dt) => {
         menu.over = true;
         main.add(menu);
         return;
-    }
+    } else menu.over = false;
 
     // Layers
     main.add(bg);
@@ -85,9 +84,9 @@ main.scene('level', (t, dt) => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
     
-    if (player.climable && main.on('w,W')) {
+    /*if (player.climable && main.on('w,W')) {
         player.climing = true;
-    }
+    }*/
     if(main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
     } else if (main.on('s,S,ArrowDown,gp_s')) {
