@@ -344,6 +344,12 @@ class engine {
     private add_single(entity:{[index:string]:any}) {
         if (!entities.hasOwnProperty(entity['__type__'])) throw `Error: No such entity "${entity['__type__']}"`;
         if (entity['interact']) this.interacts.push(entity);
+        if (this.player != undefined && this.player.hitbox.length < 5 && this.player.dead != 0) {
+            this.player.hitbox = [ 15,
+                this.player.x+12, this.player.y,
+                8, 29
+            ];
+        }
         // @ts-ignore
         entities[entity['__type__']].update(entity, this, (new Date()).getTime()-this.time_init.getTime(), (new Date()).getTime()-this.time_last.getTime());
         // console.log(entity);

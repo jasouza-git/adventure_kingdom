@@ -1,7 +1,7 @@
 import {algo} from "../algorithms.ts";
 import {required_files} from "./entities.ts";
 import {engine} from "../engine.ts";
-import {level} from "./levels.ts";
+import {plts, level} from "./levels.ts";
 
 // Media
 let sfx = ['SFX Final/Dying.mp3', 'SFX Final/arrow hit.mp3', 'SFX Final/gameover.mp3'];
@@ -11,9 +11,10 @@ let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/Final Peaceful En
 algo.gravity = 20;
 let main = new engine({z:1, w:320, h:240, load: [...required_files, ...sfx, ...bg_songs], camera:[-160,0]});
 main.dom.style.filter = 'contrast(1.1)';
+let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: 3500, y:195});
+let player = main.entity('pinoy', {x: 3400, y:195});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
@@ -23,7 +24,6 @@ let off = 0;
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
 
-    
     // Dead glitch filter
     off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
 
@@ -33,14 +33,16 @@ main.scene('level', (t, dt) => {
         return;
     }
 
-
     // Layers
     main.add(bg);
     let l = Math.floor(player.x/480);
     for (var n = -2; n <= 2; n++) {
-        if (l+n >= 0 && l+n < lv.length) main.add(lv[l+n]);
+        if (l+n >= 0 && l+n < lv.length) main.add(platforms[l+n]);
     }
     main.add(menu, pet, main.player);
+    for (var n = -2; n <= 2; n++) {
+        if (l+n >= 0 && l+n < lv.length) main.add(lv[l+n]);
+    }
 
     // Music
     if (player.ground != -1 && player.ground < main.interacts.length && [0,1,2].indexOf(main.interacts[player.ground].mode) != -1) {

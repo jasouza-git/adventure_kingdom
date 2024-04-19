@@ -39,7 +39,7 @@ let entities:entities_type = {
             swinging: 0,   // Current swining position (0->1)
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
-            lives: [3,3],
+            lives: [100,100],
             died: ()=>{},
             hitbyarrow: ()=>{},
             gameover: ()=>{},
@@ -51,6 +51,7 @@ let entities:entities_type = {
             climing: false
         },
         update: (d, o, t, dt) => {
+            // console.log("pinoy", t, dt);
             let c = n => [n%6, Math.floor(n/6)];
             let leg = [0,0], body = [0,0];
             if (d.dead == -1) {
@@ -323,8 +324,10 @@ let entities:entities_type = {
             o.sprites('Arrow.png', [d.x, d.y],
                 [0, 0, 0, 0, 8, 5, 0, 0, d.a, 4, 3]
             );
-            printLog(d.hitbox, o.player.hitbox.slice(5), 326);
-            if (o.player && algo.rectint(d.hitbox, o.player.hitbox.slice(5))) d.duration = 0;
+            if (o.player.hitbox.slice(5).length == 5) {
+                printLog(d.hitbox, o.player.hitbox.slice(5), 326);
+                if (o.player && algo.rectint(d.hitbox, o.player.hitbox.slice(5))) d.duration = 0;
+            }
         },
         create: (o, arg) => {
             return {
@@ -550,11 +553,13 @@ let entities:entities_type = {
                     d.nofollow = true;
                 } else if(v < 50) d.nofollow = false;
                 //console.log(d.hitbox.slice(0,5),o.player.hitbox.slice(5));
-                printLog(d.hitbox.slice(0, 5), o.player.hitbox.slice(5), 553);
-                if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) d.dead = 0;
+                if (o.player.hitbox.slice(5).length == 5) {
+                    printLog(d.hitbox.slice(0, 5), o.player.hitbox.slice(5), 553);
+                    if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) d.dead = 0;
+                }
+                printLog(d.hitbox, d.follow.hitbox, 556);
+                if (algo.rectint(d.hitbox,d.follow.hitbox)) d.follow.dead = 0;
             }
-            printLog(d.hitbox, d.follow.hitbox, 556);
-            if (algo.rectint(d.hitbox,d.follow.hitbox)) d.follow.dead = 0;
             
             let dd = d.dead == -1 ? 0 : Math.round(d.dead*2);
             let dr = d.dead == -1 ? 1 : 1-d.dead;
@@ -649,7 +654,6 @@ let entities:entities_type = {
             let a:number[][] = [[0,0,0,0,2,2],[2+d.w,0,2,0,2,2]];
             for(var i = 0; i < Math.floor(d.w/16); i++) a.push([2+16*i,0,0,2,16,2]);
             if (d.w%16 != 0) a.push([2+16*i,0,0,2,d.w%16,2]);
-            //console.log(d);
             printLog(d.hitbox, o.player.hitbox, 652);
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
@@ -668,7 +672,8 @@ let entities:entities_type = {
                 22, 22
             ]
             printLog(d.hitbox, o.player.hitbox, 668);
-            console.log(o.player, o.player.hitbox);
+            // console.log(t, dt);
+            // console.log(o.player, o.player.hitbox)
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
