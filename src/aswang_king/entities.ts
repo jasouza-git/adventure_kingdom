@@ -15,7 +15,7 @@ let required_files:string[] = [
     // Objects
     'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
-    'Mcpartsv3.png', 'Heart.png',
+    'Mcpartsv3.png', 'Heart.png', 'sfx/walk_dirt.mp3', 'sfx/vines.mp3',
     // Poisonous Plants
     'Atropa Belladonav2.png', 'Lagablab, bubble and random vegetation.png', 
     // SFX
@@ -48,6 +48,7 @@ let entities:entities_type = {
             points: 0,     // Accumulatd points
             highscore: 0,  // Highscore
             max_x: 0,      // Maximum distance traveled by the player
+            canclimb:false,// Player can climb?
             climb: -1,     // Climbing (-1 not climbing, 1 hanging, 0->2 climbing animation)
         },
         update: (d, o, t, dt) => {
@@ -65,6 +66,7 @@ let entities:entities_type = {
                 if (d.x > d.max_x) d.max_x = d.x;
 
                 // Movement
+                if (!d.canclimb) d.climb = -1;
                 if (d.climb == -1) {
                     d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
                     let cols = algo.physics(dt, d, o);
@@ -119,13 +121,16 @@ let entities:entities_type = {
                     d.in_area_time = 0;
                 }
                 
+                //console.log(d.climb);
                 leg = c(
+                    d.climb != -1 ? Math.round(d.climb)+38 :
                     d.ground == -1 ? 8 :
                     d.crouch ? 7 :
                     Math.abs(d.m[0]) > 0.5 ? 1+Math.floor(t/50)%6 :
                     0
                 );
                 body = c(
+                    d.climb != -1 ? Math.round(d.climb)+36 :
                     s > 0 ? 27+s :
                     d.ground == -1 ? 26 :
                     d.crouch ? 25 :
@@ -267,7 +272,9 @@ let entities:entities_type = {
             if (d.ground != -1) {
                 d.jumping = false;
                 d.nocollide.splice(1);
+                if (Math.abs(d.m[0]) > 1) o.play('sfx/walk_dirt.mp3', false, 0.5);
             }
+            
             // Render
             let x = (Math.abs(d.m[0])>0.15?1+Math.floor(t/100)%2:0);
             if (d.animal == 0) o.sprites('Dog.png', [d.x, d.y], 
@@ -635,7 +642,7 @@ let entities:entities_type = {
             a.push([2, d.h, 0, 32, 3, 3]);
             o.sprites('Vine.png', [d.x, d.y], ...a);
             //printLog(d.hitbox, o.player.hitbox, 608);
-            if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.climable = true;
+            if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.canclimb = true;
         }
     },
     wire: {
@@ -759,7 +766,6 @@ let entities:entities_type = {
                     d.bind = [];
                     let px = d.x - 30 * d.area_w / 2 + 4;
                     d.bind.push(o.entity('poisoned_area', {x: px, y: d.y + 5, w: 30 * d.area_w, duration: 3000, parent:d}));
-                    console.log(Math.exp(-Math.abs(px - o.player.x)/100));
                     if (o.player != undefined) o.play('sfx/blab_drop.mp3', true, Math.exp(-Math.abs(px - o.player.x)/100));
                 }
                 o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, (v == 0 ? 36 : 68), 67, 9, 9])
