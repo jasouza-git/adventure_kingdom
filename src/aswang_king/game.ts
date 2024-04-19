@@ -31,7 +31,7 @@ main.scene('level', (t, dt) => {
         menu.over = true;
         main.add(menu);
         return;
-    }
+    } else menu.over = false;
 
 
     // Layers
@@ -74,9 +74,9 @@ main.scene('level', (t, dt) => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
     
-    if (player.climable && main.on('w,W')) {
+    /*if (player.climable && main.on('w,W')) {
         player.climing = true;
-    }
+    }*/
     if(main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
     } else if (main.on('s,S,ArrowDown,gp_s')) {

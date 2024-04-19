@@ -37,16 +37,13 @@ let entities:entities_type = {
             swinging: 0,   // Current swining position (0->1)
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
-            lives: [3,3],
-            died: ()=>{},
-            hitbyarrow: ()=>{},
-            gameover: ()=>{},
+            lives: [3,3],  // Lives [A,B] meaning A lives left out of B lives
             poisoned: -1,
             speed_rate: 1,
-            points: 0,
-            max_x: 0,
-            climable: true,
-            climing: false
+            points: 0,     // Accumulatd points
+            highscore: 0,  // Highscore
+            max_x: 0,      // Maximum distance traveled by the player
+            climb: -1,     // Climbing (-1 not climbing, 1 hanging, 0->2 climbing animation)
         },
         update: (d, o, t, dt) => {
             let c = n => [n%6, Math.floor(n/6)];
@@ -62,7 +59,7 @@ let entities:entities_type = {
                 if (d.x > d.max_x) d.max_x = d.x;
 
                 // Movement
-                if (d.climing == false) {
+                if (d.climb == -1) {
                     d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
                     let cols = algo.physics(dt, d, o);
                     if (d.crouch && !d.jumping) cols.forEach(c => {
@@ -70,14 +67,15 @@ let entities:entities_type = {
                     });
                     else d.nocollide = [];
                 }
+
+                // Kill if hit out of screen
                 if (d.y >= o.h-32) {
                     d.dead = 0;
                     return;
                 }
                 
-                // Camera
+                // Camera follow player
                 if (d.camera != undefined) {
-                    //o.camera[0] = d.x-o.w/2;
                     o.camera[0] += (d.x+d.camera-o.w/2-o.camera[0])*dt/100;
                 }
 
@@ -92,6 +90,7 @@ let entities:entities_type = {
                     16, 29
                 );
 
+                // Poisoned
                 if (d.poisoned >= 0 && d.poison_duration > 0) {
                     d.poison_duration -= dt;
                     d.speed_rate *= 1 - (0.25 * d.poison_duration / 100000)
@@ -101,8 +100,6 @@ let entities:entities_type = {
                     d.speed_rate = 1;
                 }
                 
-                if (d.climing) {
-                }
                 leg = c(
                     d.ground == -1 ? 8 :
                     d.crouch ? 7 :
@@ -120,9 +117,6 @@ let entities:entities_type = {
             if (d.dead == 0) {
                 d.lives[0]--;
                 o.play('SFX Final/Dying.mp3', true);
-            }
-            if(d.lives[0] < 0) {
-                o.play('SFX Final/gameover.mp3', true);
             }
             if (d.dead != -1) {
                 d.poisoned = -1;
@@ -456,15 +450,48 @@ let entities:entities_type = {
         default: {house:false, over:false},
         update: (d, o, t, dt) => {
             if (d.over) {
+                if (d.over_notinit == undefined) {
+                    o.play('SFX Final/gameover.mp3', true);
+                    d.over_notinit = true;
+                }
+                // Fade
+                o.btx.globalAlpha = Math.max(0.001, 0.05*(1-dt/1000));
+                // Game over
                 o.sprites('Game Over.png', [], [0, 0, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
+                if (o.player != undefined) {
+                    let p = Math.round(o.player.max_x/10 + o.player.points);
+                    o.btx.fillStyle = '#fff';
+                    o.btx.strokeStyle = '#000';
+                    o.btx.font = `10px arcade`;
+                    o.btx.textAlign = 'center';
+                    o.btx.textBaseline = 'middle';
+                    o.btx.fillText('Score', o.w/4, 3*o.h/4);
+                    o.btx.fillText('Highscore', 3*o.w/4, 3*o.h/4);
+                    o.btx.font = `15px arcade`;
+                    o.btx.fillText(String(p), o.w/4, 3*o.h/4+20);
+                    o.btx.fillText(String(o.player.highscore), 3*o.w/4, 3*o.h/4+20);
+                    o.btx.globalAlpha = 1;
+                }
                 return;
-            }
+            } else delete d.over_notinit;
             if (d.house) o.sprites('Housesv2.png', [], [0, 100, 126, 0, 128, 128]);
             o.sprites('Rise_of_the_Aswang_King.png', [0, 0],
                 [0, 0, 0, 0, 256, 144]
             );
             
-            if (o.player != undefined) for(let i = 0; i < o.player.lives[1]; i++) o.sprites('Heart.png', [], [2+i*18, 2, i < o.player.lives[0] ? 0 : 16, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+            // Display player details
+            if (o.player != undefined) {
+                // Hearts
+                for(let i = 0; i < o.player.lives[1]; i++) o.sprites('Heart.png', [], [2+i*18, 2, i < o.player.lives[0] ? 0 : 16, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+                // Points
+                let p = Math.round(o.player.max_x/10 + o.player.points);
+                o.btx.fillStyle = '#fff';
+                o.btx.strokeStyle = '#000';
+                o.btx.font = `${d.z*o.z}px arcade`;
+                o.btx.textAlign = 'end';
+                o.btx.textBaseline = 'top';
+                o.btx.fillText(String(p), o.w-2, 2);
+            }
         }
     },
     mananangal: {
