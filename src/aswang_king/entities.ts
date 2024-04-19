@@ -39,7 +39,7 @@ let entities:entities_type = {
             swinging: 0,   // Current swining position (0->1)
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
-            lives: [100,100],
+            lives: [3,3],
             died: ()=>{},
             hitbyarrow: ()=>{},
             gameover: ()=>{},
