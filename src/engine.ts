@@ -200,6 +200,7 @@ class engine {
             var id = audio+String(Number(new Date()));
             this.audios[id] = new Audio();
             this.audios[id].src = this.loaded[audio] as string;
+            if (volume != undefined) this.audios[id].volume = parseFloat(String(volume));
             this.audios[id].play();
             this.audios[id].setAttribute('single','');
             this.audios[id].onended = () => delete this.audios[id];
