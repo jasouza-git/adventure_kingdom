@@ -5,6 +5,7 @@ let plts = main => [
 		main.entity('plat', {x:-400, y:-16, w:20, h:16, mode:0, col:15, clip:[[], [], [15], []]}),
 		main.entity('plat', {x:-80, y:224, w:27, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:352, y:176, w:8, h:4, mode:0, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
+		main.entity('vine', {x:150, y:0, h:152}),
 	], [
 		main.entity('plat', {x:480, y:128, w:4, h:7, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6], [], []]}),
 		main.entity('plat', {x:928, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),

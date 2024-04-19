@@ -84,9 +84,22 @@ main.scene('level', (t, dt) => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
     
-    /*if (player.climable && main.on('w,W')) {
+    if (player.canclimb && main.on('w,W,s,S')) player.climb = 1;
+    if (player.climb != -1) {
+        if(main.on(' ,ArrowUp,gp_2')) {
+            player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
+            player.climb = -1;
+        } else if (main.on('d,D,ArrowRight,gp_e,a,A,ArrowLeft,gp_w')) {
+            player.climb = (Math.sin(t/200)+1)/2;
+            if (main.on('d,D,ArrowRight,gp_e')) player.x += dt/10;
+            else player.x -= dt/10;
+        } else if (main.on('w,W,gp_n,s,S,gp_s')) {
+            main.play('sfx/vines.mp3', false, 0.5);
+            player.climb = (Math.sin(t/100)+1)/2;
+            player.y += (main.on('w,W,gp_n')?-1:1)*dt/10;
+        } else player.climb = 0;
         player.climing = true;
-    }*/
+    }
     if(main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
     } else if (main.on('s,S,ArrowDown,gp_s')) {
@@ -97,6 +110,9 @@ main.scene('level', (t, dt) => {
     } else if(main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8 * player.speed_rate;
     else if(main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8 * player.speed_rate;
     else player.m[0] = 0;
+
+    // Reset
+    player.canclimb = false;
 });
 main.render();
 
