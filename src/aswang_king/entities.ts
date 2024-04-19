@@ -809,7 +809,7 @@ let entities:entities_type = {
             blab_n: 5, blab_z: 0, bind: [],
             charging_vector: [0, 0], prepare_vector:[0, 0], charge_s: 20, prepare_s: -0.25, cur_charge_t: 0, prepare_t: 120, cur_prepare_t: 120, charging: false,
             drop_prepare_s: -0.25, drop_pt: 200, cur_drop_pt: 200, drop_s: 30, drop_charge: false,
-            attackBox: [], lives: [30, 30], protect_t: 500, cur_protect_t: 500,
+            attackBox: [], lives: [30, 30], protect_t: 500, cur_protect_t: 500, healing: 2,
             hit_t: 2000, cur_hit_t: 2000, full_attack_n: 4, cur_attack_n: 4, aswang_n: 3, dying_t: 6000, cur_dying_t: 6000, dying: false, dead: -1,
             
             bodyOrigins: [[[96, 0], [133, 0]], [[97, 52], [134, 52]], [[170, 0], [207, 0]], [[171, 52], [209, 52]]],
@@ -896,6 +896,7 @@ let entities:entities_type = {
                             d.cur_attack_n = 0;
                             d.cur_cooldown = d.cooldown * 2;
                             d.bind = [];
+                            d.lives[1] += d.healing;
                             for (let i = 0; i < d.aswang_n; i += 1) {
                                 let v = Math.floor(Math.random() * 3);
                                 let curAswang = d.aswangs[v];
