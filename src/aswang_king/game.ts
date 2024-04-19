@@ -14,7 +14,7 @@ main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: 3400, y:195});
+let player = main.entity('pinoy', {x: 0, y:20});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
@@ -37,7 +37,7 @@ main.scene('level', (t, dt) => {
     main.add(bg);
     let l = Math.floor(player.x/480);
     for (var n = -2; n <= 2; n++) {
-        if (l+n >= 0 && l+n < lv.length) main.add(platforms[l+n]);
+        if (l+n >= 0 && l+n < platforms.length) main.add(platforms[l+n]);
     }
     main.add(menu, pet, main.player);
     for (var n = -2; n <= 2; n++) {
