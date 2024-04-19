@@ -5,7 +5,6 @@ let plts = main => [
 		main.entity('plat', {x:-400, y:-16, w:20, h:16, mode:0, col:15, clip:[[], [], [15], []]}),
 		main.entity('plat', {x:-80, y:224, w:27, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:352, y:176, w:8, h:4, mode:0, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
-		main.entity('vine', {x:150, y:0, h:152}),
 	], [
 		main.entity('plat', {x:480, y:128, w:4, h:7, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6], [], []]}),
 		main.entity('plat', {x:928, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),
@@ -29,7 +28,7 @@ let plts = main => [
 		main.entity('plat', {x:1440, y:64, w:3, h:11, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [10], []]}),
 		main.entity('plat', {x:1488, y:224, w:27, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:1536, y:64, w:13, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
-		main.entity('plat', {x:1792, y:120, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+		main.entity('plat', {x:1792, y:120, w:8, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]})
 	], [
 		main.entity('plat', {x:1920, y:224, w:23, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:1920, y:120, w:5, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
@@ -66,7 +65,7 @@ let plts = main => [
 		main.entity('plat', {x:3712, y:160, w:2, h:5, mode:0, col:15, clip:[[], [4], [3, 4], []]}),
 		main.entity('plat', {x:3744, y:208, w:2, h:2, mode:0, col:15, clip:[[], [0, 1], [0, 1], []]}),
 		main.entity('plat', {x:3776, y:112, w:2, h:8, mode:0, col:15, clip:[[], [6, 7], [3, 4, 5, 6, 7], []]}),
-		main.entity('plat', {x:3808, y:160, w:2, h:5, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('plat', {x:3808, y:160, w:2, h:5, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], []]})
 	], [
 		main.entity('plat', {x:4224, y:112, w:6, h:8, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6, 7], []]}),
 		main.entity('plat', {x:3840, y:96, w:2, h:9, mode:0, col:15, clip:[[], [4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
@@ -167,6 +166,7 @@ let plts = main => [
 	], [
 		main.entity('plat', {x:9440, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:9440, y:224, w:30, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:9500, y:0, h:200}),
 	], [
 		main.entity('plat', {x:9920, y:224, w:3, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:9936, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [], [0], []]}),

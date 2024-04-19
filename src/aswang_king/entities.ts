@@ -26,7 +26,7 @@ let required_files:string[] = [
     // Aswangs
     'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png',
     // Aswangs sfx
-    'sfx/mananangal sound.mp3'
+    'sfx/mananangal sound.mp3', 'sfx/whitelady.mp3'
 ];
 let entities:entities_type = {
     pinoy: {
@@ -64,6 +64,13 @@ let entities:entities_type = {
                 
                 // Max X for points
                 if (d.x > d.max_x) d.max_x = d.x;
+
+
+                // Climbing
+                d.canclimb = false;
+                o.interacts.forEach(e => {
+                    if (e['__type__'] == 'vine' && algo.rectint(d.hitbox, e.hitbox)) d.canclimb = true;
+                });
 
                 // Movement
                 if (!d.canclimb) d.climb = -1;
@@ -629,11 +636,11 @@ let entities:entities_type = {
         }
     },
     vine: {
-        default: {x:0, y:0, h:0},
+        default: {x:0, y:0, h:0, interact:true},
         update: (d, o, t, dt) => {
             d.hitbox = [0,
-                d.x,d.y,
-                8, d.h
+                d.x-2,d.y,
+                12, d.h
             ]
             let a:number[][] = [];
             // x, y, x_offset_in_asset, y_offset_in_asset, asset_width, asset_height
@@ -642,7 +649,8 @@ let entities:entities_type = {
             a.push([2, d.h, 0, 32, 3, 3]);
             o.sprites('Vine.png', [d.x, d.y], ...a);
             //printLog(d.hitbox, o.player.hitbox, 608);
-            if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.canclimb = true;
+            //console.log(algo.rectint(d.hitbox, o.player.hitbox));
+            //if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.canclimb = true;
         }
     },
     wire: {
@@ -809,7 +817,8 @@ let entities:entities_type = {
             let sizes = [[21, 27], [21, 27], [21, 27]];
             let dead_origins = [[72, 34], [8, 66]];
             let dead_sizes = [[21, 27], [21, 27]];
-            aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, false);
+            let prey = aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, false);
+            if (prey) o.play('sfx/whitelady.mp3');
         }
     },
     tikbalang: {
@@ -1005,6 +1014,7 @@ let entities:entities_type = {
 };
 
 function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, fright_reverse) {
+    var prey = false;
     if (d.dead != -1) {
         d.hitbox = [];
         d.timer -= dt;
@@ -1028,12 +1038,11 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             printLog(d.hitbox, o.player.hitbox, 836);
             if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
             
-            if (o.interacts[o.player.ground] != undefined) {
-                if (o.player.ground != -1 && o.interacts[o.player.ground].y < d.y && !d.jumping) {
-                    d.m[1] = 20;//16;
-                    d.jumping = true;
-                }
+            if (o.interacts[o.player.ground] != undefined && Math.abs(d.x) < 1 && o.player.ground != -1 && o.interacts[o.player.ground].y < d.y && !d.jumping) {
+                d.m[1] = 20;//16;
+                d.jumping = true;
             }
+            prey = true;
         } else {
             // patrol
             if (d.m[0] == 0) d.m[0] = -d.s/2;
@@ -1072,6 +1081,7 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
         let v = (Math.abs(d.m[0])>0.15?1+Math.floor(t/100)%(origins.length - 1):0);
         o.sprites(asset_name, [d.x, d.y], [0, 0, origins[v][0], origins[v][1], sizes[v][0], sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
     }
+    return prey;
 }
 
 function printLog(A, B, ln) {

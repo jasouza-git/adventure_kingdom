@@ -4,7 +4,7 @@ import {engine} from "../engine.ts";
 import {plts, level} from "./levels.ts";
 
 // Media
-let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/Final Peaceful Environment.mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
+let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/1st Temp BG Song (New Area).mp3',/*'song/Final Peaceful Environment.mp3',*/ 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
@@ -112,7 +112,7 @@ main.scene('level', (t, dt) => {
     else player.m[0] = 0;
 
     // Reset
-    player.canclimb = false;
+    //player.canclimb = false;
 });
 main.render();
 
