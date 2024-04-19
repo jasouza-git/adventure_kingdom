@@ -59,7 +59,7 @@ let entities:entities_type = {
                     d.x+12, d.y,
                     8, 29
                 ];
-
+                
                 // Max X for points
                 if (d.x > d.max_x) d.max_x = d.x;
 
@@ -309,6 +309,7 @@ let entities:entities_type = {
                 8, 5
             ];
             algo.physics(dt, d, o);
+            printLog(d.hitbox, o.player.hitbox, 312);
             if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
                 o.player.dead = 0;
                 o.play('SFX Final/arrow hit.mp3', true);
@@ -322,6 +323,7 @@ let entities:entities_type = {
             o.sprites('Arrow.png', [d.x, d.y],
                 [0, 0, 0, 0, 8, 5, 0, 0, d.a, 4, 3]
             );
+            printLog(d.hitbox, o.player.hitbox.slice(5), 326);
             if (o.player && algo.rectint(d.hitbox, o.player.hitbox.slice(5))) d.duration = 0;
         },
         create: (o, arg) => {
@@ -346,6 +348,7 @@ let entities:entities_type = {
                     bs.push([x * 16, 0, (v == 0 ? 0 : 34), 0, 16, 16]);
                     bs.push([(x + 1) * 16, 0, (v == 0 ? 16 : 50), 0, 16, 16]);
                 }
+                printLog(d.hitbox, o.player.hitbox, 351);
                 if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
                 o.sprites('Lava.png', [d.x, d.y], ...bs);
             } else {
@@ -531,6 +534,7 @@ let entities:entities_type = {
                     // Absolute vector using angle
                     d.m = [Math.cos(v[1])*d.speed/2, Math.sin(v[1])*d.speed/2];
                     // If player enters detection range of the aswang's second hitbox (d.hitbox.slice(0,5))
+                    printLog(d.hitbox.slice(5), o.player.hitbox, 537);
                     if (algo.rectint(o.player.hitbox, d.hitbox.slice(5))) d.target = true;
                 } else if (o.player != undefined) {
                     // Get hypotenus and angle to player
@@ -546,8 +550,10 @@ let entities:entities_type = {
                     d.nofollow = true;
                 } else if(v < 50) d.nofollow = false;
                 //console.log(d.hitbox.slice(0,5),o.player.hitbox.slice(5));
+                printLog(d.hitbox.slice(0, 5), o.player.hitbox.slice(5), 553);
                 if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) d.dead = 0;
             }
+            printLog(d.hitbox, d.follow.hitbox, 556);
             if (algo.rectint(d.hitbox,d.follow.hitbox)) d.follow.dead = 0;
             
             let dd = d.dead == -1 ? 0 : Math.round(d.dead*2);
@@ -599,6 +605,7 @@ let entities:entities_type = {
             if (d.h%24 != 0) a.push([0, 24*i, 0, 0, 7, d.h%24])
             a.push([2, d.h, 0, 32, 3, 3]);
             o.sprites('Vine.png', [d.x, d.y], ...a);
+            printLog(d.hitbox, o.player.hitbox, 608);
             if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.climable = true;
         }
     },
@@ -611,11 +618,13 @@ let entities:entities_type = {
                 d.x, d.y,
                 4, 14+d.h
             ];
-            if (o.player == undefined) {
+            if (o.player == undefined || o.player.length == 0) {
+                alert("asf");
                 o.interacts.forEach(e => {
                     if (e['__type__'] == 'pinoy') o.player = e;
                 });
             }
+            printLog(d.hitbox, o.player.hitbox, 625);
             if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
@@ -641,6 +650,7 @@ let entities:entities_type = {
             for(var i = 0; i < Math.floor(d.w/16); i++) a.push([2+16*i,0,0,2,16,2]);
             if (d.w%16 != 0) a.push([2+16*i,0,0,2,d.w%16,2]);
             //console.log(d);
+            printLog(d.hitbox, o.player.hitbox, 652);
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
@@ -657,6 +667,8 @@ let entities:entities_type = {
                 d.x, d.y,
                 22, 22
             ]
+            printLog(d.hitbox, o.player.hitbox, 668);
+            console.log(o.player, o.player.hitbox);
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
@@ -697,6 +709,7 @@ let entities:entities_type = {
                 8, 5
             ];
             let col = algo.physics(dt, d, o);
+            printLog(d.hitbox, o.player.hitbox.splice(0, 5), 710);
             if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1 && algo.rectint(d.hitbox, o.player.hitbox.splice(0,5)) && o.player.dead == -1) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
@@ -819,8 +832,10 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
         // Follow AI
         if (d.follow != undefined && d.follow.dead == -1) {
             let dist = Math.hypot(d.x - d.follow.x, d.y - d.follow.y);
+            printLog(d.actionRange, d.follow.hitbox, 833);
             if (!algo.rectint(d.actionRange, d.follow.hitbox)) d.follow = undefined;
             else d.m[0] = (d.follow.x == d.x) ? 0 : ((d.follow.x > d.x) ? d.s : -d.s);
+            printLog(d.hitbox, o.player.hitbox, 836);
             if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
         } else {
             // patrol
@@ -842,12 +857,15 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
         ]
         d.hitbox = d.hitbox.concat(d.detectBox).concat(d.actionRange);
         
+        printLog(d.detectBox, o.player.hitbox, 858);
         if (algo.rectint(d.detectBox, o.player.hitbox)) d.follow = o.player;
-        if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
-            d.dead = 0;
-            return;
+        if (o.player.hitbox.slice(5).length == 5) {
+            printLog(d.hitbox.slice(0,5),o.player.hitbox.slice(5), 861);
+            if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
+                d.dead = 0;
+                return;
+            }
         }
-
         algo.physics(dt, d, o);
         if (d.ground != -1) {
             d.nocollide.splice(1);
@@ -856,6 +874,12 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
         let v = (Math.abs(d.m[0])>0.15?1+Math.floor(t/100)%(origins.length - 1):0);
         o.sprites(asset_name, [d.x, d.y], [0, 0, origins[v][0], origins[v][1], sizes[v][0], sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
     }
+}
+
+function printLog(A, B, ln) {
+    if (A.length == 0 && B.length == 0) console.log(ln + ": A and B in" );
+    else if (A.length == 0) console.log(ln + ": A");
+    else if (B.length == 0) console.log(ln + ": B");
 }
 
 export {entities, required_files};

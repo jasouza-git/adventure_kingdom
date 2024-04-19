@@ -346,6 +346,7 @@ class engine {
         if (entity['interact']) this.interacts.push(entity);
         // @ts-ignore
         entities[entity['__type__']].update(entity, this, (new Date()).getTime()-this.time_init.getTime(), (new Date()).getTime()-this.time_last.getTime());
+        // console.log(entity);
         if (this.hitbox_boxed && entity.hitbox) {
             this.btx.lineWidth = 1;
             // @ts-ignore
