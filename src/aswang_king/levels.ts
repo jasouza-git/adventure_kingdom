@@ -160,13 +160,24 @@ let plts = main => [
 		main.entity('plat', {x:8768, y:160, w:2, h:5, mode:2, col:15, clip:[[], [1, 2, 3, 4], [1, 4], []]}),
 		main.entity('plat', {x:8800, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:8800, y:224, w:10, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:8844, y:0, h:132}),
+		main.entity('vine', {x:8927, y:0, h:92}),
 	], [
 		main.entity('plat', {x:8960, y:224, w:22, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:9280, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [], [0], []]}),
 		main.entity('plat', {x:9312, y:128, w:8, h:7, mode:2, col:15, clip:[[], [6, 3], [3, 6], []]}),
+		main.entity('vine', {x:9010, y:0, h:148}),
+		main.entity('vine', {x:9093, y:0, h:60}),
+		main.entity('vine', {x:9176, y:0, h:112}),
+		main.entity('vine', {x:9260, y:0, h:92}),
 	], [
 		main.entity('plat', {x:9440, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:9440, y:224, w:30, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:9484, y:0, h:156}),
+		main.entity('vine', {x:9572, y:0, h:80}),
+		main.entity('vine', {x:9660, y:0, h:104}),
+		main.entity('vine', {x:9748, y:0, h:28}),
+		main.entity('vine', {x:9836, y:0, h:124}),
 	], [
 		main.entity('plat', {x:9920, y:224, w:3, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:9936, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [], [0], []]}),
@@ -178,6 +189,7 @@ let plts = main => [
 		main.entity('plat', {x:10176, y:152, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:10272, y:128, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:10368, y:112, w:2, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
+		main.entity('vine', {x:9924, y:0, h:76}),
 	], [
 		main.entity('plat', {x:10400, y:112, w:1, h:1, dropoff: true, mode:1, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:10400, y:224, w:30, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
@@ -185,6 +197,7 @@ let plts = main => [
 		main.entity('plat', {x:10576, y:88, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:10656, y:148, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:10748, y:124, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('vine', {x:10856, y:0, h:124}),
 	], [
 		main.entity('plat', {x:10880, y:224, w:30, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:11104, y:88, w:5, h:1, dropoff: true, mode:2, clip:[[], [], [0], []]}),
@@ -192,6 +205,8 @@ let plts = main => [
 		main.entity('plat', {x:11232, y:88, w:4, h:1, dropoff: true, mode:2, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:11296, y:88, w:3, h:1, dropoff: true, mode:1, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:11344, y:88, w:1, h:1, dropoff: true, mode:2, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:10944, y:0, h:76}),
+		main.entity('vine', {x:11032, y:0, h:88}),
 	], [
 		main.entity('plat', {x:11472, y:176, w:4, h:4, dropoff: true, mode:2, clip:[[], [], [], []]}),
 		main.entity('plat', {x:11744, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
@@ -214,11 +229,21 @@ let plts = main => [
 		main.entity('plat', {x:12352, y:96, w:2, h:9, mode:2, col:15, clip:[[], [2, 3, 4, 5, 6, 7, 8], [5, 8], []]}),
 		main.entity('plat', {x:12384, y:176, w:2, h:1, dropoff: true, mode:2, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:12384, y:224, w:26, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:12436, y:0, h:156}),
+		main.entity('vine', {x:12524, y:0, h:80}),
+		main.entity('vine', {x:12612, y:0, h:104}),
+		main.entity('vine', {x:12700, y:0, h:92}),
+		main.entity('vine', {x:12788, y:0, h:124}),
 	], [
 		main.entity('plat', {x:13056, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
 		main.entity('plat', {x:13088, y:160, w:2, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [0, 1, 2, 3, 4], []]}),
 		main.entity('plat', {x:13120, y:128, w:2, h:7, dropoff: true, mode:2, clip:[[], [2, 3, 4, 5, 6], [], []]}),
 		main.entity('plat', {x:12800, y:224, w:30, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:12876, y:0, h:76}),
+		main.entity('vine', {x:12964, y:0, h:56}),
+		main.entity('vine', {x:13052, y:0, h:124}),
+		main.entity('vine', {x:13140, y:0, h:76}),
+		main.entity('vine', {x:13228, y:0, h:112}),
 	], [
 		main.entity('plat', {x:13280, y:224, w:13, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:13488, y:176, w:2, h:4, mode:2, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
@@ -226,6 +251,8 @@ let plts = main => [
 		main.entity('plat', {x:13552, y:0, w:2, h:7, mode:2, col:15, clip:[[], [], [6, 0, 1], []]}),
 		main.entity('plat', {x:13584, y:96, w:9, h:1, mode:2, col:15, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:13584, y:0, w:11, h:2, mode:2, col:15, clip:[[], [0, 1], [0, 1], []]}),
+		main.entity('vine', {x:13316, y:0, h:56}),
+		main.entity('vine', {x:13404, y:0, h:124}),
 	], [
 		main.entity('plat', {x:13760, y:0, w:1, h:2, mode:2, col:15, clip:[[], [0, 1], [0, 1], []]}),
 		main.entity('plat', {x:13760, y:144, w:16, h:6, mode:2, col:15, clip:[[], [0, 1, 2, 3, 4, 5], [2, 3, 4, 5], []]}),
@@ -244,10 +271,22 @@ let plts = main => [
 		main.entity('plat', {x:14240, y:176, w:4, h:4, mode:2, col:15, clip:[[], [0, 1, 2, 3], [3], []]}),
 		main.entity('plat', {x:14304, y:224, w:26, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:14312, y:120, w:4, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('vine', {x:14400, y:0, h:184}),
+		main.entity('vine', {x:14480, y:0, h:144}),
+		main.entity('vine', {x:14560, y:0, h:184}),
+		main.entity('vine', {x:14640, y:0, h:144}),
 	], [
 		main.entity('plat', {x:14720, y:224, w:30, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:14720, y:0, h:184}),
+		main.entity('vine', {x:14800, y:0, h:144}),
+		main.entity('vine', {x:14880, y:0, h:184}),
+		main.entity('vine', {x:14960, y:0, h:144}),
+		main.entity('vine', {x:15040, y:0, h:184}),
+		main.entity('vine', {x:15120, y:0, h:144}),
 	], [
 		main.entity('plat', {x:15200, y:224, w:30, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:15200, y:0, h:184}),
+		main.entity('vine', {x:15280, y:0, h:144}),
 	], [
 		main.entity('plat', {x:15680, y:0, w:2, h:10, mode:2, col:15, clip:[[], [], [], []]}),
 		main.entity('plat', {x:15680, y:224, w:20, h:1, mode:2, col:15, clip:[[], [0], [], []]}),
@@ -352,6 +391,7 @@ let plts = main => [
 		main.entity('plat', {x:20160, y:192, w:2, h:3, mode:1, col:15, clip:[[], [0, 1, 2], [1, 2], []]}),
 		main.entity('plat', {x:20192, y:208, w:2, h:2, mode:1, col:15, clip:[[], [0, 1], [1], []]}),
 		main.entity('plat', {x:20224, y:224, w:6, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:20264, y:16, h:168}),
 	], [
 		main.entity('plat', {x:20480, y:208, w:1, h:2, dropoff: true, mode:1, clip:[[], [], [0, 1], []]}),
 		main.entity('plat', {x:20496, y:192, w:1, h:3, dropoff: true, mode:1, clip:[[], [1, 2], [0, 1, 2], []]}),
@@ -364,6 +404,10 @@ let plts = main => [
 		main.entity('plat', {x:20640, y:208, w:1, h:2, dropoff: true, mode:1, clip:[[], [0, 1], [], []]}),
 		main.entity('plat', {x:20320, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:20320, y:224, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('vine', {x:20344, y:16, h:131}),
+		main.entity('vine', {x:20424, y:16, h:168}),
+		main.entity('vine', {x:20696, y:16, h:131}),
+		main.entity('vine', {x:20776, y:16, h:113}),
 	], [
 		main.entity('plat', {x:20800, y:0, w:7, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:20800, y:224, w:7, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
@@ -467,29 +511,17 @@ let level = main => [
 			main.entity('shooter', {x:8355, y:109, bind:[], a:3.14159265359, s:13}),
 		]}),
 	], [
-		main.entity('vine', {x:8844, y:0, h:132}),
-		main.entity('vine', {x:8927, y:0, h:92}),
 		main.entity('atropa_belladonna', {x:8544, y:114}),
 	], [
-		main.entity('vine', {x:9010, y:0, h:148}),
-		main.entity('vine', {x:9093, y:0, h:60}),
-		main.entity('vine', {x:9176, y:0, h:112}),
-		main.entity('vine', {x:9260, y:0, h:92}),
 		main.entity('atropa_belladonna', {x:9364, y:106}),
 	], [
-		main.entity('vine', {x:9484, y:0, h:156}),
-		main.entity('vine', {x:9572, y:0, h:80}),
-		main.entity('vine', {x:9660, y:0, h:104}),
-		main.entity('vine', {x:9748, y:0, h:28}),
-		main.entity('vine', {x:9836, y:0, h:124}),
+	
 	], [
-		main.entity('vine', {x:9924, y:0, h:76}),
+	
 	], [
-		main.entity('vine', {x:10856, y:0, h:124}),
+	
 	], [
 		main.entity('tikbalang', {x:11271, y:56, p:[11136, 56, 11407 ,56], ess:150}),
-		main.entity('vine', {x:10944, y:0, h:76}),
-		main.entity('vine', {x:11032, y:0, h:88}),
 	], [
 		main.entity('tikbalang', {x:11679, y:192, p:[11536, 192, 11823 ,192], ess:150}),
 		main.entity('tikbalang', {x:11655, y:88, p:[11584, 88, 11727 ,88], ess:150}),
@@ -507,30 +539,18 @@ let level = main => [
 		main.entity('wire', {x:12700, y:68, h:16, bind:[
 			main.entity('shooter', {x:12701, y:5, bind:[], s:10, a:4.712388980385}),
 		]}),
-		main.entity('vine', {x:12436, y:0, h:156}),
-		main.entity('vine', {x:12524, y:0, h:80}),
-		main.entity('vine', {x:12612, y:0, h:104}),
-		main.entity('vine', {x:12700, y:0, h:92}),
-		main.entity('vine', {x:12788, y:0, h:124}),
 	], [
 		main.entity('tikbalang', {x:13127, y:192, p:[12992, 192, 13263 ,192], ess:150}),
 		main.entity('tikbalang', {x:13335, y:192, p:[13200, 192, 13471 ,192], ess:150}),
 		main.entity('wire', {x:13052, y:100, h:16, bind:[
 			main.entity('shooter', {x:13053, y:5, bind:[], s:10, a:4.712388980385}),
 		]}),
-		main.entity('vine', {x:12876, y:0, h:76}),
-		main.entity('vine', {x:12964, y:0, h:56}),
-		main.entity('vine', {x:13052, y:0, h:124}),
-		main.entity('vine', {x:13140, y:0, h:76}),
-		main.entity('vine', {x:13228, y:0, h:112}),
 	], [
 		main.entity('tiyanak', {x:13619, y:128, p:[13520, 128, 13718 ,128], ess:150}),
 		main.entity('tiyanak', {x:13787, y:128, p:[13664, 128, 13910 ,128], ess:150}),
 		main.entity('wire', {x:13404, y:92, h:16, bind:[
 			main.entity('shooter', {x:13405, y:5, bind:[], s:10, a:4.712388980385}),
 		]}),
-		main.entity('vine', {x:13316, y:0, h:56}),
-		main.entity('vine', {x:13404, y:0, h:124}),
 	], [
 		main.entity('tiyanak', {x:13931, y:80, p:[13856, 80, 14006 ,80], ess:150}),
 		main.entity('tiyanak', {x:14179, y:160, p:[14064, 160, 14294 ,160], ess:150}),
@@ -542,20 +562,11 @@ let level = main => [
 			main.entity('shooter', {x:14037, y:37, bind:[], s:10, a:4.712388980385}),
 		]}),
 	], [
-		main.entity('vine', {x:14400, y:0, h:184}),
-		main.entity('vine', {x:14480, y:0, h:144}),
-		main.entity('vine', {x:14560, y:0, h:184}),
-		main.entity('vine', {x:14640, y:0, h:144}),
+	
 	], [
-		main.entity('vine', {x:14720, y:0, h:184}),
-		main.entity('vine', {x:14800, y:0, h:144}),
-		main.entity('vine', {x:14880, y:0, h:184}),
-		main.entity('vine', {x:14960, y:0, h:144}),
-		main.entity('vine', {x:15040, y:0, h:184}),
-		main.entity('vine', {x:15120, y:0, h:144}),
+	
 	], [
-		main.entity('vine', {x:15200, y:0, h:184}),
-		main.entity('vine', {x:15280, y:0, h:144}),
+	
 	], [
 	
 	], [
@@ -664,13 +675,8 @@ let level = main => [
 			main.entity('shooter', {x:20035, y:85, bind:[], s:0, a:4.712388980385}),
 			main.entity('shooter', {x:20047, y:85, bind:[], s:0, a:4.712388980385}),
 		]}),
-		main.entity('vine', {x:20264, y:16, h:168}),
 	], [
 		main.entity('king', {x:20550, y:51, ess:1000}),
-		main.entity('vine', {x:20344, y:16, h:131}),
-		main.entity('vine', {x:20424, y:16, h:168}),
-		main.entity('vine', {x:20696, y:16, h:131}),
-		main.entity('vine', {x:20776, y:16, h:113}),
 	], [
 	
 	]
