@@ -9,9 +9,9 @@ let required_files:string[] = [
     // Background
     'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png', 'Game Over.png',
     // Platforms
-    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lava.png',
+    'Flowers.png', 'Bgitems.png', 'Blocksv2.png', 'Treesv2.png', 'Lava.png',
     // Entities
-    'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Mananangalv3.png', 'Shooterv2.png',
+    'Dog.png', 'Cat (1).png', 'Aswang KingV2.png', 'Arrow.png', 'Shooterv2.png',
     // Objects
     'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
@@ -21,7 +21,9 @@ let required_files:string[] = [
     // SFX
     'SFX Final/Dying.mp3', 'SFX Final/arrow hit.mp3', 'SFX Final/gameover.mp3',
     // Fonts
-    'arcade.ttf'
+    'arcade.ttf',
+    // Aswangs
+    'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png'
 ];
 let entities:entities_type = {
     // Pinoy Entitiy
@@ -49,6 +51,7 @@ let entities:entities_type = {
             climing: false
         },
         update: (d, o, t, dt) => {
+            // console.log("pinoy", t, dt);
             let c = n => [n%6, Math.floor(n/6)];
             let leg = [0,0], body = [0,0];
             if (d.dead == -1) {
@@ -57,6 +60,9 @@ let entities:entities_type = {
                     d.x+12, d.y,
                     8, 29
                 ];
+                
+                // Max X for points
+                if (d.x > d.max_x) d.max_x = d.x;
 
                 // Max X for points
                 if (d.x > d.max_x) d.max_x = d.x;
@@ -92,13 +98,23 @@ let entities:entities_type = {
                     16, 29
                 );
 
+                // Poison
+                if (d.in_area_time >= 3000) {
+                    d.dead = 0;
+                    d.poisoned = -1
+                } else if (d.in_area_time >= 2000) {
+                    d.poisoned = 1;
+                }
+
                 if (d.poisoned >= 0 && d.poison_duration > 0) {
                     d.poison_duration -= dt;
                     d.speed_rate *= 1 - (0.25 * d.poison_duration / 100000)
                     if (d.speed_rate <= 0.2) d.speed_rate = 0.2;
                 } else {
                     d.poisoned = -1;
+                    d.poison_duration = 0;
                     d.speed_rate = 1;
+                    d.in_area_time = 0;
                 }
                 
                 if (d.climing) {
@@ -226,6 +242,7 @@ let entities:entities_type = {
         default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[]},
         update: (d, o, t, dt) => {
             // Hitbox
+            if (!d.follow) return;
             d.hitbox = [ 15,
                 d.x, d.y,
                 26, 15
@@ -265,33 +282,16 @@ let entities:entities_type = {
             );
         }
     },
-    king: {
-        default: {x:0, y:100,
-            wing_angle: 0
-        },
-        update: (d, o, t, dt) => {
-            d.wing_angle = Math.sin(t/150);
-            o.sprites('Aswang King.png', [d.x, d.y],
-                // Right wing
-                [61, 1+Math.sin(t/200), 35, 0, 35, 18, 0, 0, -d.wing_angle, 0, 18],
-                // Left wing
-                [0, Math.sin(t/200), 0, 0, 35, 18, 0, 0, d.wing_angle, 35],
-                // Left hand
-                [1, 24+Math.sin(t/200)/2, 0, 18, 23, 21, 0, 0, 0],
-                // Right hand
-                [66, 24+Math.sin(t/200)/2, 23, 18, 23, 21],
-                // Body
-                [28, 13+Math.sin(t/200), 0, 39, 37, 52],
-                // Head
-                [41, 1+Math.sin(t/200)*2, 70, 0, 13, 18],
-            )
-        }
-    },
     arrow: {
         default: {x:0, y:0, m:[0,0], a:0, nocollide:['pinoy'], ground:-1, hitbox:[], parent:undefined, duration: 3000},
         update: (d, o, t, dt) => {
             if (d.duration <= 0) return;
+            d.hitbox = [15,
+                d.x, d.y,
+                8, 5
+            ];
             algo.physics(dt, d, o);
+            printLog(d.hitbox, o.player.hitbox, 312);
             if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
                 o.player.dead = 0;
                 o.play('SFX Final/arrow hit.mp3', true);
@@ -305,11 +305,10 @@ let entities:entities_type = {
             o.sprites('Arrow.png', [d.x, d.y],
                 [0, 0, 0, 0, 8, 5, 0, 0, d.a, 4, 3]
             );
-            d.hitbox = [15,
-                d.x, d.y,
-                8, 5
-            ];
-            if (o.player && algo.rectint(d.hitbox, o.player.hitbox.slice(5))) d.duration = 0;
+            if (o.player.hitbox.slice(5).length == 5) {
+                printLog(d.hitbox, o.player.hitbox.slice(5), 326);
+                if (o.player && algo.rectint(d.hitbox, o.player.hitbox.slice(5))) d.duration = 0;
+            }
         },
         create: (o, arg) => {
             return {
@@ -328,11 +327,12 @@ let entities:entities_type = {
                 d.w*16, d.h*16
             ];
             if (d.mode == 3) {
-                let v = Math.floor((t / 500) % 2);
+                let v = Math.floor((t / 250) % 2);
                 for (let x = 0; x < d.w; x += 2) {
                     bs.push([x * 16, 0, (v == 0 ? 0 : 34), 0, 16, 16]);
                     bs.push([(x + 1) * 16, 0, (v == 0 ? 16 : 50), 0, 16, 16]);
                 }
+                printLog(d.hitbox, o.player.hitbox, 351);
                 if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
                 o.sprites('Lava.png', [d.x, d.y], ...bs);
             } else {
@@ -392,7 +392,7 @@ let entities:entities_type = {
                         //else if(d.mode == 2) 
                     }
                 }
-                o.sprites('Blocks.png', [d.x, d.y], ...bs);
+                o.sprites('Blocksv2.png', [d.x, d.y], ...bs);
             }
             
         },
@@ -401,7 +401,7 @@ let entities:entities_type = {
             let d:number[] = [];
             for (let i = 0; i < w>>1; i++) d.push(
                 // Grass
-                (Math.random() < 0.5 ? 1 : 0) +
+                (Math.random() < 0.7 ? 1 : 0) +
                 // Tree
                 (Math.random() < 0.1 ? 2 : 0) +
                 // Big Grass
@@ -409,7 +409,7 @@ let entities:entities_type = {
                 // // Bush
                 // (Math.random() < 0.1 ? 8 : 0) +
                 // Special
-                (Math.random() < 0.1 ? 16: 0) +
+                (Math.random() < 0.05 ? 16: 0) +
                 // Dead tree
                 (Math.random() < 0.05? 32: 0)
             );
@@ -485,7 +485,7 @@ let entities:entities_type = {
         },
         update: (d, o, t, dt) => {
             if (d.removed) return;
-
+            d.follow = o.player;
             // Dead
             if (d.dead != -1) {
                 d.hitbox = [];
@@ -518,6 +518,7 @@ let entities:entities_type = {
                     // Absolute vector using angle
                     d.m = [Math.cos(v[1])*d.speed/2, Math.sin(v[1])*d.speed/2];
                     // If player enters detection range of the aswang's second hitbox (d.hitbox.slice(0,5))
+                    printLog(d.hitbox.slice(5), o.player.hitbox, 537);
                     if (algo.rectint(o.player.hitbox, d.hitbox.slice(5))) d.target = true;
                 } else if (o.player != undefined) {
                     // Get hypotenus and angle to player
@@ -527,14 +528,18 @@ let entities:entities_type = {
                     if (h > 20) d.m = [Math.cos(a)*d.speed, Math.sin(a)*d.speed];
                     else d.m = [0, 0];
                 }
-                
                 let v = Math.min(Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.hypot(d.p[2]-d.x, d.p[3]-d.y));
                 if (v > 100 && (Math.min(d.p[0],d.p[2]) > d.x || Math.max(d.p[0],d.p[2]) < d.x)) {
                     d.target = false;
                     d.nofollow = true;
                 } else if(v < 50) d.nofollow = false;
                 //console.log(d.hitbox.slice(0,5),o.player.hitbox.slice(5));
-                if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) d.dead = 0;
+                if (o.player.hitbox.slice(5).length == 5) {
+                    printLog(d.hitbox.slice(0, 5), o.player.hitbox.slice(5), 553);
+                    if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) d.dead = 0;
+                }
+                printLog(d.hitbox, d.follow.hitbox, 556);
+                if (algo.rectint(d.hitbox,d.follow.hitbox)) d.follow.dead = 0;
             }
             
             let dd = d.dead == -1 ? 0 : Math.round(d.dead*2);
@@ -586,6 +591,7 @@ let entities:entities_type = {
             if (d.h%24 != 0) a.push([0, 24*i, 0, 0, 7, d.h%24])
             a.push([2, d.h, 0, 32, 3, 3]);
             o.sprites('Vine.png', [d.x, d.y], ...a);
+            printLog(d.hitbox, o.player.hitbox, 608);
             if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.climable = true;
         }
     },
@@ -598,11 +604,13 @@ let entities:entities_type = {
                 d.x, d.y,
                 4, 14+d.h
             ];
-            if (o.player == undefined) {
+            if (o.player == undefined || o.player.length == 0) {
+                alert("asf");
                 o.interacts.forEach(e => {
                     if (e['__type__'] == 'pinoy') o.player = e;
                 });
             }
+            printLog(d.hitbox, o.player.hitbox, 625);
             if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
@@ -627,7 +635,7 @@ let entities:entities_type = {
             let a:number[][] = [[0,0,0,0,2,2],[2+d.w,0,2,0,2,2]];
             for(var i = 0; i < Math.floor(d.w/16); i++) a.push([2+16*i,0,0,2,16,2]);
             if (d.w%16 != 0) a.push([2+16*i,0,0,2,d.w%16,2]);
-            //console.log(d);
+            printLog(d.hitbox, o.player.hitbox, 652);
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 if (!d.triggered) d.bind.forEach(s => {
                     s.shoot = 1;
@@ -644,41 +652,144 @@ let entities:entities_type = {
                 d.x, d.y,
                 22, 22
             ]
+            printLog(d.hitbox, o.player.hitbox, 668);
+            // console.log(t, dt);
+            // console.log(o.player, o.player.hitbox)
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
-                d.in_area_time += dt;
-                if (d.in_area_time > 2000) o.player.poisoned = 1;
-                if (d.in_area_time > 3000) o.player.dead = 0;
-            } else {
-                d.in_area_time = 0;
+                o.player.in_area_time += dt;
             }
             o.sprites('Atropa Belladonav2.png', [d.x, d.y], [0, 0, 6, 10, 22, 22])
         }
     },
     lagablab: {
-        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 3000},
+        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 3000, n: 3, bind:[], s:10, min_a: 0, max_a: Math.PI * 0.5},
         update(d, o, t, dt) {
             let ofs = 0;
-            // if (d.shoot > 0) {
-                // d.cooldowntmp -= dt;
-                // //console.log(d.cooldowntmp);
-                // if (d.colldowntmp < 1000) ofs = 2;
-                // if (d.cooldowntmp <= 0) {
-                //     d.bind.push(o.entity('blab', {x:d.x-Math.cos(d.a)*5, y:d.y+Math.sin(d.a)*5, m:[d.s*Math.cos(d.a),d.s*Math.sin(d.a)], parent:d, a:-d.a+Math.PI}));
-                //     d.shoot--;
-                //     d.cooldowntmp = d.cooldown;
+            d.cooldowntmp -= dt;
+            if (d.colldowntmp < 1000) ofs = 2;
+            if (d.cooldowntmp <= 0) {
+                // if (d.bind.length > d.n * 3) {
+                //     d.bind = d.bind.slice(d.bind.length - d.n * 2, d.bind.length - 1);
                 // }
-            // }
-
+                d.bind = [];
+                for (let i = 0; i < d.n; i ++) {
+                    let a: number = d.min_a + Math.random() * (d.max_a - d.min_a);
+                    d.bind.push(o.entity('blab', {x:d.x-Math.cos(a)*5, y:d.y+Math.sin(a)*5, m:[d.s*Math.cos(a),d.s*Math.sin(a)], parent:d, n: d.n}));
+                }
+                d.cooldowntmp = d.cooldown;
+            }
             o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, 6, 9, 23, 23])
         },
     },
     blab: {
-        default: {x: 0, y: 0},
-        update(d, o, t, dt) {
-
-            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, 36, 67, 9, 9])
+        default: {x:0, y:0, m:[0,0], nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 3000, bind:[], area_w: 2},
+        update: (d, o, t, dt) => {
+            if (d.duration <= 0) {
+                d.hitbox = [];
+                return;
+            }
+            d.hitbox = [15,
+                d.x, d.y,
+                8, 5
+            ];
+            let col = algo.physics(dt, d, o);
+            printLog(d.hitbox, o.player.hitbox.slice(0, 5), 710);
+            if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
+                o.player.poisoned = 0;
+                o.player.poison_duration = 5000;
+                d.in_area_time += dt;
+                d.duration = -1;
+                d.bind.splice();
+                return;
+            } else {
+                if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
+                else {
+                    d.m = [0, 0];
+                    d.duration -= dt;
+                }
+                let v = Math.floor((t / 250) % 2);
+                
+                if (d.m[0] == 0 && d.m[1] == 0) {
+                    d.duration = 0;
+                    d.bind = [];
+                    d.bind.push(o.entity('poisoned_area', {x: d.x - 30 * d.area_w / 2 + 4, y: d.y + 3, w: 30 * d.area_w, duration: 3000, parent:d}));
+                }
+                o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, (v == 0 ? 36 : 68), 67, 9, 9])
+            }
+        },
+    },
+    poisoned_area: {
+        default: {x: 0, y: 0, w: 0, duration: 6000, parent:undefined},
+        update: (d, o, t, dt) => {
+            if (d.duration <= 0) {
+                d.hitbox = [];
+                return;
+            }
+            d.hitbox = [0,
+                d.x, d.y,
+                d.w, 10
+            ]
+            if (algo.rectint(d.hitbox, o.player.hitbox)) {
+                o.player.poisoned = 0;
+                o.player.poison_duration = 5000;
+                o.player.in_area_time += dt;
+            }
+            let bs:number[][] = [];
+            for (let x = 0; x < d.w; x += 30) {
+                bs.push([x, 0, 33, 51, 30, 5]);
+            }
+            d.duration -= dt;
+            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], ...bs);
+        },
+    },
+    white_lady: {
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 4, dead: -1, removed: false},
+        update: (d, o, t, dt) => {
+            if (d.removed) return;
+            let hitboxSize = [21, 27];
+            let detectSize = [150, 70];
+            let actionR = [-50, -20, 300, 150];
+            let dead_time = 1000;
+            let asset_name = 'White Ladyv3.png';
+            let origins = [[8, 2], [40, 2], [72, 2]];
+            let sizes = [[21, 27], [21, 27], [21, 27]];
+            let dead_origins = [[72, 34], [8, 66]];
+            let dead_sizes = [[21, 27], [21, 27]];
+            aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, false);
+        }
+    },
+    tikbalang: {
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 6, dead: -1, removed: false},
+        update: (d, o, t, dt) => {
+            if (d.removed) return;
+            let hitboxSize = [17, 32];
+            let detectSize = [150, 70];
+            let actionR = [-50, -20, 300, 150];
+            let dead_time = 1000;
+            let asset_name = 'Tikbalangv2.png';
+            let origins = [[8, 0], [35, 0], [72, 0]];
+            let sizes = [[17, 32], [22, 31], [17, 32]];
+            let dead_origins = [[7, 33], [39, 33]];
+            let dead_sizes = [[18, 31], [18, 31]];
+            aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, false);
+        }
+    },
+    tiyanak: {
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 10, dead: -1, removed: false},
+        update: (d, o, t, dt) => {
+            if (d.removed) return;
+            let hitboxSize = [10, 14];
+            let detectSize = [100, 30];
+            let actionR = [0, 0, 150, 50];
+            let dead_time = 1000;
+            let asset_name = 'Tiyanakv2.png';
+            let origins = [[2, 2], [18, 3], [34, 2], [50, 2], [66, 3]];
+            let sizes = [[10, 14], [10, 13], [11, 14], [10, 14], [10, 13]];
+            let dead_origins = [[1, 25], [17, 27]];
+            let dead_sizes = [[14, 7], [13, 5]];
+            aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, true);
         }
     },
     text: {
@@ -690,7 +801,232 @@ let entities:entities_type = {
     },
     checkout: {
         default: {x:0, y: 195} 
-    }
+    },
+    king: {
+        default: {x:0, y:100, m:[0, 0], status: 0, attack_method: 0, collide:['pinoy'], follow: undefined, speed: 6, 
+
+            cooldown: 6000, cur_cooldown: 3000,
+            blab_n: 5, blab_z: 0, bind: [],
+            charging_vector: [0, 0], prepare_vector:[0, 0], charge_s: 20, prepare_s: -0.25, cur_charge_t: 0, prepare_t: 120, cur_prepare_t: 120, charging: false,
+            drop_prepare_s: -0.25, drop_pt: 200, cur_drop_pt: 200, drop_s: 30, drop_charge: false,
+            attackBox: [],
+            
+            bodyOrigins: [[[96, 0], [133, 0]], [[97, 52], [134, 52]], [[170, 0], [207, 0]], [[171, 52], [209, 52]]],
+            leftWingOrigins: [[[97, 108]], [[167, 108]], [[97, 134]], [[167, 134]]],
+            rightWingOrigins: [[[132, 108]], [[202, 108]], [[132, 134]], [[202, 134]]],
+            headOrigins: [[[0, 146], [13, 146], [0, 164]], [[13, 164], [0, 182], [13, 182]], [[26, 146], [39, 146], [26, 164]], [[39, 164], [26, 182], [39, 182]]],
+            leftHandOrigins: [[[0, 0], [7, 21], [0, 45]], [[48, 0], [55, 21], [48, 45]], [[48, 72], [55, 93], [48, 117]], [[0, 72], [7, 93], [0, 117]]],
+            rightHandOrigins: [[[23, 0], [24, 21], [24, 45]], [[71, 0], [72, 21], [72, 45]], [[71, 72], [72, 93], [72, 117]], [[23, 72], [24, 93], [24, 117]]],
+            bodySize: [[37, 52], [37, 52]],
+            wingSize: [[35, 18]],
+            headSize: [[13, 18], [13, 18], [13, 18]],
+            handSize: [[23, 21], [17, 23], [24, 27]],
+            handStatus: 0,
+            headStatus: 0,
+        },
+        update: (d, o, t, dt) => {
+            d.hitbox = [15,
+                d.x, d.y,
+                37, 65 
+            ]
+            d.follow = o.player;
+            if (d.charging) {
+                if (d.cur_prepare_t > 0) {
+                    d.cur_prepare_t -= 1;
+                    d.x += d.prepare_vector[0];
+                    d.y += d.prepare_vector[1];
+                } else if (d.cur_charge_t > 0) {
+                    d.cur_charge_t -= 1;
+                    d.x += d.charging_vector[0];
+                    d.y += d.charging_vector[1];
+                    d.attackBox = d.hitbox;
+                    if (d.drop_charge) {
+                        d.attackBox = offsetRectWithFright(d.hitbox, [0, -100, -50, 100 + d.hitbox[3], 50 + d.hitbox[4]], true);
+                        if (d.y + d.hitbox[4] >= 216) d.y = 240 - 16 * 1 - d.hitbox[4];
+                    }
+                } else {
+                    if (d.y <= 8) d.y = 16 * 3;
+                    if (d.y + d.hitbox[4] >= 232) d.y = 240 - 16 * 3 - d.hitbox[4];
+                    d.drop_charge = false;
+                    d.charging = false;
+                    d.attackBox = [];
+                }
+            }
+            d.hitbox = d.hitbox.concat(d.attackBox);
+            if (d.follow != undefined) {
+
+                if (algo.rectint(d.attackBox, d.follow.hitbox)) d.follow.dead = 0;
+
+                let fire = false;
+                d.cur_cooldown -= dt;
+                if (d.cur_cooldown <= 0) {
+                    fire = true;
+                    d.cur_cooldown = d.cooldown;
+                }
+                let fright = d.follow.x >= d.x;
+                let attackRange = offsetRectWithFright(d.hitbox, [0, -100, -50, 200 + d.hitbox[3], 100 + d.hitbox[4]], fright);
+
+                // let is_above = (d.follow.y + d.follow.hitbox[4]) < attackRange[2];
+                let is_under = (d.follow.y) > (attackRange[2] + attackRange[4]);
+                let is_x_exist = (d.follow.x + d.follow.hitbox[3]) >= attackRange[1] && (d.follow.x) <= (attackRange[1] + attackRange[3]);
+
+                if (is_x_exist) {
+                    if (is_under) d.attack_method = 2;
+                    else d.attack_method = 1;
+                } else {
+                    if (is_under) d.attack_method = 1;
+                    else d.attack_method = 0;
+                }
+                
+                if (fire) {
+                    if (d.attack_method == 0) { // "Blab Long Range Attack"
+                        let mousePoint = [d.x + d.hitbox[3] / 2 - 5, d.y + 8];
+                        // let followerPoint = [d.follow.x + d.follow.hitbox[3] / 2, d.follow.y + d.follow.hitbox[4]];
+                        // let x_off = followerPoint[0] - mousePoint[0];
+                        // let y_off = followerPoint[1] - mousePoint[1];
+                        let max_s = 22;
+                        let min_s = 12;
+                        let step = ((max_s - min_s) / (d.blab_n - 1));
+                        max_s = d.blab_z == 1 ? max_s - step / 2 : max_s;
+                        min_s = d.blab_z == 1 ? min_s - step / 2 : min_s;
+                        let a = fright ? 1/4 * Math.PI : 3/4 * Math.PI ;
+                        d.headStatus = 1;
+                        for (let s = min_s; s <= max_s; s += step) {
+                            d.bind.push(o.entity('blab', {x:mousePoint[0]-Math.cos(a)*5, y:mousePoint[1]+Math.sin(a)*5, m:[s*Math.cos(a),s*Math.sin(a)], area_w: 1, parent:d, n: 3}));
+                        }
+                        d.blab_z = d.blab_z == 1 ? 0 : 1;
+                    } else if (d.attack_method == 1) { // "Fast Charge"
+                        let followerPoint = [d.follow.x + d.follow.hitbox[3] / 2, d.follow.y + d.follow.hitbox[4] / 2];
+                        let kingPoint = [d.x + d.hitbox[3] / 2, d.y + d.hitbox[4] / 2];
+                        let x_off = followerPoint[0] - kingPoint[0];
+                        let y_off = followerPoint[1] - kingPoint[1];
+                        let theta = Math.atan(y_off / x_off);
+                        let dis = Math.hypot(x_off, y_off);
+                        d.charging = true;
+                        d.charging_target = followerPoint;
+                        d.charging_vector = [(fright ? d.charge_s : -d.charge_s) * Math.cos(theta), (fright ? d.charge_s : -d.charge_s) * Math.sin(theta)];
+                        d.prepare_vector  = [(fright ? d.prepare_s : -d.prepare_s) * Math.cos(theta), (fright ? d.prepare_s : -d.prepare_s) * Math.sin(theta)];
+                        d.cur_prepare_t = d.prepare_t;
+                        d.cur_charge_t = Math.ceil(dis / d.charge_s) + 5;
+                    } else if (d.attack_method == 2) { // "Heavy Attack"
+                        d.headStatus = 0;
+                        d.charging = true;
+                        d.charging_vector = [0, d.drop_s];
+                        d.prepare_vector  = [0, d.drop_prepare_s];
+                        d.cur_prepare_t = d.prepare_t;
+                        d.cur_charge_t = Math.floor((224 - (d.y + d.hitbox[4])) / d.charge_s);
+                        d.drop_charge = true;
+                    }
+                }
+                d.hitbox = d.hitbox.concat(attackRange);
+            } else {
+
+
+            }
+
+            let fre = Math.sin(t / 200);
+            let wing_a_1 = fre + 30 / 180 * Math.PI;
+            let wing_a_2 = fre + -30 / 180 * Math.PI;
+            let wing_a_3 = fre - 60 / 180 * Math.PI;   
+            let bodyStatus = Math.floor(t / 1000 % 2);
+
+            o.sprites('Aswang KingV2.png', [d.x, d.y],
+                // Left wings
+                [-28, 5 + fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_1, d.wingSize[0][0], d.wingSize[0][1]],
+                [-33, 10 + fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_2, d.wingSize[0][0], d.wingSize[0][1]],
+                [-28, 15 + fre, d.leftWingOrigins[d.status][0][0], d.leftWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, wing_a_3, d.wingSize[0][0], d.wingSize[0][1]],
+                // Right wings
+                [33, 5 + fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_1, 0, d.wingSize[0][1]],
+                [38, 10 + fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_2, 0, d.wingSize[0][1]],
+                [33, 15 + fre, d.rightWingOrigins[d.status][0][0], d.rightWingOrigins[d.status][0][1], d.wingSize[0][0], d.wingSize[0][1], 0, 0, -wing_a_3, 0, d.wingSize[0][1]],
+                // Body
+                [0, 13 + fre, d.bodyOrigins[d.status][bodyStatus][0], d.bodyOrigins[d.status][bodyStatus][1], d.bodySize[bodyStatus][0], d.bodySize[bodyStatus][1], 0, 0, 0, 0],
+                // Head
+                [13, 1 + fre * 2, d.headOrigins[d.status][d.headStatus][0], d.headOrigins[d.status][d.headStatus][1], d.headSize[d.headStatus][0], d.headSize[d.headStatus][1], 0, 0, 0, 0],
+                // Left hand
+                [d.handStatus == 1 ? -18 : -25 , d.handStatus ? 21 : 21 + fre * 2, d.leftHandOrigins[d.status][d.handStatus][0], d.leftHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? (8 * 180 / Math.PI) :(-0.4-fre * 0.2), d.handSize[d.handStatus][0], d.handSize[d.handStatus][1]],
+                // Right hand
+                [d.handStatus == 1 ? 37 : 37, d.handStatus ? 21 : 21 + fre * 2, d.rightHandOrigins[d.status][d.handStatus][0], d.rightHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? -(8 * 180 / Math.PI) : (0.4 + fre * 0.2), 0, d.handSize[d.handStatus][1]],
+            )
+        }
+    },
 };
+
+function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, fright_reverse) {
+    if (d.dead != -1) {
+        d.hitbox = [];
+        d.timer -= dt;
+        let v = (d.timer > dead_time / 2) ? 0 : 1;
+        o.sprites(asset_name, [d.x, d.y], [0, 0, dead_origins[v][0], dead_origins[v][1], dead_sizes[v][0], dead_sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
+        if (d.timer <= 0) d.removed = true;
+        return;
+    } else {
+        // Hitbox
+        d.timer = dead_time;
+        d.hitbox = [ 15,
+            d.x, d.y,
+            hitboxSize[0], hitboxSize[1],
+        ];
+        // Follow AI
+        if (d.follow != undefined && d.follow.dead == -1) {
+            let dist = Math.hypot(d.x - d.follow.x, d.y - d.follow.y);
+            printLog(d.actionRange, d.follow.hitbox, 833);
+            if (!algo.rectint(d.actionRange, d.follow.hitbox)) d.follow = undefined;
+            else d.m[0] = (d.follow.x == d.x) ? 0 : ((d.follow.x > d.x) ? d.s : -d.s);
+            printLog(d.hitbox, o.player.hitbox, 836);
+            if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
+        } else {
+            // patrol
+            if (d.m[0] == 0) d.m[0] = -d.s/2;
+            if (d.x <= d.p[0]) d.m[0] = d.s/2;
+            else if (d.x >= d.p[2]) d.m[0] = -d.s/2;
+        }
+        // Movement
+        d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+        d.detectBox = [
+            0,
+            d.fright ? d.x : d.x - (detectSize[0] - d.hitbox[3]),d.y - (detectSize[1] - d.hitbox[4]), 
+            detectSize[0], detectSize[1],
+        ];
+        d.actionRange = [
+            0,
+            d.fright ? d.x + actionR[0] : d.x - actionR[0] - (actionR[2] - d.hitbox[3]),d.y - actionR[1] - (actionR[3] - d.hitbox[4]), 
+            actionR[2], actionR[3]
+        ]
+        d.hitbox = d.hitbox.concat(d.detectBox).concat(d.actionRange);
+        
+        printLog(d.detectBox, o.player.hitbox, 858);
+        if (algo.rectint(d.detectBox, o.player.hitbox)) d.follow = o.player;
+        if (o.player.hitbox.slice(5).length == 5) {
+            printLog(d.hitbox.slice(0,5),o.player.hitbox.slice(5), 861);
+            if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
+                d.dead = 0;
+                return;
+            }
+        }
+        algo.physics(dt, d, o);
+        if (d.ground != -1) {
+            d.nocollide.splice(1);
+        }
+        // Render
+        let v = (Math.abs(d.m[0])>0.15?1+Math.floor(t/100)%(origins.length - 1):0);
+        o.sprites(asset_name, [d.x, d.y], [0, 0, origins[v][0], origins[v][1], sizes[v][0], sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
+    }
+}
+
+function printLog(A, B, ln) {
+    if (A.length == 0 && B.length == 0) console.log(ln + ": A and B in" );
+    else if (A.length == 0) console.log(ln + ": A");
+    else if (B.length == 0) console.log(ln + ": B");
+}
+
+function offsetRectWithFright(frame, arr, fright) {
+    let res = [
+        arr[0],
+        fright ? frame[1] + arr[1] : frame[1] - arr[1] - (arr[3] - frame[3]),frame[2] - arr[2] - (arr[4] - frame[4]), 
+        arr[3], arr[4]
+    ];
+    return res;
+}
 
 export {entities, required_files};

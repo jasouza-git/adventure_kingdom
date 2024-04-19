@@ -98,11 +98,18 @@ let algo = {
         return -1;
     },
     rectint: (A,B):boolean => {
-        if (B.length < 5) return false;
-        return A[1] < B[1] + B[3] &&
+        if (B.length < 5) {
+            // console.log("Rectint has zero length");
+            return false;
+        }
+        let res = A[1] < B[1] + B[3] &&
         A[1] + A[3] > B[1] &&
         A[2] < B[2] + B[4] &&
         A[2] +A[4] > B[2];
+        // if (A.length == 0 && B.length == 0) console.log("A and B");
+        // else if (A.length == 0) console.log("A");
+        // else if (B.length == 0) console.log("B");
+        return res
         /*return (A[1] < B[1] && B[1] < A[1]+A[3] &&
                 A[2] < B[2] && B[2] < A[2]+A[4] ) ||
                (B[1] < A[1] && A[1] < B[1]+B[3] &&
