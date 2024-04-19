@@ -714,25 +714,29 @@ let entities:entities_type = {
                 8, 5
             ];
             let col = algo.physics(dt, d, o);
-            printLog(d.hitbox, o.player.hitbox.splice(0, 5), 710);
-            if (d.m[0]*d.m[0]+d.m[1]*d.m[1] > 1 && algo.rectint(d.hitbox, o.player.hitbox.splice(0,5)) && o.player.dead == -1) {
+            printLog(d.hitbox, o.player.hitbox.slice(0, 5), 710);
+            if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
                 d.in_area_time += dt;
+                d.duration = -1;
+                d.bind.splice();
+                return;
+            } else {
+                if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
+                else {
+                    d.m = [0, 0];
+                    d.duration -= dt;
+                }
+                let v = Math.floor((t / 250) % 2);
+                
+                if (d.m[0] == 0 && d.m[1] == 0) {
+                    d.duration = 0;
+                    d.bind = [];
+                    d.bind.push(o.entity('poisoned_area', {x: d.x - 30 * 1 + 4, y: d.y + 3, w: 30 * 2, duration: 3000, parent:d}));
+                }
+                o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, (v == 0 ? 36 : 68), 67, 9, 9])
             }
-            if (d.ground == -1) d.a += (Math.atan2(d.m[1], -d.m[0])-d.a)*dt/200;
-            else {
-                d.m = [0, 0];
-                d.duration -= dt;
-            }
-            let v = Math.floor((t / 250) % 2);
-            
-            if (d.m[0] == 0 && d.m[1] == 0) {
-                d.duration = 0;
-                d.bind = [];
-                d.bind.push(o.entity('poisoned_area', {x: d.x - 30 * 1 + 4, y: d.y + 3, w: 30 * 2, duration: 3000, parent:d}));
-            }
-            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, (v == 0 ? 36 : 68), 67, 9, 9])
         },
     },
     poisoned_area: {
