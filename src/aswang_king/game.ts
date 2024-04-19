@@ -4,17 +4,16 @@ import {engine} from "../engine.ts";
 import {plts, level} from "./levels.ts";
 
 // Media
-let sfx = ['SFX Final/Dying.mp3', 'SFX Final/arrow hit.mp3', 'SFX Final/gameover.mp3'];
 let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/Final Peaceful Environment.mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-let main = new engine({z:1, w:320, h:240, load: [...required_files, ...sfx, ...bg_songs], camera:[-160,0]});
+let main = new engine({z:1, w:320, h:240, load: [...required_files, ...bg_songs], camera:[-160,0]});
 main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: 4560 + 16000, y:60});
+let player = main.entity('pinoy', {x: /*4560 + 16000*/ 0, y:60});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
