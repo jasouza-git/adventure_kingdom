@@ -9,7 +9,7 @@ let required_files:string[] = [
     // Background
     'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png', 'Game Over.png',
     // Platforms
-    'Flowers.png', 'Bgitems.png', 'Blocks.png', 'Treesv2.png', 'Lava.png',
+    'Flowers.png', 'Bgitems.png', 'Blocksv2.png', 'Treesv2.png', 'Lava.png',
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang King.png', 'Arrow.png', 'Shooterv2.png',
     // Objects
@@ -414,7 +414,7 @@ let entities:entities_type = {
                         //else if(d.mode == 2) 
                     }
                 }
-                o.sprites('Blocks.png', [d.x, d.y], ...bs);
+                o.sprites('Blocksv2.png', [d.x, d.y], ...bs);
             }
             
         },
