@@ -79,6 +79,7 @@ class engine {
                     loaded[i] = h.readyState;
                     this.loadcheck(loaded.reduce((pre:number, cur:number)=>pre+cur)/files.length/4);
                     if (h.readyState != 4 || h.status != 200) return;
+                    console.log('GOT',file);
                     this.loaded[file] = URL.createObjectURL(h.response);
                     if (ext == '.ttf') {
                         var d : HTMLHeadElement = document.createElement('h1');
@@ -205,6 +206,7 @@ class engine {
             this.audios[id].setAttribute('single','');
             this.audios[id].onended = () => delete this.audios[id];
         } else {
+            
             if (!this.audios[audio]) {
                 this.audios[audio] = new Audio();
                 this.audios[audio].loop = true;
