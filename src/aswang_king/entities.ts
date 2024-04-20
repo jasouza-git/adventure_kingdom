@@ -229,7 +229,7 @@ let entities:entities_type = {
             if (d.cur_body_t > 0) r = Math.floor(t / 150 % 2);
             if (d.c_shield_break_t > 0) d.c_shield_break_t -= dt;
             if (r == 1) {
-                console.log(r);
+                // console.log(r);
                 let u = d.weapons[2].durability > Math.floor(6 / 1.5) ? 2 :
                         d.weapons[2].durability > Math.floor(6 / 2) ? 1 : 
                         d.weapons[2].durability > 0 ? 0 : 
