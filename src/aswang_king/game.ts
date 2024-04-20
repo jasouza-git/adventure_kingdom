@@ -13,7 +13,7 @@ main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: 160, y:195});
+let player = main.entity('pinoy', {x: /*4200 + 16000*/ 160, y:60});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
@@ -103,6 +103,18 @@ main.scene('level', (t, dt) => {
     main.on('j,J,gp_1', e => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
+    main.on('r,R,gp_3', e => {
+        if (e.init) player.cur_weapon = (player.cur_weapon + 1) % player.weapons.length
+    });
+    main.on('1', e => {
+        if (e.init) player.cur_weapon = 0
+    });
+    main.on('2', e => {
+        if (e.init) player.cur_weapon = 1
+    });
+    main.on('3', e => {
+        if (e.init) player.cur_weapon = 2
+    });
     
     if (player.canclimb && main.on('w,W,s,S')) {player.climb = 1; player.m = [0,0]}
     if (player.climb != -1) {
@@ -120,6 +132,7 @@ main.scene('level', (t, dt) => {
         } else player.climb = 0;
         player.climing = true;
     }
+
     if(main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
     } else if (main.on('s,S,ArrowDown,gp_s')) {
