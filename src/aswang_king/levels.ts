@@ -5,6 +5,7 @@ let plts = main => [
 		main.entity('plat', {x:-400, y:-16, w:20, h:16, mode:0, col:15, clip:[[], [], [15], []]}),
 		main.entity('plat', {x:-80, y:224, w:27, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:352, y:176, w:8, h:4, mode:0, col:15, clip:[[], [3], [0, 1, 2, 3], []]}),
+		main.entity('checkpoint', {x:16, y:160}),
 	], [
 		main.entity('plat', {x:480, y:128, w:4, h:7, dropoff: true, mode:0, clip:[[], [0, 1, 2, 3, 4, 5, 6], [], []]}),
 		main.entity('plat', {x:928, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),
@@ -34,6 +35,7 @@ let plts = main => [
 		main.entity('plat', {x:1920, y:120, w:5, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:2056, y:88, w:13, h:1, dropoff: true, mode:0, clip:[[], [], [], []]}),
 		main.entity('plat', {x:2288, y:208, w:7, h:2, mode:0, col:15, clip:[[], [1], [0, 1], []]}),
+		main.entity('checkpoint', {x:2184, y:24}),
 	], [
 		main.entity('plat', {x:2400, y:208, w:8, h:2, mode:0, col:15, clip:[[], [0, 1], [0, 1], []]}),
 		main.entity('plat', {x:2528, y:176, w:2, h:4, mode:0, col:15, clip:[[], [2, 3], [3], []]}),
@@ -66,6 +68,7 @@ let plts = main => [
 		main.entity('plat', {x:3744, y:208, w:2, h:2, mode:0, col:15, clip:[[], [0, 1], [0, 1], []]}),
 		main.entity('plat', {x:3776, y:112, w:2, h:8, mode:0, col:15, clip:[[], [6, 7], [3, 4, 5, 6, 7], []]}),
 		main.entity('plat', {x:3808, y:160, w:2, h:5, mode:0, col:15, clip:[[], [0, 1, 2, 3, 4], [0, 1, 2, 3, 4], []]}),
+		main.entity('checkpoint', {x:3552, y:160}),
 	], [
 		main.entity('plat', {x:4224, y:112, w:6, h:8, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6, 7], []]}),
 		main.entity('plat', {x:3840, y:96, w:2, h:9, mode:0, col:15, clip:[[], [4, 5, 6, 7, 8], [0, 1, 2, 3, 4, 5, 6, 7, 8], []]}),
@@ -106,6 +109,7 @@ let plts = main => [
 		main.entity('plat', {x:5280, y:104, w:5, h:1, dropoff: true, mode:0, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:5376, y:224, w:24, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:5744, y:72, w:1, h:1, dropoff: true, mode:0, clip:[[], [], [0], []]}),
+		main.entity('checkpoint', {x:5744, y:160}),
 	], [
 		main.entity('plat', {x:5920, y:176, w:2, h:4, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3], []]}),
 		main.entity('plat', {x:5952, y:144, w:2, h:6, dropoff: true, mode:0, clip:[[], [2, 3, 4, 5], [], []]}),
@@ -151,6 +155,7 @@ let plts = main => [
 		main.entity('plat', {x:8288, y:224, w:12, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:8360, y:104, w:7, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
 		main.entity('plat', {x:8368, y:176, w:7, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('checkpoint', {x:8032, y:160}),
 	], [
 		main.entity('plat', {x:8480, y:224, w:12, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:8528, y:136, w:7, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
@@ -189,6 +194,7 @@ let plts = main => [
 		main.entity('plat', {x:10272, y:128, w:3, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
 		main.entity('plat', {x:10368, y:112, w:2, h:1, dropoff: true, mode:1, clip:[[], [], [0], []]}),
 		main.entity('vine', {x:9924, y:0, h:76}),
+		main.entity('checkpoint', {x:9984, y:64}),
 	], [
 		main.entity('plat', {x:10400, y:112, w:1, h:1, dropoff: true, mode:1, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:10400, y:224, w:30, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
@@ -214,6 +220,7 @@ let plts = main => [
 		main.entity('plat', {x:11360, y:224, w:7, h:1, mode:3, col:0, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:11472, y:224, w:23, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:11584, y:120, w:10, h:1, dropoff: true, mode:2, clip:[[], [], [], []]}),
+		main.entity('checkpoint', {x:11488, y:112}),
 	], [
 		main.entity('plat', {x:12048, y:192, w:2, h:3, dropoff: true, mode:2, clip:[[], [], [0, 1, 2], []]}),
 		main.entity('plat', {x:12080, y:160, w:2, h:5, dropoff: true, mode:2, clip:[[], [2, 3, 4], [], []]}),
@@ -252,6 +259,7 @@ let plts = main => [
 		main.entity('plat', {x:13584, y:0, w:11, h:2, mode:2, col:15, clip:[[], [0, 1], [0, 1], []]}),
 		main.entity('vine', {x:13316, y:0, h:56}),
 		main.entity('vine', {x:13404, y:0, h:124}),
+		main.entity('checkpoint', {x:13312, y:160}),
 	], [
 		main.entity('plat', {x:13760, y:0, w:1, h:2, mode:2, col:15, clip:[[], [0, 1], [0, 1], []]}),
 		main.entity('plat', {x:13760, y:144, w:16, h:6, mode:2, col:15, clip:[[], [0, 1, 2, 3, 4, 5], [2, 3, 4, 5], []]}),
@@ -297,6 +305,7 @@ let plts = main => [
 		main.entity('plat', {x:16224, y:176, w:2, h:4, mode:1, col:15, clip:[[], [3], [3], []]}),
 		main.entity('plat', {x:16256, y:224, w:14, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:16320, y:152, w:8, h:1, dropoff: true, mode:1, clip:[[], [], [], []]}),
+		main.entity('checkpoint', {x:16048, y:160}),
 	], [
 		main.entity('plat', {x:16480, y:0, w:28, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:16480, y:224, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
@@ -325,6 +334,7 @@ let plts = main => [
 		main.entity('plat', {x:17872, y:160, w:1, h:5, mode:1, col:15, clip:[[], [4], [2, 4], []]}),
 		main.entity('plat', {x:17888, y:192, w:1, h:1, dropoff: true, mode:1, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:17888, y:224, w:2, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('checkpoint', {x:17776, y:80}),
 	], [
 		main.entity('plat', {x:18064, y:128, w:2, h:2, mode:1, col:9, clip:[[], [], [0, 1], []]}),
 		main.entity('plat', {x:18064, y:160, w:2, h:5, mode:1, clip:[[], [], [0, 1, 2, 3, 4], []]}),
@@ -369,6 +379,7 @@ let plts = main => [
 		main.entity('plat', {x:19232, y:224, w:8, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:19280, y:0, w:2, h:11, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:19312, y:0, w:3, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
+		main.entity('checkpoint', {x:19280, y:160}),
 	], [
 		main.entity('plat', {x:19360, y:0, w:30, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('plat', {x:19360, y:224, w:1, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
@@ -391,6 +402,7 @@ let plts = main => [
 		main.entity('plat', {x:20192, y:208, w:2, h:2, mode:1, col:15, clip:[[], [0, 1], [1], []]}),
 		main.entity('plat', {x:20224, y:224, w:6, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
 		main.entity('vine', {x:20264, y:16, h:168}),
+		main.entity('checkpoint', {x:20064, y:112}),
 	], [
 		main.entity('plat', {x:20480, y:208, w:1, h:2, dropoff: true, mode:1, clip:[[], [], [0, 1], []]}),
 		main.entity('plat', {x:20496, y:192, w:1, h:3, dropoff: true, mode:1, clip:[[], [1, 2], [0, 1, 2], []]}),
