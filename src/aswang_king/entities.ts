@@ -882,6 +882,7 @@ let entities:entities_type = {
                 8, 8
             ];
             if (algo.rectint(o.player.hitbox, d.hitbox)) {
+                d.hitbox = [];
                 o.player.points += d.ess;
                 d.claimed = true;
             }
