@@ -26,6 +26,9 @@ let algo = {
         }
         loop(0, 0, length-1, true);
     },
+    score: (player:any):number => {
+        return Math.round(player.max_x/5 + player.points);
+    },
     // Physics - Responsable for Gravity, Momentum, Collision
     // (delta_time, entity.[m,hitbox], engine.[interacts]) => (entity.[x,y,m,ground])
     gravity: 9,
