@@ -97,6 +97,7 @@ let entities:entities_type = {
                     });
                     else d.nocollide = [];
                 }
+                d.canclimb = false;
 
                 // Kill if hit out of screen
                 if (d.y >= o.h-32) {
@@ -244,7 +245,7 @@ let entities:entities_type = {
                 o.sprites('Mcpartsv3.png', [d.x, d.dead == -1 ? d.y : d.dead < 0.5 ? d.y-10*Math.sin(d.dead*Math.PI) : o.h+22-Math.sin(d.dead*Math.PI)*(o.h-d.y+32)],
                     // Leg
                     [0, 0, 32*leg[0], 32*leg[1], 32, 32, 1-d.fright],
-                    // Body
+                    // Body 
                     [0, d.crouch ? 2 : 0, 32*body[0] , 32*body[1], 32, 32, 1-d.fright]
                 );
                 o.sprites('Protection2.png', [d.x, d.y], [0, -1.5, 64 + 32 * u, 0, 32, 32]);
@@ -261,7 +262,7 @@ let entities:entities_type = {
                 o.sprites('Lagablab, bubble and random vegetation.png', [0, 0], ...duras);
             }
             if (d.poisoned == 0 || d.poisoned == 1) o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], d.poisoned == 0 ? [0, 0, 37, 13, 21, 17] : [0, 0, 69, 13, 21, 17])
-            d.canclimb = false;
+            
         }
     },
     background: {

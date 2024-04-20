@@ -20,7 +20,7 @@ main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: /*/20200/*/160/*/*/, y:195});
+let player = main.entity('pinoy', {x: 20200/*/160/*/, y:/*195*/60});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
@@ -87,6 +87,7 @@ main.scene('level', (t, dt) => {
     for (var n = -2; n <= 2; n++) {
         if (l+n >= 0 && l+n < platforms.length) main.add(platforms[l+n]);
     }
+    if (player.canclimb && main.on('w,W,s,S')) {player.climb = 1; player.m = [0,0]}
     main.add(menu, pet, main.player);
     for (var n = -2; n <= 2; n++) {
         if (l+n >= 0 && l+n < lv.length) main.add(lv[l+n]);
@@ -149,7 +150,6 @@ main.scene('level', (t, dt) => {
         if (e.init) player.cur_weapon = 2
     });
     
-    if (player.canclimb && main.on('w,W,s,S')) {player.climb = 1; player.m = [0,0]}
     if (player.climb != -1) {
         if(main.on(' ,ArrowUp,gp_2')) {
             player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
