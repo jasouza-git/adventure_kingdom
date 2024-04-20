@@ -79,7 +79,7 @@ class engine {
                     loaded[i] = h.readyState;
                     this.loadcheck(loaded.reduce((pre:number, cur:number)=>pre+cur)/files.length/4);
                     if (h.readyState != 4 || h.status != 200) return;
-                    console.log('GOT',file);
+                    //console.log('GOT',file);
                     this.loaded[file] = URL.createObjectURL(h.response);
                     if (ext == '.ttf') {
                         var d : HTMLHeadElement = document.createElement('h1');

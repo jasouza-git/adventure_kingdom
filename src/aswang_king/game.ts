@@ -3,6 +3,13 @@ import {required_files} from "./entities.ts";
 import {engine} from "../engine.ts";
 import {plts, level} from "./levels.ts";
 
+// Intro
+let v = document.createElement('video');
+v.src = 'Aswang King Final Game Story(480p).mp4';
+v.setAttribute('autoplay','true');
+v.setAttribute('style', 'position:fixed;left:0;top:0;width:100%;height:100%;z-index:2');
+document.body.appendChild(v);
+
 // Media
 let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/1st Temp BG Song (New Area).mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
 
@@ -13,7 +20,7 @@ main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: /*/20200/*/160/*/*/, y:60});
+let player = main.entity('pinoy', {x: /*/20200/*/160/*/*/, y:195});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
@@ -33,6 +40,17 @@ player.ondeath = () => {
     player.x = 130;
     player.y = 195;
 };
+
+// Intro Scene
+let load_level = ()=>{
+    document.body.removeChild(v);
+    main.scene('level');
+};
+main.scene('into', (t,dt) => {
+    v.play();
+    main.on('Enter', load_level);
+});
+v.addEventListener('ended', load_level);
 
 // Level Scene
 main.scene('level', (t, dt) => {
