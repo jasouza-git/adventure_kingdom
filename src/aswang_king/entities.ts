@@ -65,6 +65,11 @@ let entities:entities_type = {
             let c = n => [n%6, Math.floor(n/6)];
             let leg = [0,0], body = [0,0];
             let weap = d.weapons[d.cur_weapon];
+            if (d.cur_body_t > 0) {
+                d.dead = -1;
+                d.poisoned = -1;
+                d.cur_body_t -= dt;
+            }
             if (d.dead == -1) {
                 // Hitbox
                 d.hitbox = [ 15,
@@ -199,10 +204,6 @@ let entities:entities_type = {
                         o.play('sfx/Dying.mp3', true);
                     }
                 }
-            } else {
-                d.dead = -1;
-                d.poisoned = -1;
-                d.cur_body_t -= dt;
             }
 
             if (d.dead != -1) {
@@ -228,6 +229,7 @@ let entities:entities_type = {
             if (d.cur_body_t > 0) r = Math.floor(t / 150 % 2);
             if (d.c_shield_break_t > 0) d.c_shield_break_t -= dt;
             if (r == 1) {
+                console.log(r);
                 let u = d.weapons[2].durability > Math.floor(6 / 1.5) ? 2 :
                         d.weapons[2].durability > Math.floor(6 / 2) ? 1 : 
                         d.weapons[2].durability > 0 ? 0 : 
@@ -297,8 +299,6 @@ let entities:entities_type = {
                     );
                 }
             }
-
-            
             //o.draw('', {img:'normal bg.png'});
             //o.draw('', {img:'dark bg.png', alpha: d.dark});
             //for (var x = -5; x < 7; x++) o.sprites(d.data>>(x+5)&1 ? 'bg normal (no clouds) .png' : 'bg normal (w clouds) .png', [], [64*x, 0, 0, 0, 64, 240, 0, 0, 0, 0, 0, 0.1]);
