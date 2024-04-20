@@ -1,5 +1,3 @@
-
-
 import { entities_type } from "../types";
 import { algo } from "../algorithms";
 
@@ -11,23 +9,26 @@ let required_files:string[] = [
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocksv2.png', 'Treesv2.png', 'Lava.png',
     // Entities
-    'Dog.png', 'Cat (1).png', 'Aswang KingV2.png', 'Arrow.png', 'Shooterv2.png',
+    'Dog.png', 'Cat (1).png', 'Aswang KingV2.png', 'Arrow.png', 'Shooterv2.png', 'TakeoutSalt.png',
     // Objects
     'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
     // Player
     'Mcpartsv3.png', 'Heart.png', 'sfx/walk_dirt.mp3', 'sfx/vines.mp3',
     // Poisonous Plants
     'Atropa Belladonav2.png', 'Lagablab, bubble and random vegetation.png', 
+    // Aswangs
+    'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png',
+    // Weapon icons
+    'Asin pouch.png', 'Sword.png', 'CrossIcon.png', 'Protection2.png',
     // SFX
     'sfx/Dying.mp3', 'sfx/arrow hit.mp3', 'sfx/gameover.mp3', 'sfx/arrow shoot.mp3', 'sfx/sword attack 1.mp3', 'sfx/sword attack 2.mp3',
     'sfx/pressure plate activated.mp3', 'sfx/blab_drop.mp3',
     // Fonts
     'arcade.ttf',
-    // Aswangs
-    'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png',
     // Aswangs sfx
     'sfx/mananangal sound.mp3'
 ];
+
 let entities:entities_type = {
     pinoy: {
         default: {
@@ -37,30 +38,49 @@ let entities:entities_type = {
             fright: true,  // Is character facing right?
             camera: 0,     // Camera on player offset, if undefined then no set
             swing: false,  // Is character swinging sword?
-            swinging: 0,   // Current swining position (0->1)
+            swinging: 0,   // Current swining position (0->1), and now it's still indicated the attack of asins.
             plswing: false,// Already played the swing audio?
             interact:true, // Physics entities interacts
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
             lives: [3,3],  // Lives [A,B] meaning A lives left out of B lives
-            poisoned: -1,
-            speed_rate: 1,
+            poisoned: -1,       // Indicate the pinoy is poisoned or not
+            speed_rate: 1,      // 0.0 - 1.0, indicate the speed reduce amount
+            in_area_time: 0,    // Indicate the time pinoy stand in the poisonous area or touched by the poisonous plants
             points: 0,     // Accumulatd points
             highscore: 0,  // Highscore
             max_x: 0,      // Maximum distance traveled by the player
             canclimb:false,// Player can climb?
             climb: -1,     // Climbing (-1 not climbing, 1 hanging, 0->2 climbing animation)
+            cur_weapon: 0,  // the weapon pinoy current use
+            body_t: 3000,
+            cur_body_t: 0,
+            weapons: [      // all weapons the pinoy has. sword, asin and cross protection
+                {name: "sword", durability: 1000000, attack_range: [20, 29], asset_name: 'Sword.png',},     // no limited durability, but small range attack
+                {name: "asin", durability: 20, attack_range: [168, 29], asset_name: 'Asin pouch.png'},      // limited durability, but large range attack
+                {name: "cross", durability: 6, attack_range: [0, 0], asset_name: 'CrossIcon.png'},          // limited durability, used to block damage and poison, no damange for aswang.
+            ],
         },
         update: (d, o, t, dt) => {
-            // console.log("pinoy", t, dt);
             let c = n => [n%6, Math.floor(n/6)];
             let leg = [0,0], body = [0,0];
+            let weap = d.weapons[d.cur_weapon];
+            if (d.cur_body_t > 0) {
+                d.dead = -1;
+                d.poisoned = -1;
+                d.cur_body_t -= dt;
+            }
             if (d.dead == -1) {
                 // Hitbox
                 d.hitbox = [ 15,
                     d.x+12, d.y,
                     8, 29
                 ];
+
+                if (!d.swing) {
+                    d.lockedFright = d.fright;
+                    d.lockedHitbox = d.hitbox;
+                }
                 
                 // Max X for points
                 if (d.x > d.max_x) d.max_x = d.x;
@@ -87,7 +107,7 @@ let entities:entities_type = {
                     o.camera[0] += (d.x+d.camera-o.w/2-o.camera[0])*dt/100;
                 }
 
-                // Sword
+                // Weapons
                 if (d.swing && d.dead == -1) {
                     if (!d.plswing) o.play(`sfx/sword attack ${Math.round(Math.random()+1)}.mp3`, true, 0.3);
                     d.plswing = true;
@@ -97,28 +117,29 @@ let entities:entities_type = {
                     d.swinging -= d.swinging*dt/100;
                     d.plswing = false;
                 }
-                let s = Math.round(d.swinging*2.4);
-                if (s > 0) d.hitbox.push(0,
-                    d.x+(d.fright?20:-4), d.y,
-                    16, 29
-                );
 
-                // Poison
-                if (d.in_area_time >= 3000) {
-                    d.dead = 0;
-                    d.poisoned = -1
-                } else if (d.in_area_time >= 2000) {
-                    d.poisoned = 1;
+                let s = Math.round(d.swinging*2.4);
+                let v = d.swinging * 3.4;
+
+                // Weapon swap
+                if (d.swing && s == 0 && d.cur_weapon == 1) weap.durability -= 1;
+                if (weap.durability == 0) {
+                    d.cur_weapon = (d.cur_weapon + 1) % d.weapons.length;
+                    return;
                 }
-                if (d.poisoned >= 0 && d.poison_duration > 0) {
-                    d.poison_duration -= dt;
-                    d.speed_rate *= 1 - (0.25 * d.poison_duration / 100000)
-                    if (d.speed_rate <= 0.2) d.speed_rate = 0.2;
-                } else {
-                    d.poisoned = -1;
-                    d.poison_duration = 0;
-                    d.speed_rate = 1;
-                    d.in_area_time = 0;
+
+                if (d.cur_weapon == 0) {
+                    // Sword attack
+                    if (s > 0) d.hitbox.push(...offsetRectWithFright(d.hitbox, [0, d.hitbox[3], 0, weap.attack_range[0], weap.attack_range[1]], d.fright));
+                } else if (d.cur_weapon == 1) {
+                    // Asin attack effect
+                    if (d.swing) {
+                        let hb = offsetRectWithFright(d.lockedHitbox, [0 , (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8, 0, 16, 32], d.lockedFright);
+                        d.hitbox.push(...hb);
+                        let vr = Math.round(v);
+                        let ps = [96, 132, 175];
+                        o.sprites('TakeoutSalt.png', [0, 0], hb.slice(1, 3).concat([ps[vr], 0, 16, 32]));
+                    }
                 }
                 
                 //console.log(d.climb);
@@ -131,17 +152,60 @@ let entities:entities_type = {
                 );
                 body = c(
                     d.climb != -1 ? Math.round(d.climb)+36 :
-                    s > 0 ? 27+s :
+                    s > 0 ? 
+                    d.cur_weapon == 0 ? 27 + s :
+                    d.cur_weapon == 1 ? 45 + s :
+                    s == 1 ? 30 + s : 28 + s :
                     d.ground == -1 ? 26 :
                     d.crouch ? 25 :
                     Math.abs(d.m[0]) > 0.5 ? 13+Math.floor(t/50)%12 :
                     12
                 );
             } 
-            if (d.dead == 0) {
-                d.lives[0]--;
-                o.play('sfx/Dying.mp3', true);
+
+            if (d.cur_body_t <= 0) {
+                // Poison
+                if (d.in_area_time >= 3000) {
+                    d.dead = 0;
+                    d.poisoned = -1
+                } else if (d.in_area_time >= 2000) {
+                    d.poisoned = 1;
+                }
+                if (d.poisoned >= 0 && d.poison_duration > 0) {
+                    if (d.weapons[2].durability > 0) {
+                        d.weapons[2].durability --;
+                        d.cur_body_t = d.body_t;
+                        d.poisoned = -1;
+                        if (d.weapons[2].durability == 0) {
+                            d.c_shield_break_t = 1000;
+                        }
+                    } else {
+                        d.poison_duration -= dt;
+                        d.speed_rate *= 1 - (0.25 * d.poison_duration / 100000)
+                        if (d.speed_rate <= 0.2) d.speed_rate = 0.2;
+                    }
+                } else {
+                    d.poisoned = -1;
+                    d.poison_duration = 0;
+                    d.speed_rate = 1;
+                    d.in_area_time = 0;
+                }
+
+                if (d.dead == 0) {
+                    if (d.weapons[2].durability > 0) {
+                        d.weapons[2].durability --;
+                        d.cur_body_t = d.body_t;
+                        d.dead = -1;
+                        if (d.weapons[2].durability == 0) {
+                            d.c_shield_break_t = 1000;
+                        }
+                    } else {
+                        d.lives[0]--;
+                        o.play('sfx/Dying.mp3', true);
+                    }
+                }
             }
+
             if (d.dead != -1) {
                 d.poisoned = -1;
                 d.speed_rate = 1;
@@ -161,20 +225,34 @@ let entities:entities_type = {
                     d.fright = true;
                 }
             }
-            // Rendering
-            o.sprites('Mcpartsv3.png', [d.x, d.dead == -1 ? d.y : d.dead < 0.5 ? d.y-10*Math.sin(d.dead*Math.PI) : o.h+22-Math.sin(d.dead*Math.PI)*(o.h-d.y+32)],
-                // Leg
-                [0, 0, 32*leg[0], 32*leg[1], 32, 32, 1-d.fright],
-                // Body
-                [0, d.crouch ? 2 : 0, 32*body[0] , 32*body[1], 32, 32, 1-d.fright]
-            );
-
-            if (d.poisoned == 0) {
-                o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], [0, 0, 37, 13, 21, 17])
-            } else if (d.poisoned == 1) {
-                o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], [0, 0, 69, 13, 21, 17])
+            let r = 1;
+            if (d.cur_body_t > 0) r = Math.floor(t / 150 % 2);
+            if (d.c_shield_break_t > 0) d.c_shield_break_t -= dt;
+            if (r == 1) {
+                // console.log(r);
+                let u = d.weapons[2].durability > Math.floor(6 / 1.5) ? 2 :
+                        d.weapons[2].durability > Math.floor(6 / 2) ? 1 : 
+                        d.weapons[2].durability > 0 ? 0 : 
+                        d.c_shield_break_t > 500 ? -1 :
+                        d.c_shield_break_t > 0 ? -2 : -3;
+                o.sprites('Mcpartsv3.png', [d.x, d.dead == -1 ? d.y : d.dead < 0.5 ? d.y-10*Math.sin(d.dead*Math.PI) : o.h+22-Math.sin(d.dead*Math.PI)*(o.h-d.y+32)],
+                    // Leg
+                    [0, 0, 32*leg[0], 32*leg[1], 32, 32, 1-d.fright],
+                    // Body
+                    [0, d.crouch ? 2 : 0, 32*body[0] , 32*body[1], 32, 32, 1-d.fright]
+                );
+                o.sprites('Protection2.png', [d.x, d.y], [0, -1.5, 64 + 32 * u, 0, 32, 32]);
             }
-
+            let duras: number[][] = [];
+            let cx = 1;
+            for (let i = 0; i < weap.durability; i ++) {
+                duras.push([cx, 20, 68, 67, 9, 9, 0, 0, 0, 0, 0, 0])
+                if (cx > 320) break;
+                cx += 11;
+            }
+            if (d.poisoned == 0 || d.poisoned == 1) o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], d.poisoned == 0 ? [0, 0, 37, 13, 21, 17] : [0, 0, 69, 13, 21, 17])
+            o.sprites(weap.asset_name, [], [10, 214, 0, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+            o.sprites('Lagablab, bubble and random vegetation.png', [0, 0], ...duras);
         }
     },
     background: {
@@ -221,8 +299,6 @@ let entities:entities_type = {
                     );
                 }
             }
-
-            
             //o.draw('', {img:'normal bg.png'});
             //o.draw('', {img:'dark bg.png', alpha: d.dark});
             //for (var x = -5; x < 7; x++) o.sprites(d.data>>(x+5)&1 ? 'bg normal (no clouds) .png' : 'bg normal (w clouds) .png', [], [64*x, 0, 0, 0, 64, 240, 0, 0, 0, 0, 0, 0.1]);
