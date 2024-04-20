@@ -257,10 +257,10 @@ let entities:entities_type = {
                     if (cx > 320) break;
                     cx += 11;
                 }
-                if (d.poisoned == 0 || d.poisoned == 1) o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], d.poisoned == 0 ? [0, 0, 37, 13, 21, 17] : [0, 0, 69, 13, 21, 17])
                 o.sprites(weap.asset_name, [], [10, 214, 0, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
                 o.sprites('Lagablab, bubble and random vegetation.png', [0, 0], ...duras);
             }
+            if (d.poisoned == 0 || d.poisoned == 1) o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], d.poisoned == 0 ? [0, 0, 37, 13, 21, 17] : [0, 0, 69, 13, 21, 17])
             d.canclimb = false;
         }
     },
