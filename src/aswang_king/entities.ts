@@ -15,7 +15,7 @@ let required_files:string[] = [
     // Player
     'Mcpartsv3.png', 'Heart.png', 'sfx/walk_dirt.mp3', 'sfx/vines.mp3',
     // Poisonous Plants
-    'Atropa Belladonav2.png', 'Lagablab, bubble and random vegetation.png', 
+    'Lagablab, bubble and random vegetation.png', 'Atropa Belladona and Lagablab.png',
     // Aswangs
     'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png',
     // Weapon icons
@@ -243,17 +243,18 @@ let entities:entities_type = {
                 );
                 o.sprites('Protection2.png', [d.x, d.y], [0, -1.5, 64 + 32 * u, 0, 32, 32]);
             }
-
-            let duras: number[][] = [];
-            let cx = 1;
-            for (let i = 0; i < weap.durability; i ++) {
-                duras.push([cx, 20, 68, 67, 9, 9, 0, 0, 0, 0, 0, 0])
-                if (cx > 320) break;
-                cx += 11;
+            if (d.cur_weapon != 0) {
+                let duras: number[][] = [];
+                let cx = 1;
+                for (let i = 0; i < weap.durability; i ++) {
+                    duras.push([cx, 20, 68, 67, 9, 9, 0, 0, 0, 0, 0, 0])
+                    if (cx > 320) break;
+                    cx += 11;
+                }
+                if (d.poisoned == 0 || d.poisoned == 1) o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], d.poisoned == 0 ? [0, 0, 37, 13, 21, 17] : [0, 0, 69, 13, 21, 17])
+                o.sprites(weap.asset_name, [], [10, 214, 0, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+                o.sprites('Lagablab, bubble and random vegetation.png', [0, 0], ...duras);
             }
-            if (d.poisoned == 0 || d.poisoned == 1) o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], d.poisoned == 0 ? [0, 0, 37, 13, 21, 17] : [0, 0, 69, 13, 21, 17])
-            o.sprites(weap.asset_name, [], [10, 214, 0, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
-            o.sprites('Lagablab, bubble and random vegetation.png', [0, 0], ...duras);
             d.canclimb = false;
         }
     },
@@ -423,7 +424,11 @@ let entities:entities_type = {
                     bs.push([(x + 1) * 16, 0, (v == 0 ? 16 : 50), 0, 16, 16]);
                 }
                 //printLog(d.hitbox, o.player.hitbox, 351);
-                if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
+                if (algo.rectint(d.hitbox, o.player.hitbox)) {
+                    o.player.weapons[2].durability = 0;
+                    o.player.cur_body_t = -1;
+                    o.player.dead = 0;
+                }
                 o.sprites('Lava.png', [d.x, d.y], ...bs);
             } else {
                 for (let y = 0; y < d.h*2; y++) {
@@ -819,7 +824,7 @@ let entities:entities_type = {
                 o.player.poison_duration = 5000;
                 o.player.in_area_time += dt;
             }
-            o.sprites('Atropa Belladonav2.png', [d.x, d.y], [0, 0, 6, 10, 22, 22])
+            o.sprites('Atropa Belladona and Lagablab.png', [d.x, d.y], [0, 0, 4, 8, 25, 24])
         }
     },
     lagablab: {
@@ -839,7 +844,7 @@ let entities:entities_type = {
                 }
                 d.cooldowntmp = d.cooldown;
             }
-            o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], [0, 0, 6, 9, 23, 23])
+            o.sprites('Atropa Belladona and Lagablab.png', [d.x, d.y], [0, 0, 32, 16, 32, 16])
         },
     },
     blab: {
