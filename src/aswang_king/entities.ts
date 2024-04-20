@@ -11,7 +11,7 @@ let required_files:string[] = [
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang KingV2.png', 'Arrow.png', 'Shooterv2.png', 'TakeoutSalt.png',
     // Objects
-    'Vine.png', 'Tripwire2Correct.png', 'pressure.png', 'Aswang Essencecorrected.png',
+    'Vine.png', 'Tripwire2Correct.png', 'pressure.png', 'Aswang Essencecorrected.png', 'checkpoint.png',
     // Player
     'Mcpartsv3.png', 'Heart.png', 'sfx/walk_dirt.mp3', 'sfx/vines.mp3',
     // Poisonous Plants
@@ -22,11 +22,12 @@ let required_files:string[] = [
     'Asin pouch.png', 'Sword.png', 'CrossIcon.png', 'Protection2.png',
     // SFX
     'sfx/Dying.mp3', 'sfx/arrow hit.mp3', 'sfx/gameover.mp3', 'sfx/arrow shoot.mp3', 'sfx/sword attack 1.mp3', 'sfx/sword attack 2.mp3',
-    'sfx/pressure plate activated.mp3', 'sfx/blab_drop.mp3',
+    'sfx/pressure plate activated.mp3', 'sfx/blab_drop.mp3', 'sfx/asin throw (temporary) .mp3',
     // Fonts
     'arcade.ttf',
     // Aswangs sfx
-    'sfx/mananangal sound.mp3'
+    'sfx/mananangal sound.mp3',
+    'sfx/Aswang King 1.mp3', 'sfx/Aswang King 2.mp3', 'sfx/Aswang King 3.mp3', 'sfx/Aswang King 4.mp3', 'sfx/Final Boss Enraged BG song (LOOP) .mp3',
 ];
 
 let entities:entities_type = {
@@ -55,6 +56,7 @@ let entities:entities_type = {
             cur_weapon: 0,  // the weapon pinoy current use
             body_t: 3000,
             cur_body_t: 0,
+            ondeath: ()=>{},
             weapons: [      // all weapons the pinoy has. sword, asin and cross protection
                 {name: "sword", durability: 1000000, attack_range: [20, 29], asset_name: 'Sword.png',},     // no limited durability, but small range attack
                 {name: "asin", durability: 20, attack_range: [168, 29], asset_name: 'Asin pouch.png'},      // limited durability, but large range attack
@@ -109,7 +111,10 @@ let entities:entities_type = {
 
                 // Weapons
                 if (d.swing && d.dead == -1) {
-                    if (!d.plswing) o.play(`sfx/sword attack ${Math.round(Math.random()+1)}.mp3`, true, 0.3);
+                    if (!d.plswing) {
+                        if (d.cur_weapon == 0) o.play(`sfx/sword attack ${Math.round(Math.random()+1)}.mp3`, true, 0.3);
+                        else if (d.cur_weapon == 1) o.play('sfx/asin throw (temporary) .mp3', true);
+                    }
                     d.plswing = true;
                     d.swinging += (1-d.swinging)*dt/100;
                     if (d.swinging > 0.9) d.swing = false;
@@ -219,8 +224,9 @@ let entities:entities_type = {
                 d.dead += (1-d.dead)*dt/300;
                 if (d.dead > 0.99) {
                     d.dead = -1;
-                    d.x = 130;
-                    d.y = 195
+                    d.ondeath();
+                    /*d.x = 130;
+                    d.y = 195*/
                     d.m = [0,0];
                     d.fright = true;
                 }
@@ -981,6 +987,12 @@ let entities:entities_type = {
             o.btx.fillText(d.text, d.x-o.camera[0], d.y-o.camera[1]);
         }
     },
+    checkpoint: {
+        default: {x:0, y: 195} ,
+        update: (d, o, t, dt) => {
+            o.sprites('checkpoint.png', [d.x,d.y], [0,35,Math.floor(t/100)%3*34, 0, 32, 32]);
+        }
+    },
     king: {
         default: {x:0, y:100, m:[0, 0], status: 0, attack_method: 0, collide:['pinoy'], follow: undefined, speed: 0.7, 
 
@@ -1013,6 +1025,7 @@ let entities:entities_type = {
         update: (d, o, t, dt) => {
             if (d.dead == 0) return;
             if (!d.dying) {
+                if (o.player && Math.hypot(o.player.x-d.x, o.player.y-d.y) < 300)o.play('sfx/Final Boss Enraged BG song (LOOP) .mp3');
                 d.hitbox = [15,
                     d.x, d.y,
                     37, 65 
@@ -1032,6 +1045,7 @@ let entities:entities_type = {
                         d.x += d.prepare_vector[0];
                         d.y += d.prepare_vector[1];
                     } else if (d.cur_charge_t > 0) {
+                        o.play(`sfx/Aswang King ${Math.round(Math.random()*3)+1}.mp3`, true);
                         d.cur_charge_t -= 1;
                         d.x += d.charging_vector[0];
                         d.y += d.charging_vector[1];
@@ -1112,6 +1126,7 @@ let entities:entities_type = {
                             d.cur_charge_t = Math.ceil(dis / d.charge_s) + 5;
                         } else if (d.attack_method == 2) { // "Heavy Attack"
                             // d.headStatus = 0;
+                            //o.play(`sfx/Aswang King ${Math.round(Math.random())+1}.mp3`, true);
                             d.charging = true;
                             d.charging_vector = [0, d.drop_s];
                             d.prepare_vector  = [0, d.drop_prepare_s];
