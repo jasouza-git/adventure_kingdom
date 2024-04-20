@@ -155,8 +155,8 @@ let entities:entities_type = {
                 d.dead += (1-d.dead)*dt/300;
                 if (d.dead > 0.99) {
                     d.dead = -1;
-                    d.x = 0;
-                    d.y = 195;
+                    d.x = 130;
+                    d.y = 195
                     d.m = [0,0];
                     d.fright = true;
                 }
@@ -175,6 +175,7 @@ let entities:entities_type = {
                 o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], [0, 0, 69, 13, 21, 17])
             }
 
+            d.canclimb = false;
         }
     },
     background: {
@@ -464,7 +465,7 @@ let entities:entities_type = {
         }
     },
     menu: {
-        default: {house:false, over:false},
+        default: {house:false, over:false, bind:[], points:0},
         update: (d, o, t, dt) => {
             if (d.over) {
                 if (d.over_notinit == undefined) {
@@ -476,7 +477,7 @@ let entities:entities_type = {
                 // Game over
                 o.sprites('Game Over.png', [], [0, 0, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
                 if (o.player != undefined) {
-                    let p = Math.round(o.player.max_x/10 + o.player.points);
+                    let p = algo.score(o.player);
                     o.btx.fillStyle = '#fff';
                     o.btx.strokeStyle = '#000';
                     o.btx.font = `10px arcade`;
@@ -484,9 +485,14 @@ let entities:entities_type = {
                     o.btx.textBaseline = 'middle';
                     o.btx.fillText('Score', o.w/4, 3*o.h/4);
                     o.btx.fillText('Highscore', 3*o.w/4, 3*o.h/4);
+                    if (p > o.player.highscore) {
+                        o.btx.fillStyle = '#ff0';
+                        o.btx.fillText('! NEW !', 3*o.w/4, 3*o.h/4-20);
+                        o.btx.fillStyle = '#fff';
+                    }
                     o.btx.font = `15px arcade`;
                     o.btx.fillText(String(p), o.w/4, 3*o.h/4+20);
-                    o.btx.fillText(String(o.player.highscore), 3*o.w/4, 3*o.h/4+20);
+                    o.btx.fillText(String(p > o.player.highscore ? p : o.player.highscore), 3*o.w/4, 3*o.h/4+20);
                     o.btx.globalAlpha = 1;
                 }
                 return;
@@ -500,15 +506,39 @@ let entities:entities_type = {
             if (o.player != undefined) {
                 // Hearts
                 for(let i = 0; i < o.player.lives[1]; i++) o.sprites('Heart.png', [], [2+i*18, 2, i < o.player.lives[0] ? 0 : 16, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
-                // Points
-                let p = Math.round(o.player.max_x/10 + o.player.points);
+                // Point
+                let p = algo.score(o.player);
                 o.btx.fillStyle = '#fff';
                 o.btx.strokeStyle = '#000';
-                o.btx.font = `${d.z*o.z}px arcade`;
+                o.btx.font = `10px arcade`;
                 o.btx.textAlign = 'end';
                 o.btx.textBaseline = 'top';
                 o.btx.fillText(String(p), o.w-2, 2);
+                // Plus points
+                if (o.player.points != d.points) {
+                    d.bind.push(o.entity('points_gained', {x:o.player.x, y:o.player.y, point:o.player.points-d.points}));
+                    d.points = o.player.points;
+                }
             }
+            // Remove expired points
+            for(let i = 0; i < d.bind.length; i++) {
+                if (d.bind[i].duration <= 0) {
+                    d.bind.splice(i,1);
+                    i--;
+                }
+            }
+        }
+    },
+    points_gained: {
+        default: {x:0, y:0, point:0, duration: 1000},
+        update: (d, o, t, dt) => {
+            o.btx.fillStyle = '#0f0';
+            o.btx.strokeStyle = '#000';
+            o.btx.font = `8px arcade`;
+            o.btx.textAlign = 'center';
+            o.btx.textBaseline = 'middle';
+            o.btx.fillText('+'+String(d.point), d.x-o.camera[0], d.y-10*Math.sin((1-d.duration/1000)*Math.PI/2));
+            d.duration -= dt;
         }
     },
     mananangal: {

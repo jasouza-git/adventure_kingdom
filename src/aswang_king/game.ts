@@ -13,7 +13,7 @@ main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: 4200 + 16000, y:60});
+let player = main.entity('pinoy', {x: 160, y:195});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
@@ -29,6 +29,22 @@ main.scene('level', (t, dt) => {
     if (player.lives[0] < 0) {
         menu.over = true;
         main.add(menu);
+        main.on('Enter', e => {
+            if (e.init) {
+                player.highscore = algo.score(player);
+                player.points = 0;
+                menu.over = false;
+                player.lives = [3, 3];
+                player.max_x = player.x = 160;
+                player.y = 195;
+                player.climb = player.poisoned = -1;
+                player.canclimb = false;
+                bg.night = false;
+                bg.day = 1;
+                platforms = plts(main);
+                lv = level(main);
+            }
+        });
         return;
     } else menu.over = false;
 
@@ -51,6 +67,7 @@ main.scene('level', (t, dt) => {
         bg_song[i] += (i == bg_song_fade_to ? 1-bg_song[i] : -bg_song[i])*dt/1000;
         main.play(bg_songs[i], false, bg_song[i]);
     }
+    
 
     // Developer Tools
     if(main.on('x')) lv[0][0].darkmode = !lv[0][0].darkmode;
@@ -59,6 +76,9 @@ main.scene('level', (t, dt) => {
     });
     main.on('h', e => {
         if(e.init) main.hitbox_boxed = !main.hitbox_boxed;
+    });
+    main.on('g', e => {
+        if(e.init) player.points += 10;
     });
 
     // Background
@@ -84,7 +104,7 @@ main.scene('level', (t, dt) => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
     
-    if (player.canclimb && main.on('w,W,s,S')) player.climb = 1;
+    if (player.canclimb && main.on('w,W,s,S')) {player.climb = 1; player.m = [0,0]}
     if (player.climb != -1) {
         if(main.on(' ,ArrowUp,gp_2')) {
             player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
@@ -112,7 +132,7 @@ main.scene('level', (t, dt) => {
     else player.m[0] = 0;
 
     // Reset
-    player.canclimb = false;
+    
 });
 main.render();
 
