@@ -83,7 +83,7 @@ main.scene('level', (t, dt) => {
     main.on('j,J,gp_1', e => {
         if(e.init && player.swinging < 0.1) player.swing = true;
     });
-    main.on('r,R', e => {
+    main.on('r,R,gp_3', e => {
         if (e.init) player.cur_weapon = (player.cur_weapon + 1) % player.weapons.length
     });
     main.on('1', e => {
