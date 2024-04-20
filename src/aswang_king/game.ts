@@ -4,7 +4,7 @@ import {engine} from "../engine.ts";
 import {plts, level} from "./levels.ts";
 
 // Media
-let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/Final Peaceful Environment.mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
+let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/1st Temp BG Song (New Area).mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
@@ -13,11 +13,26 @@ main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: /*4200 + 16000*/ 160, y:60});
+let player = main.entity('pinoy', {x: /*/20200/*/160/*/*/, y:60});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
 let off = 0;
+
+player.ondeath = () => {
+    for (let i = Math.floor(player.x/480); i > 0; i--) {
+        let l = platforms[i];
+        for (let j = 0; j < l.length; j++) {
+            if (l[j]['__type__'] == 'checkpoint') {
+                player.x = l[j].x;
+                player.y = l[j].y;
+                return;
+            }
+        }
+    }
+    player.x = 130;
+    player.y = 195;
+};
 
 // Level Scene
 main.scene('level', (t, dt) => {
