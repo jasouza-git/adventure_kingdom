@@ -931,12 +931,12 @@ let entities:entities_type = {
             o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8]);
         }
     },
-    checkpoint: {
-        default: {x: 0, y: 0},
-        update: (d, o, t, dt) => {
-            o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, 1 * 8, 0, 8, 8]);
-        }
-    },
+    // checkpoint: {
+    //     default: {x: 0, y: 0},
+    //     update: (d, o, t, dt) => {
+    //         o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, 1 * 8, 0, 8, 8]);
+    //     }
+    // },
     white_lady: {
         default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 4, dead: -1, removed: false},
         update: (d, o, t, dt) => {
