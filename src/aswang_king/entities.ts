@@ -11,7 +11,7 @@ let required_files:string[] = [
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang KingV2.png', 'Arrow.png', 'Shooterv2.png', 'TakeoutSalt.png',
     // Objects
-    'Vine.png', 'Tripwire2Correct.png', 'pressure.png',
+    'Vine.png', 'Tripwire2Correct.png', 'pressure.png', 'Aswang Essencecorrected.png',
     // Player
     'Mcpartsv3.png', 'Heart.png', 'sfx/walk_dirt.mp3', 'sfx/vines.mp3',
     // Poisonous Plants
@@ -552,7 +552,7 @@ let entities:entities_type = {
                 // Game over
                 o.sprites('Game Over.png', [], [0, 0, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
                 if (o.player != undefined) {
-                    let p = Math.round(o.player.max_x/10 + o.player.points);
+                    let p = Math.round(o.player.max_x/2 + o.player.points);
                     o.btx.fillStyle = '#fff';
                     o.btx.strokeStyle = '#000';
                     o.btx.font = `10px arcade`;
@@ -577,7 +577,7 @@ let entities:entities_type = {
                 // Hearts
                 for(let i = 0; i < o.player.lives[1]; i++) o.sprites('Heart.png', [], [2+i*18, 2, i < o.player.lives[0] ? 0 : 16, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
                 // Points
-                let p = Math.round(o.player.max_x/10 + o.player.points);
+                let p = Math.round(o.player.max_x/2 + o.player.points);
                 o.btx.fillStyle = '#fff';
                 o.btx.strokeStyle = '#000';
                 o.btx.font = `${d.z*o.z}px arcade`;
@@ -609,6 +609,7 @@ let entities:entities_type = {
             d.follow = o.player;
             // Dead
             if (d.dead != -1) {
+                o.player.points += d.ess;
                 d.hitbox = [];
                 d.dead += (1-d.dead)*dt/30;
                 if (d.dead > 0.99) {
@@ -872,6 +873,27 @@ let entities:entities_type = {
             o.sprites('Lagablab, bubble and random vegetation.png', [d.x, d.y], ...bs);
         },
     },
+    essence: {
+        default: {x: 0, y: 0, claimed: false, ess: 50},
+        update: (d, o, t, dt) => {
+            if (d.claimed) return;
+            d.hitbox = [ 0,
+                d.x, d.y,
+                8, 8
+            ];
+            if (algo.rectint(o.player.hitbox, d.hitbox)) {
+                o.player.points += d.ess;
+                d.claimed = true;
+            }
+            o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8]);
+        }
+    },
+    checkpoint: {
+        default: {x: 0, y: 0},
+        update: (d, o, t, dt) => {
+            o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, 1 * 8, 0, 8, 8]);
+        }
+    },
     white_lady: {
         default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 4, dead: -1, removed: false},
         update: (d, o, t, dt) => {
@@ -926,9 +948,6 @@ let entities:entities_type = {
             o.btx.font = `${d.z*o.z}px arcade`;
             o.btx.fillText(d.text, d.x-o.camera[0], d.y-o.camera[1]);
         }
-    },
-    checkpoint: {
-        default: {x:0, y: 195} 
     },
     king: {
         default: {x:0, y:100, m:[0, 0], status: 0, attack_method: 0, collide:['pinoy'], follow: undefined, speed: 0.7, 
@@ -1102,6 +1121,7 @@ let entities:entities_type = {
                     d.headStatus = 1;
                     d.status = 1;
                 } else if (d.lives[1] == 0) {
+                    o.player.points += d.ess;
                     d.cur_dying_t = d.dying_t;
                     d.dying = true;
                     d.headStatus = 2;
@@ -1229,6 +1249,7 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             printLog(d.hitbox.slice(0,5),o.player.hitbox.slice(5), 861);
             if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
                 d.dead = 0;
+                o.player.points += d.ess;
                 return;
             }
         }
