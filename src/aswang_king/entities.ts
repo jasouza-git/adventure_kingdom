@@ -22,7 +22,7 @@ let required_files:string[] = [
     'Asin pouch.png', 'Sword.png', 'CrossIcon.png', 'Protection2.png',
     // SFX
     'sfx/Dying.mp3', 'sfx/arrow hit.mp3', 'sfx/gameover.mp3', 'sfx/arrow shoot.mp3', 'sfx/sword attack 1.mp3', 'sfx/sword attack 2.mp3',
-    'sfx/pressure plate activated.mp3', 'sfx/blab_drop.mp3', 'sfx/asin throw (temporary) .mp3',
+    'sfx/pressure plate activated.mp3', 'sfx/blab_drop.mp3', 'sfx/asin throw (temporary) .mp3', 'sfx/Picked Up Something Good.mp3',
     // Fonts
     'arcade.ttf',
     // Aswangs sfx
@@ -928,6 +928,7 @@ let entities:entities_type = {
                 d.hitbox = [];
                 o.player.points += d.ess;
                 d.claimed = true;
+                o.play('sfx/Picked Up Something Good.mp3', true);
             }
             o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8]);
         }
