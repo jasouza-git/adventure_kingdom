@@ -1,9 +1,12 @@
 # Rise of the Aswang King
 A game for the hackathon by CPU CSS of April 2024 themed Arcade
 
-## Need list
- - [ ] Background tiles
- - [x] Game plan
+## How to play
+Run this code in the terminal
+> ```batch
+> cd {directory to repository}
+> node . aswang_king
+> ```
 
 ## Code Documentation
 <style>
