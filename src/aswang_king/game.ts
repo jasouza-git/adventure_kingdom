@@ -20,7 +20,7 @@ main.dom.style.filter = 'contrast(1.1)';
 let platforms = plts(main);
 let lv = level(main);
 let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: /*20200/*/160, y:195});
+let player = main.entity('pinoy', {x: /*20200/*/0, y:195});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
@@ -31,12 +31,14 @@ player.ondeath = () => {
         let l = platforms[i];
         for (let j = 0; j < l.length; j++) {
             if (l[j]['__type__'] == 'checkpoint') {
+                player.cur_body_t = player.body_t;
                 player.x = l[j].x;
                 player.y = l[j].y;
                 return;
             }
         }
     }
+    player.cur_body_t = player.body_t;
     player.x = 130;
     player.y = 195;
 };
@@ -111,9 +113,6 @@ main.scene('level', (t, dt) => {
     main.on('h', e => {
         if(e.init) main.hitbox_boxed = !main.hitbox_boxed;
     });
-    main.on('g', e => {
-        if(e.init) player.points += 10;
-    });
 
     // Background
     if (player.ground != -1) {
@@ -139,6 +138,9 @@ main.scene('level', (t, dt) => {
     });
     main.on('r,R,gp_3', e => {
         if (e.init) player.cur_weapon = (player.cur_weapon + 1) % player.weapons.length
+    });
+    main.on('e,E,gp_4', e => {
+        if (e.init) player.protection = !player.protection;
     });
     main.on('1', e => {
         if (e.init) player.cur_weapon = 0
@@ -167,7 +169,7 @@ main.scene('level', (t, dt) => {
     }
 
     if(main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
-        player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
+        player.m[1] = 20 * (!player.protection && player.poisoned >= 0 ? 0.75 : 1);
     } else if (main.on('s,S,ArrowDown,gp_s')) {
         player.crouch = true;
         player.m[0] = 0;

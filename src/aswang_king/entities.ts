@@ -44,7 +44,7 @@ let entities:entities_type = {
             interact:true, // Physics entities interacts
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
-            lives: [3,3],  // Lives [A,B] meaning A lives left out of B lives
+            lives: [10,10],  // Lives [A,B] meaning A lives left out of B lives
             poisoned: -1,       // Indicate the pinoy is poisoned or not
             speed_rate: 1,      // 0.0 - 1.0, indicate the speed reduce amount
             in_area_time: 0,    // Indicate the time pinoy stand in the poisonous area or touched by the poisonous plants
@@ -60,7 +60,7 @@ let entities:entities_type = {
             weapons: [      // all weapons the pinoy has. sword, asin and cross protection
                 {name: "sword", durability: 1000000, attack_range: [20, 29], asset_name: 'Sword.png',},     // no limited durability, but small range attack
                 {name: "asin", durability: 20, attack_range: [168, 29], asset_name: 'Asin pouch.png'},      // limited durability, but large range attack
-                {name: "cross", durability: 6, attack_range: [0, 0], asset_name: 'CrossIcon.png'},          // limited durability, used to block damage and poison, no damange for aswang.
+                {name: "cross", durability: 20, attack_range: [0, 0], asset_name: 'CrossIcon.png'},          // limited durability, used to block damage and poison, no damange for aswang.
             ],
         },
         update: (d, o, t, dt) => {
@@ -128,8 +128,16 @@ let entities:entities_type = {
                 let v = d.swinging * 3.4;
 
                 // Weapon swap
-                if (d.swing && s == 0 && d.cur_weapon == 1) weap.durability -= 1;
+                if (d.swing && s == 0 ) {
+                    if (d.cur_weapon == 1) {
+                        weap.durability -= 1;
+                    } else if (d.cur_weapon == 2) {
+                        console.log("YES");
+                        d.protection = !d.protection;
+                    }
+                }   
                 if (weap.durability == 0) {
+                    if (d.cur_weapon == 2) d.protection = false;
                     d.cur_weapon = (d.cur_weapon + 1) % d.weapons.length;
                     return;
                 }
@@ -178,12 +186,16 @@ let entities:entities_type = {
                     d.poisoned = 1;
                 }
                 if (d.poisoned >= 0 && d.poison_duration > 0) {
-                    if (d.weapons[2].durability > 0) {
+                    if (d.weapons[2].durability > 0 && d.protection == true) {
                         d.weapons[2].durability --;
                         d.cur_body_t = d.body_t;
                         d.poisoned = -1;
+                        d.poison_duration = 0;
+                        d.speed_rate = 1;
+                        d.in_area_time = 0;
                         if (d.weapons[2].durability == 0) {
                             d.c_shield_break_t = 1000;
+                            d.protection == false
                         }
                     } else {
                         d.poison_duration -= dt;
@@ -198,12 +210,13 @@ let entities:entities_type = {
                 }
 
                 if (d.dead == 0) {
-                    if (d.weapons[2].durability > 0) {
+                    if (d.weapons[2].durability > 0 && d.protection == true) {
                         d.weapons[2].durability --;
                         d.cur_body_t = d.body_t;
                         d.dead = -1;
                         if (d.weapons[2].durability == 0) {
                             d.c_shield_break_t = 1000;
+                            d.protection == false;
                         }
                     } else {
                         d.lives[0]--;
@@ -248,7 +261,7 @@ let entities:entities_type = {
                     // Body 
                     [0, d.crouch ? 2 : 0, 32*body[0] , 32*body[1], 32, 32, 1-d.fright]
                 );
-                o.sprites('Protection2.png', [d.x, d.y], [0, -1.5, 64 + 32 * u, 0, 32, 32]);
+                if (d.protection == true) o.sprites('Protection2.png', [d.x, d.y], [0, -1.5, 64 + 32 * u, 0, 32, 32]);
             }
             if (d.cur_weapon != 0) {
                 let duras: number[][] = [];
@@ -432,7 +445,7 @@ let entities:entities_type = {
                 }
                 //printLog(d.hitbox, o.player.hitbox, 351);
                 if (algo.rectint(d.hitbox, o.player.hitbox)) {
-                    o.player.weapons[2].durability = 0;
+                    o.player.protection = false;
                     o.player.cur_body_t = -1;
                     o.player.dead = 0;
                 }
@@ -652,10 +665,10 @@ let entities:entities_type = {
             d.follow = o.player;
             // Dead
             if (d.dead != -1) {
-                o.player.points += d.ess;
                 d.hitbox = [];
                 d.dead += (1-d.dead)*dt/30;
                 if (d.dead > 0.99) {
+                    o.player.points += d.ess;
                     d.dead = -1;
                     d.removed = true;
                     return;
