@@ -155,14 +155,14 @@ class engine {
             else delete this.evented['gp_w'];
             if (Math.abs(gp.axes[9]-0.14)<0.1) this.evented['gp_s'] =  this.evented['gp_s'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_s'];
-            if (Math.abs(gp.axes[9]+1) < 0.1) this.evented['gp_n'] = this.evented['gp_n'] == undefined ? {init:true} : {init:false};
+            if (Math.abs(gp.axes[9]+1) < 0.1)  this.evented['gp_n'] =  this.evented['gp_n'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_n'];
             if (gp.buttons[0].value == 1) this.evented['gp_1'] = this.evented['gp_1'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_1'];
             if (gp.buttons[1].value == 1) this.evented['gp_2'] = this.evented['gp_2'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_2'];
             if (gp.buttons[2].value == 1) this.evented['gp_3'] = this.evented['gp_3'] == undefined ? {init:true} : {init:false};
-            else delete this.evented['gp_4'];
+            else delete this.evented['gp_3'];
             if (gp.buttons[3].value == 1) this.evented['gp_4'] = this.evented['gp_4'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_4'];
         } else {
