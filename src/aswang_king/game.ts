@@ -3,12 +3,8 @@ import {required_files} from "./entities.ts";
 import {engine} from "../engine.ts";
 import {plts, level} from "./levels.ts";
 
-// Intro
-let v = document.createElement('video');
-v.src = 'Aswang King Final Game Story(480p).mp4';
-v.setAttribute('autoplay','true');
-v.setAttribute('style', 'position:fixed;left:0;top:0;width:100%;height:100%;z-index:2');
-document.body.appendChild(v);
+// Video element (created on demand)
+let v:HTMLVideoElement|null = null;
 
 // Media
 let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/1st Temp BG Song (New Area).mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
@@ -43,16 +39,157 @@ player.ondeath = () => {
     player.y = 195;
 };
 
-// Intro Scene
+// === Main Menu Scene ===
+let menu_sel = 0;           // 0=START GAME, 1=CONTROLS, 2=CREDITS
+let menu_sub = -1;          // -1=main menu, 0=controls screen, 1=credits screen
+let menu_cooldown = 0;      // input cooldown to prevent rapid navigation
+let menu_items = ['START GAME', 'CONTROLS', 'CREDITS'];
+
+main.scene('main_menu', (t, dt) => {
+    menu_cooldown -= dt;
+
+    // === Draw animated sky background ===
+    let g = main.btx.createLinearGradient(0, 0, 0, main.h);
+    g.addColorStop(0, 'rgb(0,140,240)');
+    g.addColorStop(1, 'rgb(82,215,255)');
+    main.btx.fillStyle = g;
+    main.btx.fillRect(0, 0, main.w, main.h);
+
+    // Clouds decoration
+    main.sprites('Cloudsv1 (1).png', [],
+        [Math.floor(t/80) % main.w, 16, 4, 20, 16, 16, 0, 0, 0, 0, 0, 0],
+        [(Math.floor(t/80) + 120) % main.w, 8, 20, 4, 16, 16, 0, 0, 0, 0, 0, 0],
+        [(Math.floor(t/80) + 220) % main.w, 20, 36, 20, 16, 16, 0, 0, 0, 0, 0, 0]
+    );
+
+    // === Sub-screens ===
+    if (menu_sub == 0) {
+        // Controls screen
+        main.sprites('Controls.png', [], [0, 0, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
+        main.btx.font = '8px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.textBaseline = 'bottom';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('PRESS ENTER TO GO BACK', main.w / 2, main.h - 8);
+        main.on('Enter', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        return;
+    }
+    if (menu_sub == 1) {
+        // Credits screen
+        main.btx.fillStyle = '#000';
+        main.btx.fillRect(0, 0, main.w, main.h);
+        main.sprites('credits.png', [], [0, 20, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
+        main.btx.font = '8px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.textBaseline = 'bottom';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('PRESS ENTER TO GO BACK', main.w / 2, main.h - 8);
+        main.on('Enter', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        return;
+    }
+
+    // === Title logo ===
+    main.sprites('Rise_of_the_Aswang_King.png', [0, 0],
+        [32, 20, 0, 0, 256, 144, 0, 0, 0, 0, 0, 0]
+    );
+
+    // === Menu board (using Menu.png frame) ===
+    // Board background
+    let boardX = 80, boardY = 110, boardW = 160, boardH = 100;
+    main.btx.fillStyle = 'rgba(139, 105, 20, 0.85)';
+    main.btx.fillRect(boardX, boardY, boardW, boardH);
+    // Board border
+    main.btx.strokeStyle = '#5C3A0A';
+    main.btx.lineWidth = 2;
+    main.btx.strokeRect(boardX, boardY, boardW, boardH);
+    // Inner border highlight
+    main.btx.strokeStyle = '#D4A830';
+    main.btx.lineWidth = 1;
+    main.btx.strokeRect(boardX + 3, boardY + 3, boardW - 6, boardH - 6);
+
+    // === Menu items ===
+    for (let i = 0; i < menu_items.length; i++) {
+        let itemY = boardY + 22 + i * 26;
+        let selected = (i == menu_sel);
+
+        // Highlight bar for selected item
+        if (selected) {
+            main.btx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+            main.btx.fillRect(boardX + 8, itemY - 4, boardW - 16, 18);
+        }
+
+        // Blinking cursor
+        if (selected && Math.floor(t / 400) % 2 == 0) {
+            main.btx.font = '10px arcade';
+            main.btx.fillStyle = '#FFD700';
+            main.btx.textAlign = 'right';
+            main.btx.textBaseline = 'top';
+            main.btx.fillText('>', boardX + 22, itemY);
+        }
+
+        // Item text
+        main.btx.font = '10px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.textBaseline = 'top';
+        main.btx.fillStyle = selected ? '#FFFFFF' : '#C8A840';
+        main.btx.fillText(menu_items[i], main.w / 2, itemY);
+    }
+
+    // === Footer hint ===
+    main.btx.font = '5px arcade';
+    main.btx.textAlign = 'center';
+    main.btx.textBaseline = 'bottom';
+    main.btx.fillStyle = '#888';
+    main.btx.fillText('USE W/S OR ARROWS TO NAVIGATE  -  ENTER TO SELECT', main.w / 2, main.h - 4);
+
+    // === Navigation input ===
+    main.on('w,W,ArrowUp', e => {
+        if (e.init && menu_cooldown <= 0) {
+            menu_sel = (menu_sel - 1 + menu_items.length) % menu_items.length;
+            menu_cooldown = 150;
+        }
+    });
+    main.on('s,S,ArrowDown', e => {
+        if (e.init && menu_cooldown <= 0) {
+            menu_sel = (menu_sel + 1) % menu_items.length;
+            menu_cooldown = 150;
+        }
+    });
+    main.on('Enter', e => {
+        if (e.init && menu_cooldown <= 0) {
+            menu_cooldown = 300;
+            if (menu_sel == 0) {
+                // START GAME -> play intro video
+                main.scene('into');
+            } else if (menu_sel == 1) {
+                menu_sub = 0; // Controls
+            } else if (menu_sel == 2) {
+                menu_sub = 1; // Credits
+            }
+        }
+    });
+});
+
+// === Intro Scene ===
 let load_level = ()=>{
-    document.body.removeChild(v);
+    if (v && v.parentNode) document.body.removeChild(v);
     main.scene('level');
 };
 main.scene('into', (t,dt) => {
-    v.play();
-    main.on('Enter', load_level);
+    if (!v) {
+        v = document.createElement('video');
+        v.src = 'Aswang King Final Game Story(480p).mp4';
+        v.setAttribute('style', 'position:fixed;left:0;top:0;width:100%;height:100%;z-index:2');
+        document.body.appendChild(v);
+        v.play();
+        v.addEventListener('ended', load_level);
+    }
+    main.on('Enter', e => {
+        if (e.init) load_level();
+    });
 });
-v.addEventListener('ended', load_level);
 
 // Level Scene
 main.scene('level', (t, dt) => {

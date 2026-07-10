@@ -3,7 +3,7 @@ import { algo } from "../algorithms";
 
 let required_files:string[] = [
     // Menu
-    'Rise_of_the_Aswang_King.png',
+    'Rise_of_the_Aswang_King.png', 'Menu.png', 'Controls.png', 'credits.png', 'Icon Box.png',
     // Background
     'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png', 'Game Over.png',
     // Platforms
@@ -263,16 +263,38 @@ let entities:entities_type = {
                 );
                 if (d.protection == true) o.sprites('Protection2.png', [d.x, d.y], [0, -1.5, 64 + 32 * u, 0, 32, 32]);
             }
-            if (d.cur_weapon != 0) {
-                let duras: number[][] = [];
-                let cx = 1;
-                for (let i = 0; i < weap.durability; i ++) {
-                    duras.push([cx, 20, 68, 67, 9, 9, 0, 0, 0, 0, 0, 0])
-                    if (cx > 320) break;
-                    cx += 11;
+            // === Weapon HUD ===
+            {
+                let hx = 4, hy = o.h - 28; // bottom-left position
+                // Icon box background
+                o.sprites('Icon Box.png', [], [hx, hy, 0, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+                // Weapon icon inside the box
+                o.sprites(weap.asset_name, [], [hx, hy, 0, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+
+                // Weapon name label
+                let weapNames = ['SWORD', 'ASIN', 'CROSS'];
+                o.btx.font = '5px arcade';
+                o.btx.textAlign = 'left';
+                o.btx.textBaseline = 'top';
+                o.btx.fillStyle = '#FFD700';
+                o.btx.fillText(weapNames[d.cur_weapon], hx + 18, hy);
+
+                // Durability text
+                let durText = d.cur_weapon == 0 ? '\u221E' : String(weap.durability) + '/' + String(d.weapons[d.cur_weapon == 1 ? 1 : 2].durability <= weap.durability ? weap.durability : '20');
+                if (d.cur_weapon == 0) durText = '\u221E';
+                else durText = String(weap.durability);
+                let lowDura = d.cur_weapon != 0 && weap.durability <= 5;
+                o.btx.fillStyle = lowDura ? (Math.floor(t / 200) % 2 == 0 ? '#FF3333' : '#FF9933') : '#FFFFFF';
+                o.btx.font = '6px arcade';
+                o.btx.fillText(durText, hx + 18, hy + 8);
+
+                // Shield status for cross weapon
+                if (d.cur_weapon == 2) {
+                    let shieldOn = d.protection == true;
+                    o.btx.fillStyle = shieldOn ? '#33FF33' : '#FF3333';
+                    o.btx.font = '5px arcade';
+                    o.btx.fillText(shieldOn ? 'ON' : 'OFF', hx + 42, hy + 8);
                 }
-                o.sprites(weap.asset_name, [], [10, 214, 0, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
-                o.sprites('Lagablab, bubble and random vegetation.png', [0, 0], ...duras);
             }
             if (d.poisoned == 0 || d.poisoned == 1) o.sprites('Lagablab, bubble and random vegetation.png', [d.x + 6, d.y + 10], d.poisoned == 0 ? [0, 0, 37, 13, 21, 17] : [0, 0, 69, 13, 21, 17])
             
@@ -1256,6 +1278,57 @@ let entities:entities_type = {
                 [d.handStatus == 1 ? 37 : 37, d.handStatus ? 12 : 12 + d.fre * 2, d.rightHandOrigins[d.status][d.handStatus][0], d.rightHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? -(8 * 180 / Math.PI) : (0.4 + d.fre * 0.2), 0, d.handSize[d.handStatus][1]],
                 [d.handStatus == 1 ? 33 : 33, d.handStatus ? 25 : 25 + d.fre * 2, d.rightHandOrigins[d.status][d.handStatus][0], d.rightHandOrigins[d.status][d.handStatus][1], d.handSize[d.handStatus][0], d.handSize[d.handStatus][1], 0, 0, (d.handStatus == 1) ? -(8 * 180 / Math.PI) : (0.4 + d.fre * 0.2), 0, d.handSize[d.handStatus][1]],
             )
+
+            // === Boss Health Bar HUD ===
+            if (o.player && Math.hypot(o.player.x - d.x, o.player.y - d.y) < 300 && d.dead != 0) {
+                let barW = 200, barH = 8;
+                let barX = (o.w - barW) / 2;
+                let barY = 22;
+                let hpRatio = Math.max(0, d.lives[1] / d.lives[0]);
+                let dyingAlpha = d.dying ? Math.max(0, d.cur_dying_t / d.dying_t) : 1;
+
+                o.btx.globalAlpha = dyingAlpha;
+
+                // Boss name label
+                o.btx.font = '6px arcade';
+                o.btx.textAlign = 'center';
+                o.btx.textBaseline = 'bottom';
+                o.btx.fillStyle = '#FFFFFF';
+                o.btx.fillText('ASWANG KING', o.w / 2, barY - 2);
+
+                // Bar border (dark gold)
+                o.btx.fillStyle = '#8B6914';
+                o.btx.fillRect(barX - 2, barY - 1, barW + 4, barH + 2);
+
+                // Bar background (dark)
+                o.btx.fillStyle = '#1A0A0A';
+                o.btx.fillRect(barX, barY, barW, barH);
+
+                // Health fill
+                let enraged = hpRatio <= 0.25;
+                if (enraged) {
+                    // Pulsing red-orange when enraged
+                    let pulse = Math.sin(t / 150) * 0.5 + 0.5;
+                    let r = Math.floor(204 + pulse * 51);
+                    let g = Math.floor(pulse * 80);
+                    o.btx.fillStyle = 'rgb(' + r + ',' + g + ',0)';
+                } else {
+                    o.btx.fillStyle = '#CC0000';
+                }
+                o.btx.fillRect(barX, barY, Math.floor(barW * hpRatio), barH);
+
+                // Tick marks at 25%, 50%, 75%
+                o.btx.fillStyle = 'rgba(0,0,0,0.4)';
+                for (let q = 1; q <= 3; q++) {
+                    o.btx.fillRect(barX + Math.floor(barW * q / 4) - 1, barY, 1, barH);
+                }
+
+                // Inner highlight
+                o.btx.fillStyle = 'rgba(255,255,255,0.15)';
+                o.btx.fillRect(barX, barY, Math.floor(barW * hpRatio), 2);
+
+                o.btx.globalAlpha = 1;
+            }
         }
     },
 };
