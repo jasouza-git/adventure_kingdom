@@ -118,6 +118,18 @@ function drawControlsScreen(btx:any, w:number, h:number, t:number) {
     if (blink) btx.fillText('PRESS ENTER OR ESC TO GO BACK', w / 2, h - 12);
 }
 
+// Helper: draw a thick multi-piece pixel-art cloud (matching the in-game style)
+function drawThickCloud(btx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number) {
+    // Left bottom slice (4, 20)
+    btx.drawImage(img, 4, 20, 16, 16, Math.floor(x), Math.floor(y + 16), 16, 16);
+    // Middle bottom slice (20, 20)
+    btx.drawImage(img, 20, 20, 16, 16, Math.floor(x + 16), Math.floor(y + 16), 16, 16);
+    // Right bottom slice (40, 20)
+    btx.drawImage(img, 40, 20, 16, 16, Math.floor(x + 32), Math.floor(y + 16), 16, 16);
+    // Top middle slice (20, 4)
+    btx.drawImage(img, 20, 4, 16, 16, Math.floor(x + 16), Math.floor(y), 16, 16);
+}
+
 main.scene('main_menu', (t, dt) => {
     menu_cooldown -= dt;
 
@@ -128,22 +140,20 @@ main.scene('main_menu', (t, dt) => {
     main.btx.fillStyle = g;
     main.btx.fillRect(0, 0, main.w, main.h);
 
-    // Clouds - smooth scrolling with parallax (using correct sprite regions)
-    // Cloud layer 1 (back, slow) - large cloud from top-left of spritesheet
-    let c1x = ((t / 40) % (main.w + 48)) - 48;
-    main.btx.drawImage(main.loaded['Cloudsv1 (1).png'] as HTMLImageElement,
-        0, 0, 48, 24,  // source: large cloud from top-left
-        Math.floor(c1x), 12, 48, 24);
-    // Cloud layer 2 (mid, medium speed)
-    let c2x = ((t / 30) % (main.w + 32)) - 32;
-    main.btx.drawImage(main.loaded['Cloudsv1 (1).png'] as HTMLImageElement,
-        56, 0, 32, 20,  // source: medium cloud
-        Math.floor(c2x + 180) % (main.w + 32) - 16, 6, 32, 20);
-    // Cloud layer 3 (front, faster)
-    let c3x = ((t / 25) % (main.w + 40)) - 40;
-    main.btx.drawImage(main.loaded['Cloudsv1 (1).png'] as HTMLImageElement,
-        0, 32, 56, 28,  // source: big detailed cloud from second row
-        Math.floor(c3x + 90) % (main.w + 40) - 20, 18, 56, 28);
+    // Clouds - smooth scrolling with parallax using in-game thick clouds
+    let cloudImg = main.loaded['Cloudsv1 (1).png'] as HTMLImageElement;
+
+    // Cloud layer 1 (back, slow) - small height, slow speed
+    let c1x = ((t / 50) % (main.w + 48)) - 48;
+    drawThickCloud(main.btx, cloudImg, c1x, 8);
+
+    // Cloud layer 2 (mid, medium speed) - offset start, medium height/speed
+    let c2x = (((t / 35) + 160) % (main.w + 48)) - 48;
+    drawThickCloud(main.btx, cloudImg, c2x, 22);
+
+    // Cloud layer 3 (front, faster) - offset start, lower height, faster speed
+    let c3x = (((t / 25) + 80) % (main.w + 48)) - 48;
+    drawThickCloud(main.btx, cloudImg, c3x, 40);
 
     // === Sub-screens ===
     if (menu_sub == 0) {
