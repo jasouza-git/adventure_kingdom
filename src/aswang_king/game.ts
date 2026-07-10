@@ -529,3 +529,136 @@ main.filter = d => {
     }
     return d;
 }
+
+// === Mobile Controls Overlay ===
+const mobileStyle = document.createElement('style');
+mobileStyle.innerHTML = `
+    #mobile-controls-container {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .mobile-btn {
+        position: absolute;
+        width: 46px;
+        height: 46px;
+        background: rgba(26, 10, 10, 0.4);
+        border: 2px solid #8B6914;
+        border-radius: 50%;
+        color: #FFFFFF;
+        font-family: 'arcade', monospace;
+        font-size: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+        box-shadow: 0 0 8px rgba(0,0,0,0.5), inset 0 0 4px rgba(212, 168, 48, 0.2);
+        transition: background 0.1s, border-color 0.1s, transform 0.05s;
+        touch-action: none;
+    }
+    .mobile-btn:active {
+        background: rgba(212, 168, 48, 0.7);
+        border-color: #FFD700;
+        box-shadow: 0 0 12px #FFD700, inset 0 0 4px rgba(255, 255, 255, 0.5);
+        transform: scale(0.95);
+    }
+    
+    /* D-PAD (Left Side) */
+    #btn-left { left: 15px; bottom: 55px; }
+    #btn-right { left: 85px; bottom: 55px; }
+    #btn-up { left: 50px; bottom: 95px; }
+    #btn-down { left: 50px; bottom: 15px; }
+    
+    /* Actions (Right Side) */
+    #btn-jump { right: 15px; bottom: 55px; width: 50px; height: 50px; font-size: 10px; font-weight: bold; border-color: #FFD700; }
+    #btn-attack { right: 75px; bottom: 55px; }
+    #btn-swap { right: 75px; bottom: 110px; width: 40px; height: 40px; }
+    #btn-shield { right: 20px; bottom: 115px; width: 40px; height: 40px; }
+    
+    /* Utilities (Top Side) */
+    #btn-pause { right: 15px; top: 15px; width: 56px; height: 26px; border-radius: 4px; font-size: 8px; }
+    #btn-enter { left: 50%; transform: translateX(-50%); top: 15px; width: 70px; height: 26px; border-radius: 4px; font-size: 8px; }
+`;
+document.head.appendChild(mobileStyle);
+
+const mobileContainer = document.createElement('div');
+mobileContainer.id = 'mobile-controls-container';
+mobileContainer.innerHTML = `
+    <!-- D-PAD -->
+    <div id="btn-up" class="mobile-btn">UP</div>
+    <div id="btn-left" class="mobile-btn">LEFT</div>
+    <div id="btn-right" class="mobile-btn">RIGHT</div>
+    <div id="btn-down" class="mobile-btn">DOWN</div>
+
+    <!-- Action Buttons -->
+    <div id="btn-jump" class="mobile-btn">JUMP</div>
+    <div id="btn-attack" class="mobile-btn">ATK</div>
+    <div id="btn-swap" class="mobile-btn">SWAP</div>
+    <div id="btn-shield" class="mobile-btn">SHLD</div>
+
+    <!-- Utility Buttons -->
+    <div id="btn-pause" class="mobile-btn">PAUSE</div>
+    <div id="btn-enter" class="mobile-btn">SELECT</div>
+`;
+document.body.appendChild(mobileContainer);
+
+// Map virtual button IDs to game keys checked by engine.on()
+const mobileKeyMap: { [id: string]: string } = {
+    'btn-up': 'ArrowUp',
+    'btn-down': 'ArrowDown',
+    'btn-left': 'ArrowLeft',
+    'btn-right': 'ArrowRight',
+    'btn-jump': ' ',
+    'btn-attack': 'j',
+    'btn-swap': 'r',
+    'btn-shield': 'e',
+    'btn-pause': 'Escape',
+    'btn-enter': 'Enter'
+};
+
+function setupMobileButton(id: string, key: string) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    
+    const press = (e: Event) => {
+        e.preventDefault();
+        if (!main.evented[key]) {
+            main.evented[key] = { init: true };
+        }
+    };
+    
+    const release = (e: Event) => {
+        e.preventDefault();
+        delete main.evented[key];
+    };
+    
+    btn.addEventListener('touchstart', press, { passive: false });
+    btn.addEventListener('touchend', release, { passive: false });
+    btn.addEventListener('touchcancel', release, { passive: false });
+    
+    // Fallback mouse events for emulation/testing
+    btn.addEventListener('mousedown', press);
+    btn.addEventListener('mouseup', release);
+    btn.addEventListener('mouseleave', release);
+}
+
+Object.keys(mobileKeyMap).forEach(id => setupMobileButton(id, mobileKeyMap[id]));
+
+// Check touch support on load or show on first touch
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    const cnt = document.getElementById('mobile-controls-container');
+    if (cnt) cnt.style.display = 'block';
+} else {
+    window.addEventListener('touchstart', function onFirstTouch() {
+        const cnt = document.getElementById('mobile-controls-container');
+        if (cnt) cnt.style.display = 'block';
+        window.removeEventListener('touchstart', onFirstTouch);
+    }, { passive: true });
+}
