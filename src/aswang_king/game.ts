@@ -45,6 +45,79 @@ let menu_sub = -1;          // -1=main menu, 0=controls screen, 1=credits screen
 let menu_cooldown = 0;      // input cooldown to prevent rapid navigation
 let menu_items = ['START GAME', 'CONTROLS', 'CREDITS'];
 
+// === Pause State ===
+let paused = false;
+let pause_sel = 0;          // 0=RESUME, 1=CONTROLS, 2=MAIN MENU
+let pause_cooldown = 0;
+let pause_sub = -1;         // -1=pause menu, 0=controls screen
+let pause_items = ['RESUME', 'CONTROLS', 'MAIN MENU'];
+
+// Helper: draw readable controls screen on the canvas
+function drawControlsScreen(btx:any, w:number, h:number, t:number) {
+    // Dark background
+    btx.fillStyle = '#0A0A2A';
+    btx.fillRect(0, 0, w, h);
+
+    // Title
+    btx.font = '12px arcade';
+    btx.textAlign = 'center';
+    btx.textBaseline = 'top';
+    btx.fillStyle = '#FFD700';
+    btx.fillText('CONTROLS', w / 2, 10);
+
+    // Separator line
+    btx.fillStyle = '#8B6914';
+    btx.fillRect(40, 28, w - 80, 2);
+
+    // Controls list
+    let controls = [
+        ['MOVEMENT',    ''],
+        ['  WALK',      'A / D  or  LEFT / RIGHT'],
+        ['  JUMP',      'SPACE  or  UP'],
+        ['  CROUCH',    'S  or  DOWN'],
+        ['  CLIMB',     'W / S  on vines'],
+        ['',            ''],
+        ['COMBAT',      ''],
+        ['  ATTACK',    'J'],
+        ['  SWAP WEAPON', 'R  or  1 / 2 / 3'],
+        ['  SHIELD',    'E  (toggle on/off)'],
+        ['',            ''],
+        ['CAMERA',      'U / I / O'],
+        ['PAUSE',       'ESC  or  P'],
+    ];
+
+    let startY = 36;
+    for (let i = 0; i < controls.length; i++) {
+        let y = startY + i * 14;
+        let entry = controls[i];
+        if (entry[1] == '' && entry[0] != '') {
+            // Section header
+            btx.font = '7px arcade';
+            btx.fillStyle = '#FFD700';
+            btx.textAlign = 'left';
+            btx.fillText(entry[0], 20, y);
+        } else if (entry[0] != '') {
+            // Action name
+            btx.font = '6px arcade';
+            btx.fillStyle = '#CCCCCC';
+            btx.textAlign = 'left';
+            btx.fillText(entry[0], 20, y);
+            // Key binding
+            btx.fillStyle = '#66CCFF';
+            btx.textAlign = 'right';
+            btx.fillText(entry[1], w - 20, y);
+        }
+    }
+
+    // Footer
+    btx.font = '6px arcade';
+    btx.textAlign = 'center';
+    btx.textBaseline = 'bottom';
+    btx.fillStyle = '#FFD700';
+    let blink = Math.floor(t / 500) % 2 == 0;
+    if (blink) btx.fillText('PRESS ENTER OR ESC TO GO BACK', w / 2, h - 6);
+}
+
 main.scene('main_menu', (t, dt) => {
     menu_cooldown -= dt;
 
@@ -64,13 +137,8 @@ main.scene('main_menu', (t, dt) => {
 
     // === Sub-screens ===
     if (menu_sub == 0) {
-        // Controls screen
-        main.sprites('Controls.png', [], [0, 0, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
-        main.btx.font = '8px arcade';
-        main.btx.textAlign = 'center';
-        main.btx.textBaseline = 'bottom';
-        main.btx.fillStyle = '#FFD700';
-        main.btx.fillText('PRESS ENTER TO GO BACK', main.w / 2, main.h - 8);
+        // Controls screen (text-based, readable)
+        drawControlsScreen(main.btx, main.w, main.h, t);
         main.on('Enter', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
@@ -195,7 +263,106 @@ main.scene('into', (t,dt) => {
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
 
-    // Dead glitch filter
+    // === Pause toggle ===
+    main.on('Escape', e => {
+        if (e.init) {
+            if (pause_sub == 0) { pause_sub = -1; pause_cooldown = 300; }
+            else { paused = !paused; pause_sel = 0; pause_sub = -1; pause_cooldown = 300; }
+        }
+    });
+    main.on('p,P', e => {
+        if (e.init && pause_sub == -1) { paused = !paused; pause_sel = 0; pause_sub = -1; pause_cooldown = 300; }
+    });
+
+    // === Pause Menu ===
+    if (paused) {
+        pause_cooldown -= dt;
+
+        // Controls sub-screen within pause
+        if (pause_sub == 0) {
+            drawControlsScreen(main.btx, main.w, main.h, t);
+            main.on('Enter', e => { if (e.init) { pause_sub = -1; pause_cooldown = 300; } });
+            return;
+        }
+
+        // Dim overlay
+        main.btx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        main.btx.fillRect(0, 0, main.w, main.h);
+
+        // Pause title
+        main.btx.font = '14px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.textBaseline = 'top';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('PAUSED', main.w / 2, 60);
+
+        // Pause menu board
+        let pBoardX = 90, pBoardY = 85, pBoardW = 140, pBoardH = 100;
+        main.btx.fillStyle = 'rgba(139, 105, 20, 0.85)';
+        main.btx.fillRect(pBoardX, pBoardY, pBoardW, pBoardH);
+        main.btx.strokeStyle = '#5C3A0A';
+        main.btx.lineWidth = 2;
+        main.btx.strokeRect(pBoardX, pBoardY, pBoardW, pBoardH);
+        main.btx.strokeStyle = '#D4A830';
+        main.btx.lineWidth = 1;
+        main.btx.strokeRect(pBoardX + 3, pBoardY + 3, pBoardW - 6, pBoardH - 6);
+
+        // Pause menu items
+        for (let i = 0; i < pause_items.length; i++) {
+            let itemY = pBoardY + 18 + i * 26;
+            let selected = (i == pause_sel);
+
+            if (selected) {
+                main.btx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+                main.btx.fillRect(pBoardX + 6, itemY - 4, pBoardW - 12, 18);
+            }
+            if (selected && Math.floor(t / 400) % 2 == 0) {
+                main.btx.font = '9px arcade';
+                main.btx.fillStyle = '#FFD700';
+                main.btx.textAlign = 'right';
+                main.btx.textBaseline = 'top';
+                main.btx.fillText('>', pBoardX + 18, itemY);
+            }
+            main.btx.font = '9px arcade';
+            main.btx.textAlign = 'center';
+            main.btx.textBaseline = 'top';
+            main.btx.fillStyle = selected ? '#FFFFFF' : '#C8A840';
+            main.btx.fillText(pause_items[i], main.w / 2, itemY);
+        }
+
+        // Navigation
+        main.on('w,W,ArrowUp', e => {
+            if (e.init && pause_cooldown <= 0) {
+                pause_sel = (pause_sel - 1 + pause_items.length) % pause_items.length;
+                pause_cooldown = 150;
+            }
+        });
+        main.on('s,S,ArrowDown', e => {
+            if (e.init && pause_cooldown <= 0) {
+                pause_sel = (pause_sel + 1) % pause_items.length;
+                pause_cooldown = 150;
+            }
+        });
+        main.on('Enter', e => {
+            if (e.init && pause_cooldown <= 0) {
+                pause_cooldown = 300;
+                if (pause_sel == 0) {
+                    // RESUME
+                    paused = false;
+                } else if (pause_sel == 1) {
+                    // CONTROLS
+                    pause_sub = 0;
+                } else if (pause_sel == 2) {
+                    // MAIN MENU
+                    paused = false;
+                    menu_sel = 0;
+                    menu_sub = -1;
+                    main.scene('main_menu');
+                }
+            }
+        });
+        return;
+    }
     off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
 
     if (player.lives[0] < 0) {
