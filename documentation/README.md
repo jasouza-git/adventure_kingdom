@@ -10,6 +10,7 @@ We have implemented four primary gameplay and visual enhancements inside the cus
 2. **[Aswang King Boss Health Bar](boss_health_bar.md)**: An arcade-inspired health HUD element for the final boss encounter that displays remaining lives and triggers a pulsing enraged state when health is low.
 3. **[Weapon Selection & Durability HUD](weapon_hud.md)**: An active weapon display slot showing item icons, names, exact durabilities, and green/red toggle indicators for cross shield protection.
 4. **[Pause Menu & Readable Controls Screen](pause_menu.md)**: An in-game pause screen (ESC/P keys) to halt actions, alongside a high-legibility text-based key bindings screen.
+5. **[Mobile Touch Controls Overlay](mobile_controls.md)**: Translucent, gold-bordered virtual D-pad and action button cluster that binds to game input loops for mobile device play.
 
 ---
 
