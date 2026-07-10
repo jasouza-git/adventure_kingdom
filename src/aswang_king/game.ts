@@ -115,7 +115,7 @@ function drawControlsScreen(btx:any, w:number, h:number, t:number) {
     btx.textBaseline = 'bottom';
     btx.fillStyle = '#FFD700';
     let blink = Math.floor(t / 500) % 2 == 0;
-    if (blink) btx.fillText('PRESS ENTER OR ESC TO GO BACK', w / 2, h - 6);
+    if (blink) btx.fillText('PRESS ENTER OR ESC TO GO BACK', w / 2, h - 12);
 }
 
 main.scene('main_menu', (t, dt) => {
@@ -128,12 +128,22 @@ main.scene('main_menu', (t, dt) => {
     main.btx.fillStyle = g;
     main.btx.fillRect(0, 0, main.w, main.h);
 
-    // Clouds decoration
-    main.sprites('Cloudsv1 (1).png', [],
-        [Math.floor(t/80) % main.w, 16, 4, 20, 16, 16, 0, 0, 0, 0, 0, 0],
-        [(Math.floor(t/80) + 120) % main.w, 8, 20, 4, 16, 16, 0, 0, 0, 0, 0, 0],
-        [(Math.floor(t/80) + 220) % main.w, 20, 36, 20, 16, 16, 0, 0, 0, 0, 0, 0]
-    );
+    // Clouds - smooth scrolling with parallax (using correct sprite regions)
+    // Cloud layer 1 (back, slow) - large cloud from top-left of spritesheet
+    let c1x = ((t / 40) % (main.w + 48)) - 48;
+    main.btx.drawImage(main.loaded['Cloudsv1 (1).png'] as HTMLImageElement,
+        0, 0, 48, 24,  // source: large cloud from top-left
+        Math.floor(c1x), 12, 48, 24);
+    // Cloud layer 2 (mid, medium speed)
+    let c2x = ((t / 30) % (main.w + 32)) - 32;
+    main.btx.drawImage(main.loaded['Cloudsv1 (1).png'] as HTMLImageElement,
+        56, 0, 32, 20,  // source: medium cloud
+        Math.floor(c2x + 180) % (main.w + 32) - 16, 6, 32, 20);
+    // Cloud layer 3 (front, faster)
+    let c3x = ((t / 25) % (main.w + 40)) - 40;
+    main.btx.drawImage(main.loaded['Cloudsv1 (1).png'] as HTMLImageElement,
+        0, 32, 56, 28,  // source: big detailed cloud from second row
+        Math.floor(c3x + 90) % (main.w + 40) - 20, 18, 56, 28);
 
     // === Sub-screens ===
     if (menu_sub == 0) {
@@ -158,10 +168,13 @@ main.scene('main_menu', (t, dt) => {
         return;
     }
 
-    // === Title logo ===
-    main.sprites('Rise_of_the_Aswang_King.png', [0, 0],
-        [32, 20, 0, 0, 256, 144, 0, 0, 0, 0, 0, 0]
-    );
+    // === Title logo (scaled down to match pixel density) ===
+    // Original is 256x144, scale to ~154x86 (0.6x) for better pixel consistency
+    let logoW = 154, logoH = 86;
+    let logoX = (main.w - logoW) / 2;
+    main.btx.drawImage(main.loaded['Rise_of_the_Aswang_King.png'] as HTMLImageElement,
+        0, 0, 256, 144,  // source: full image
+        Math.floor(logoX), 12, logoW, logoH);
 
     // === Menu board (using Menu.png frame) ===
     // Board background
@@ -209,8 +222,8 @@ main.scene('main_menu', (t, dt) => {
     main.btx.font = '5px arcade';
     main.btx.textAlign = 'center';
     main.btx.textBaseline = 'bottom';
-    main.btx.fillStyle = '#888';
-    main.btx.fillText('USE W/S OR ARROWS TO NAVIGATE  -  ENTER TO SELECT', main.w / 2, main.h - 4);
+    main.btx.fillStyle = '#FFFFFF';
+    main.btx.fillText('USE W/S OR ARROWS TO NAVIGATE  -  ENTER TO SELECT', main.w / 2, main.h - 10);
 
     // === Navigation input ===
     main.on('w,W,ArrowUp', e => {
