@@ -1452,6 +1452,7 @@ let entities:entities_type = {
         update: (d, o, t, dt) => {
             if (d.gone) return;
             
+            let f = Math.floor(t / 200) % 3;
             // Fade-out animation after dialogue
             if (d.fadeTimer >= 0) {
                 d.fadeTimer -= dt;
@@ -1463,7 +1464,7 @@ let entities:entities_type = {
                 }
                 o.btx.save();
                 o.btx.globalAlpha = alpha;
-                o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 0, 0, 32, 64]);
+                o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 32 * f, 0, 32, 64]);
                 o.btx.restore();
                 return;
             }
@@ -1497,7 +1498,7 @@ let entities:entities_type = {
                 });
             }
             
-            o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 0, 0, 32, 64]);
+            o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 32 * f, 0, 32, 64]);
         }
     },
     wandering_hunter: {
@@ -1533,7 +1534,7 @@ let entities:entities_type = {
             }
             
             let f = Math.floor(t / 400) % 2;
-            o.sprites('Wandering Monster Hunter2.png', [d.x, d.y], [32 * f, 0, 0, 0, 32, 32]);
+            o.sprites('Wandering Monster Hunter2.png', [d.x, d.y], [0, 0, 32 * f, 0, 32, 32]);
         }
     },
     priest: {
@@ -1552,10 +1553,9 @@ let entities:entities_type = {
                 o.on('Enter', e => {
                     if (e.init && active_dialogue === null && active_shop === null) {
                         active_dialogue = [
-                            { speaker: "PRIEST", text: "May the light protect you, child. The Aswang King lies just ahead." },
-                            { speaker: "PRIEST", text: "He rules all shape-shifters, ghouls, and dark spirits in this land." },
-                            { speaker: "PINOY", text: "I am ready. The Aswang King must be stopped." },
-                            { speaker: "PRIEST", text: "Bless your weapons with Agua Bendita. Only holy power can shield you." }
+                            { speaker: "PRIEST", text: "My child, the Aswang King has corrupted this sacred ground." },
+                            { speaker: "PRIEST", text: "Take this Holy Cross shield to protect yourself from his dark curses!" },
+                            { speaker: "PINOY", text: "Thank you, Father. I will end his terror." }
                         ];
                         dialogue_index = 0;
                         dialogue_cooldown = 300;
@@ -1568,7 +1568,7 @@ let entities:entities_type = {
             }
             
             let f = Math.floor(t / 200) % 13;
-            o.sprites('Priestv2.png', [d.x, d.y, 0.5, 0.5], [64 * f, 0, 0, 0, 64, 128]);
+            o.sprites('Priestv2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 128]);
         }
     },
     albularyo: {
@@ -1601,7 +1601,8 @@ let entities:entities_type = {
                 });
             }
             
-            o.sprites('Albularyov2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 128]);
+            let f = Math.floor(t / 200) % 13;
+            o.sprites('Albularyov2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 128]);
         }
     },
     mc_partner: {
