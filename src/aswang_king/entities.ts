@@ -1593,8 +1593,7 @@ let entities:entities_type = {
                 });
             }
             
-            let f = Math.floor(t / 200) % 13;
-            o.sprites('Albularyov2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 64]);
+            o.sprites('Albularyov2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 64]);
         }
     },
     mc_partner: {
