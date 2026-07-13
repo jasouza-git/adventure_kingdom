@@ -718,11 +718,11 @@ main.scene('level', (t, dt) => {
         main.btx.save();
         
         // Dim screen background slightly
-        main.btx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        main.btx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         main.btx.fillRect(0, 0, main.w, main.h);
         
         // Shop board
-        let sBoardX = 60, sBoardY = 50, sBoardW = 200, sBoardH = 120;
+        let sBoardX = 40, sBoardY = 50, sBoardW = 240, sBoardH = 140;
         main.btx.fillStyle = 'rgba(20, 15, 10, 0.95)';
         main.btx.fillRect(sBoardX, sBoardY, sBoardW, sBoardH);
         main.btx.strokeStyle = '#8B6914';
@@ -743,33 +743,86 @@ main.scene('level', (t, dt) => {
         main.btx.fillStyle = '#FFFFFF';
         main.btx.fillText('YOUR ESSENCE: ' + player.points, main.w / 2, sBoardY + 24);
         
+        // Split Layout: Left Menu, Right Preview
+        let menuX = sBoardX + 12;
+        let previewCenterX = sBoardX + 175;
+        
         let shop_items = [
-            'AGUA BENDITA (CROSS SHIELD) - 75 ESS',
-            'SALT POUCH (ASIN AMMO)    - 50 ESS',
-            'HEALING FOOD (+2 HEARTS)  - 75 ESS',
+            'AGUA BENDITA',
+            'SALT POUCH',
+            'HEALING FOOD',
             'EXIT SHOP'
         ];
         
+        // Draw Menu Items
         for (let i = 0; i < shop_items.length; i++) {
-            let itemY = sBoardY + 40 + i * 18;
+            let itemY = sBoardY + 40 + i * 22;
             let selected = (i === shop_sel);
             
             if (selected) {
                 main.btx.fillStyle = 'rgba(212, 168, 48, 0.2)';
-                main.btx.fillRect(sBoardX + 8, itemY - 4, sBoardW - 16, 14);
+                main.btx.fillRect(menuX - 4, itemY - 4, 110, 16);
             }
             if (selected && Math.floor(t / 400) % 2 === 0) {
                 main.btx.font = '8px arcade';
                 main.btx.fillStyle = '#FFD700';
-                main.btx.textAlign = 'right';
+                main.btx.textAlign = 'left';
                 main.btx.textBaseline = 'top';
-                main.btx.fillText('>', sBoardX + 16, itemY - 2);
+                main.btx.fillText('>', menuX, itemY);
             }
             main.btx.font = '7px arcade';
-            main.btx.textAlign = 'center';
+            main.btx.textAlign = 'left';
             main.btx.textBaseline = 'top';
-            main.btx.fillStyle = selected ? '#FFFFFF' : '#A0A0A0';
-            main.btx.fillText(shop_items[i], main.w / 2, itemY - 2);
+            main.btx.fillStyle = selected ? '#FFFFFF' : '#888888';
+            main.btx.fillText(shop_items[i], menuX + 10, itemY);
+        }
+        
+        // Draw Highlighted Item Preview on the Right
+        if (shop_sel >= 0 && shop_sel < 3) {
+            // Draw Icon Box
+            let boxSize = 32;
+            let boxX = previewCenterX - boxSize / 2;
+            let boxY = sBoardY + 40;
+            main.sprites('Icon Box.png', [boxX, boxY, 2, 2], [0, 0, 0, 0, 16, 16]);
+            
+            // Draw Item Icon inside box
+            let iconAsset = '';
+            if (shop_sel === 0) iconAsset = 'CrossIcon.png';
+            else if (shop_sel === 1) iconAsset = 'Asin pouch.png';
+            else if (shop_sel === 2) iconAsset = 'Healing Plant Icon.png';
+            
+            if (iconAsset) {
+                main.sprites(iconAsset, [boxX + 8, boxY + 8], [0, 0, 0, 0, 16, 16]);
+            }
+            
+            // Draw Price
+            let cost = (shop_sel === 0 || shop_sel === 2) ? 75 : 50;
+            main.btx.font = '7px arcade';
+            main.btx.textAlign = 'center';
+            main.btx.fillStyle = '#FFD700';
+            main.btx.fillText(cost + ' ESSENCE', previewCenterX, boxY + 42);
+            
+            // Draw Description
+            main.btx.font = '5px arcade';
+            main.btx.fillStyle = '#CCCCCC';
+            let descLines: string[] = [];
+            if (shop_sel === 0) {
+                descLines = ['BLOCKS DAMAGE', 'AND POISON'];
+            } else if (shop_sel === 1) {
+                descLines = ['AMMO FOR', 'MEDIUM RANGE'];
+            } else if (shop_sel === 2) {
+                descLines = ['RECOVERY OF', '+2 HEARTS'];
+            }
+            
+            descLines.forEach((line, idx) => {
+                main.btx.fillText(line, previewCenterX, boxY + 54 + idx * 7);
+            });
+        } else if (shop_sel === 3) {
+            // Draw Exit Sign
+            main.btx.font = '6px arcade';
+            main.btx.textAlign = 'center';
+            main.btx.fillStyle = '#FF5555';
+            main.btx.fillText('EXIT TO FOREST', previewCenterX, sBoardY + 70);
         }
         
         main.btx.restore();
