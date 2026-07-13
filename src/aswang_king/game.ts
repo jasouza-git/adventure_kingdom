@@ -452,6 +452,78 @@ main.scene('main_menu', (t, dt) => {
         main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
     }
+    if (menu_sub == 4) {
+        // Draw Name Entry Screen
+        main.btx.fillStyle = '#0A0A1A';
+        main.btx.fillRect(0, 0, main.w, main.h);
+        
+        main.btx.font = '12px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('ENTER YOUR NAME', main.w / 2, 60);
+        
+        // Draw input box
+        let boxX = 60, boxY = 90, boxW = 200, boxH = 24;
+        main.btx.fillStyle = 'rgba(139, 105, 20, 0.3)';
+        main.btx.fillRect(boxX, boxY, boxW, boxH);
+        main.btx.strokeStyle = '#D4A830';
+        main.btx.lineWidth = 1.5;
+        main.btx.strokeRect(boxX, boxY, boxW, boxH);
+        
+        // Draw current name text
+        main.btx.font = '10px arcade';
+        main.btx.textAlign = 'left';
+        main.btx.textBaseline = 'middle';
+        main.btx.fillStyle = '#FFFFFF';
+        
+        let displayName = current_player_name;
+        let blink = Math.floor(t / 400) % 2 === 0;
+        if (blink) displayName += '_';
+        
+        main.btx.fillText(displayName, boxX + 10, boxY + boxH / 2);
+        
+        // Draw instructions
+        main.btx.font = '5px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillStyle = '#AAAAAA';
+        main.btx.fillText('USE KEYBOARD TO TYPE  -  MAX 12 CHARACTERS', main.w / 2, 140);
+        main.btx.fillText('PRESS ENTER TO CONFIRM  -  ESC TO BACK', main.w / 2, 155);
+        
+        // Handle input events
+        Object.keys(main.evented).forEach(key => {
+            let ev = main.evented[key];
+            if (ev.init) {
+                ev.init = false; // consume event
+                
+                if (key === 'Backspace') {
+                    if (current_player_name.length > 0) {
+                        current_player_name = current_player_name.slice(0, -1);
+                    }
+                } else if (key === 'Enter') {
+                    if (current_player_name.trim().length > 0) {
+                        let record = JSON.parse(localStorage.getItem('aswang_leaderboard_' + current_player_name) || '{"maxLevel": 1, "highScore": 0}');
+                        player_record = record;
+                        menu_cooldown = 300;
+                        if (record.maxLevel > 1) {
+                            menu_sub = 2; // Level Selector
+                            level_sel = 0;
+                        } else {
+                            startLevel(1);
+                            main.scene('into');
+                        }
+                    }
+                } else if (key === 'Escape') {
+                    menu_sub = -1;
+                    menu_cooldown = 300;
+                } else if (key.length === 1 && current_player_name.length < 12) {
+                    if (/^[a-zA-Z0-9 ]$/.test(key)) {
+                        current_player_name += key;
+                    }
+                }
+            }
+        });
+        return;
+    }
 
     // === Title logo (scaled down to match pixel density) ===
     // Original is 256x144, scale to ~154x86 (0.6x) for better pixel consistency
@@ -527,18 +599,8 @@ main.scene('main_menu', (t, dt) => {
         if (e.init && menu_cooldown <= 0) {
             menu_cooldown = 300;
             if (menu_sel == 0) {
-                let name = prompt("ENTER YOUR NAME:") || "Player";
-                current_player_name = name;
-                let record = JSON.parse(localStorage.getItem('aswang_leaderboard_' + name) || '{"maxLevel": 1, "highScore": 0}');
-                player_record = record;
-                
-                if (record.maxLevel > 1) {
-                    menu_sub = 2; // Level Selector
-                    level_sel = 0;
-                } else {
-                    startLevel(1);
-                    main.scene('into'); // play intro video
-                }
+                current_player_name = "";
+                menu_sub = 4; // Name Entry Screen
             } else if (menu_sel == 1) {
                 menu_sub = 0; // Controls
             } else if (menu_sel == 2) {
