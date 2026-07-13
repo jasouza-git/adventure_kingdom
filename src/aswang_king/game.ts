@@ -429,7 +429,7 @@ main.scene('main_menu', (t, dt) => {
         let maxLvl = player_record ? player_record.maxLevel : 1;
         
         let lv_items = [
-            'LEVEL 1: RISE OF THE ASWANG KING',
+            'LEVEL 1: FINDING CLUES',
             'LEVEL 2: THE DARK FOREST',
             'LEVEL 3: THE FINAL CONFRONTATION',
             'BOSS LEVEL: THE FINAL BATTLE',
@@ -1410,7 +1410,7 @@ main.scene('level', (t, dt) => {
         // Subtitle
         main.btx.font = '6px arcade';
         let subtitle = "";
-        if (active_lv === 1) subtitle = "RISE OF THE ASWANG KING";
+        if (active_lv === 1) subtitle = "FINDING CLUES";
         else if (active_lv === 2) subtitle = "THE DARK FOREST";
         else if (active_lv === 3) subtitle = "THE FINAL CONFRONTATION";
 

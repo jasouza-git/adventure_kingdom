@@ -1,6 +1,6 @@
 let plts = main => [
 	[
-		main.entity('text', {x:0, title:'Level 1'}),
+		main.entity('text', {x:0, title:'Level 1: Finding Clues'}),
 		main.entity('plat', {x:240, y:128, w:15, h:7, dropoff: true, mode:0, clip:[[], [], [0, 1, 2, 3, 4, 5, 6], []]}),
 		main.entity('plat', {x:-400, y:-16, w:20, h:16, mode:0, col:15, clip:[[], [], [15], []]}),
 		main.entity('plat', {x:-80, y:224, w:27, h:1, mode:0, col:15, clip:[[], [0], [0], []]}),
