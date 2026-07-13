@@ -1444,7 +1444,7 @@ let entities:entities_type = {
     merchant_board: {
         default: {x: 0, y: 0},
         update: (d, o, t, dt) => {
-            o.sprites('The Merchant Board corrected.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 64]);
+            o.sprites('The Merchant Board corrected.png', [d.x, d.y], [0, 0, 0, 0, 64, 64]);
         }
     },
     mysterious_person: {
