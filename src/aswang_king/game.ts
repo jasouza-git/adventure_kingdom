@@ -75,15 +75,17 @@ function setupPlatforms() {
                 
                 // Spawn shop next to checkpoints index 17 (Level 2 start), 33 (Level 3 start), and 41 (Boss checkpoint)
                 if (index === 17 || index === 33 || index === 41) {
-                    itemsToAdd.push(main.entity('merchant_board', {x: entity.x + 40, y: entity.y}));
+                    itemsToAdd.push(main.entity('merchant_board', {x: entity.x + 26, y: entity.y}));
                     if (index === 17) {
-                        itemsToAdd.push(main.entity('mysterious_person', {x: entity.x + 110, y: entity.y}));
+                        itemsToAdd.push(main.entity('mysterious_person', {x: entity.x + 70, y: entity.y}));
+                        itemsToAdd.push(main.entity('albularyo', {x: entity.x + 120, y: entity.y}));
                     } else if (index === 33) {
-                        itemsToAdd.push(main.entity('wandering_hunter', {x: entity.x + 110, y: entity.y + 32}));
+                        itemsToAdd.push(main.entity('wandering_hunter', {x: entity.x + 70, y: entity.y + 32}));
+                        itemsToAdd.push(main.entity('albularyo', {x: entity.x + 120, y: entity.y}));
                     } else if (index === 41) {
-                        itemsToAdd.push(main.entity('priest', {x: entity.x + 110, y: entity.y}));
+                        itemsToAdd.push(main.entity('priest', {x: entity.x + 70, y: entity.y}));
+                        itemsToAdd.push(main.entity('albularyo', {x: entity.x + 120, y: entity.y + 16}));
                     }
-                    itemsToAdd.push(main.entity('albularyo', {x: entity.x + 160, y: entity.y}));
                 }
             }
         });
@@ -1132,6 +1134,9 @@ main.scene('level', (t, dt) => {
                 bg.day = 1;
                 player.total_essence = 0;
                 player.lives = [10, 10];
+                if (player.weapons) {
+                    player.weapons.forEach((w: any) => w.durability = 0);
+                }
                 platforms = setupPlatforms();
                 lv = level(main);
                 adjustLevelEssenceCount(lv);
