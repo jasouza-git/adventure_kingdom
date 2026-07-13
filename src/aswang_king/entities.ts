@@ -1504,7 +1504,6 @@ let entities:entities_type = {
     wandering_hunter: {
         default: {x: 0, y: 0, talked: false, claimed: false},
         update: (d, o, t, dt) => {
-            if (d.claimed) return;
             d.hitbox = [0, d.x, d.y, 32, 32];
             
             let dist = Math.abs(o.player.x - d.x);
@@ -1526,9 +1525,6 @@ let entities:entities_type = {
                         dialogue_index = 0;
                         dialogue_cooldown = 300;
                         d.talked = true;
-                        dialogue_post_callback = () => {
-                            d.claimed = true;
-                        };
                     }
                 });
             }
@@ -1540,7 +1536,6 @@ let entities:entities_type = {
     priest: {
         default: {x: 0, y: 0, talked: false, claimed: false},
         update: (d, o, t, dt) => {
-            if (d.claimed) return;
             d.hitbox = [0, d.x, d.y, 32, 32];
             
             let dist = Math.abs(o.player.x - d.x);
@@ -1560,9 +1555,6 @@ let entities:entities_type = {
                         dialogue_index = 0;
                         dialogue_cooldown = 300;
                         d.talked = true;
-                        dialogue_post_callback = () => {
-                            d.claimed = true;
-                        };
                     }
                 });
             }
