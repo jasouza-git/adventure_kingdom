@@ -168,6 +168,7 @@ let cheat_items = [
     'TELEPORT LEVEL 1',
     'TELEPORT LEVEL 2',
     'TELEPORT LEVEL 3',
+    'TELEPORT BOSS LEVEL',
     'HEAL 5 HEARTS',
     'RESTORE WEAPONS',
     'CLOSE CHEATS'
@@ -1063,15 +1064,21 @@ main.scene('level', (t, dt) => {
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
                 } else if (cheat_sel == 3) {
-                    player.lives[0] = Math.min(player.lives[0] + 5, player.lives[1]);
+                    player.x = 20064;
+                    player.y = 112;
+                    player.lives[0] = player.lives[1];
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
                 } else if (cheat_sel == 4) {
-                    player.weapons[1].durability = 20;
-                    player.weapons[2].durability = 5;
+                    player.lives[0] = Math.min(player.lives[0] + 5, player.lives[1]);
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
                 } else if (cheat_sel == 5) {
+                    player.weapons[1].durability = 10;
+                    player.weapons[2].durability = 5;
+                    cheat_menu_open = false;
+                    main.play('sfx/Picked Up Something Good.mp3', true);
+                } else if (cheat_sel == 6) {
                     cheat_menu_open = false;
                 }
             }
