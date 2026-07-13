@@ -353,12 +353,18 @@ let entities:entities_type = {
             o.btx.globalAlpha = 1;
             
             // Clouds
-            o.sprites('Cloudsv1 (1).png', [],
-                [0, 16, 4, 20, 16, 16, 0, 0, 0, 0, 0, 0],
-                [16,16, 20,20, 16, 16],
-                [32,16, 36+4,20, 16, 16],
-                [16, 0, 20, 4, 16, 16]
-            );
+            let drawCloud = (cx: number, cy: number, parallax: number) => {
+                let screenX = algo.mod(cx - o.camera[0] * parallax, o.w + 64) - 64;
+                o.sprites('Cloudsv1 (1).png', [screenX, cy],
+                    [0, 16, 4, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
+                    [16, 16, 20, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
+                    [32, 16, 40, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
+                    [16, 0, 20, 4, 16, 16, 0, 0, 0, 0, 0, 0, 0]
+                );
+            };
+            drawCloud(40 + t / 60, 10, 0.05);
+            drawCloud(160 + t / 40, 24, 0.1);
+            drawCloud(280 + t / 25, 38, 0.2);
 
             // Mountains
             o.btx.fillStyle = ['#23348A','#9A8625','#5BA200'][Math.round(d.day*2)];
