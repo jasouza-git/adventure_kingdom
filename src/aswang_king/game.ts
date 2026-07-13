@@ -38,7 +38,7 @@ function startLevel(level_num: number) {
     player.total_essence = 0;
     
     if (level_num === 1) {
-        player.x = 160;
+        player.x = 30;
         player.y = 195;
     } else if (level_num === 2) {
         player.x = 8032;
@@ -184,7 +184,7 @@ player.ondeath = () => {
         }
     }
     player.cur_body_t = player.body_t;
-    player.x = 130;
+    player.x = 30;
     player.y = 195;
 };
 
@@ -966,7 +966,7 @@ main.scene('level', (t, dt) => {
             if (e.init && cheat_cooldown <= 0) {
                 cheat_cooldown = 300;
                 if (cheat_sel == 0) {
-                    player.x = 160;
+                    player.x = 30;
                     player.y = 195;
                     player.lives[0] = player.lives[1];
                     cheat_menu_open = false;
@@ -1100,7 +1100,7 @@ main.scene('level', (t, dt) => {
                 player.points = 0;
                 menu.over = false;
                 player.lives = [3, 3];
-                player.max_x = player.x = 160;
+                player.max_x = player.x = 30;
                 player.y = 195;
                 player.climb = player.poisoned = -1;
                 player.canclimb = false;

@@ -35,7 +35,7 @@ let required_files:string[] = [
 let entities:entities_type = {
     pinoy: {
         default: {
-            x:160, y:0, m:[0,0], hitbox:[], nocollide:[],
+            x:30, y:0, m:[0,0], hitbox:[], nocollide:[],
             crouch: false, // Is character crouching?
             jumping: false,// Is character jumping?
             fright: true,  // Is character facing right?
