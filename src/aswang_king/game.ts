@@ -903,7 +903,7 @@ main.scene('level', (t, dt) => {
     
     if (king_defeated && !partner_spawned) {
         partner_spawned = true;
-        platforms[41].push(main.entity('mc_partner', {x: 20600, y: 195}));
+        platforms[42].push(main.entity('mc_partner', {x: 20600, y: 128}));
     }
 
     // === Pause toggle ===
@@ -1477,3 +1477,4 @@ if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
 // Expose objects to global window scope for console debugging
 (window as any).player = player;
 (window as any).main = main;
+(window as any).platforms = platforms;

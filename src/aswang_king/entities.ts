@@ -62,6 +62,7 @@ let entities:entities_type = {
             body_t: 3000,
             cur_body_t: 0,
             ondeath: ()=>{},
+            bind: [],
             weapons: [      // all weapons the pinoy has. sword, asin and cross protection
                 {name: "sword", durability: 1000000, attack_range: [20, 29], asset_name: 'Sword.png',},     // no limited durability, but small range attack
                 {name: "asin", durability: 20, attack_range: [168, 29], asset_name: 'Asin pouch.png'},      // limited durability, but large range attack
