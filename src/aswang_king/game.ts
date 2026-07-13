@@ -32,6 +32,10 @@ let level_sel = 0;
 
 // startLevel helper function
 function startLevel(level_num: number) {
+    platforms = setupPlatforms();
+    lv = level(main);
+    adjustLevelEssenceCount(lv);
+    
     player.cur_body_t = player.body_t;
     player.lives = [player.lives[1], player.lives[1]];
     player.points = 0;
