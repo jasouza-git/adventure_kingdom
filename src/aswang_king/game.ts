@@ -796,7 +796,7 @@ main.scene('level', (t, dt) => {
             }
             
             // Draw Price
-            let cost = (shop_sel === 0 || shop_sel === 2) ? 75 : 50;
+            let cost = (shop_sel === 0 || shop_sel === 2) ? 150 : 100;
             main.btx.font = '7px arcade';
             main.btx.textAlign = 'center';
             main.btx.fillStyle = '#FFD700';
@@ -807,9 +807,9 @@ main.scene('level', (t, dt) => {
             main.btx.fillStyle = '#CCCCCC';
             let descLines: string[] = [];
             if (shop_sel === 0) {
-                descLines = ['BLOCKS DAMAGE', 'AND POISON'];
+                descLines = ['5 CHARGES', 'CROSS SHIELD'];
             } else if (shop_sel === 1) {
-                descLines = ['AMMO FOR', 'MEDIUM RANGE'];
+                descLines = ['10 CHARGES', 'ASIN AMMO'];
             } else if (shop_sel === 2) {
                 descLines = ['RECOVERY OF', '+2 HEARTS'];
             }
@@ -848,13 +848,13 @@ main.scene('level', (t, dt) => {
                 if (shop_sel === 3) {
                     active_shop = null;
                 } else {
-                    let cost = (shop_sel === 0 || shop_sel === 2) ? 75 : 50;
+                    let cost = (shop_sel === 0 || shop_sel === 2) ? 150 : 100;
                     if (player.points >= cost) {
                         player.points -= cost;
                         if (shop_sel === 0) {
                             player.weapons[2].durability = 5;
                         } else if (shop_sel === 1) {
-                            player.weapons[1].durability = 20;
+                            player.weapons[1].durability = 10;
                         } else if (shop_sel === 2) {
                             player.lives[0] = Math.min(player.lives[0] + 2, player.lives[1]);
                         }
