@@ -983,8 +983,8 @@ main.scene('level', (t, dt) => {
         let king_entity = null;
         let l = Math.floor(player.x/480);
         for (var n = -2; n <= 2; n++) {
-            if (l+n >= 0 && l+n < platforms.length) {
-                let section = platforms[l+n];
+            if (l+n >= 0 && l+n < lv.length) {
+                let section = lv[l+n];
                 for (let j = 0; j < section.length; j++) {
                     if (section[j]['__type__'] === 'king') {
                         king_entity = section[j];
@@ -993,7 +993,7 @@ main.scene('level', (t, dt) => {
                 }
             }
         }
-        if (king_entity && king_entity.dead === 0) {
+        if (king_entity && (king_entity.dead !== -1 || king_entity.removed)) {
             king_defeated = true;
         }
     }
