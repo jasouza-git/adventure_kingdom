@@ -103,8 +103,8 @@ function setupPlatforms() {
                     let npc2X = entity.x + 150;
                     
                     let boardY = findGround(boardX) - 29;
-                    let npc1Y = findGround(npc1X) - 61;
-                    let npc2Y = findGround(npc2X) - 61;
+                    let npc1Y = findGround(npc1X) - 29;
+                    let npc2Y = findGround(npc2X) - 29;
                     
                     itemsToAdd.push(main.entity('merchant_board', {x: boardX, y: boardY}));
                     
@@ -114,8 +114,7 @@ function setupPlatforms() {
                         itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
                     } else if (entity.x === 16048) {
                         // Level 3 Start: Wandering Hunter + Albularyo
-                        let hunterY = findGround(npc1X) - 29;
-                        itemsToAdd.push(main.entity('wandering_hunter', {x: npc1X, y: hunterY}));
+                        itemsToAdd.push(main.entity('wandering_hunter', {x: npc1X, y: npc1Y}));
                         itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
                     } else if (entity.x === 20064) {
                         // Boss Checkpoint: Priest + Albularyo
