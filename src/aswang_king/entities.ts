@@ -1464,15 +1464,15 @@ let entities:entities_type = {
                 }
                 o.btx.save();
                 o.btx.globalAlpha = alpha;
-                o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 32 * f, 0, 32, 64]);
+                o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 32 * f, 0, 32, 32]);
                 o.btx.restore();
                 return;
             }
             
-            d.hitbox = [0, d.x, d.y, 32, 64];
+            d.hitbox = [0, d.x, d.y, 32, 32];
             
             let dist = Math.abs(o.player.x - d.x);
-            if (dist < 40 && Math.abs(o.player.y - d.y) < 64) {
+            if (dist < 40 && Math.abs(o.player.y - d.y) < 32) {
                 o.btx.font = '5px arcade';
                 o.btx.fillStyle = '#FFFFFF';
                 o.btx.textAlign = 'center';
@@ -1498,7 +1498,7 @@ let entities:entities_type = {
                 });
             }
             
-            o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 32 * f, 0, 32, 64]);
+            o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 32 * f, 0, 32, 32]);
         }
     },
     wandering_hunter: {

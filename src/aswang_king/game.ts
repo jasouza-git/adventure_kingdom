@@ -109,7 +109,7 @@ function setupPlatforms() {
                     
                     if (entity.x === 8032) {
                         // Level 2 Start: Mysterious Person + Albularyo
-                        let npc1Y = findGround(npc1X) - 61; // Mysterious Person height is 64
+                        let npc1Y = findGround(npc1X) - 29; // Mysterious Person height is now 32
                         itemsToAdd.push(main.entity('mysterious_person', {x: npc1X, y: npc1Y}));
                         itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
                     } else if (entity.x === 16048) {
