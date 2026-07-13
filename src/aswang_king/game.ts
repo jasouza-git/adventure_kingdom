@@ -1239,6 +1239,7 @@ main.scene('level', (t, dt) => {
                 bg.day = 1;
                 player.total_essence = 0;
                 player.lives = [10, 10];
+                main.camera = [-160, 0];
                 if (player.weapons) {
                     player.weapons.forEach((w: any) => w.durability = 0);
                 }
@@ -1249,6 +1250,9 @@ main.scene('level', (t, dt) => {
                 king_defeated = false;
                 partner_spawned = false;
                 ending_active = false;
+                menu_sel = 0;
+                menu_sub = -1;
+                main.scene('main_menu');
             }
         });
         return;
