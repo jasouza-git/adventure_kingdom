@@ -673,10 +673,13 @@ let entities:entities_type = {
 
                 // Essence Count & Icon
                 o.btx.fillStyle = '#FFE066'; // Lighter gold/yellow color
-                o.btx.fillText(String(o.player.total_essence), o.w-12, 14);
+                let essStr = String(o.player.total_essence);
+                o.btx.fillText(essStr, o.w-2, 14);
                 
+                let textW = o.btx.measureText(essStr).width;
+                let iconX = o.w - 2 - textW - 10;
                 o.btx.filter = 'brightness(1.5)';
-                o.sprites('Aswang Essencecorrected.png', [o.w-10, 14], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8, 0, 0, 0, 0, 0, 0]);
+                o.sprites('Aswang Essencecorrected.png', [iconX, 14], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8, 0, 0, 0, 0, 0, 0]);
                 o.btx.filter = 'none';
                 // Plus points
                 if (o.player.points != d.points) {
