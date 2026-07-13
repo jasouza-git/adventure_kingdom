@@ -73,14 +73,14 @@ function setupPlatforms() {
             if (entity['__type__'] == 'checkpoint') {
                 itemsToAdd.push(main.entity('health_plant', {x: entity.x + 8, y: entity.y + 48}));
                 
-                // Spawn shop next to checkpoints index 13 (Level 2 start), 21 (Level 3 start), and 29 (Boss checkpoint)
-                if (index === 13 || index === 21 || index === 29) {
+                // Spawn shop next to checkpoints index 16 (Level 2 start), 33 (Level 3 start), and 41 (Boss checkpoint)
+                if (index === 16 || index === 33 || index === 41) {
                     itemsToAdd.push(main.entity('merchant_board', {x: entity.x + 40, y: entity.y}));
-                    if (index === 13) {
+                    if (index === 16) {
                         itemsToAdd.push(main.entity('mysterious_person', {x: entity.x + 110, y: entity.y}));
-                    } else if (index === 21) {
+                    } else if (index === 33) {
                         itemsToAdd.push(main.entity('wandering_hunter', {x: entity.x + 110, y: entity.y + 32}));
-                    } else if (index === 29) {
+                    } else if (index === 41) {
                         itemsToAdd.push(main.entity('priest', {x: entity.x + 110, y: entity.y}));
                     }
                     itemsToAdd.push(main.entity('albularyo', {x: entity.x + 150, y: entity.y}));
@@ -1126,7 +1126,7 @@ main.scene('level', (t, dt) => {
     for (var n = -2; n <= 2; n++) {
         if (l+n >= 0 && l+n < platforms.length) main.add(platforms[l+n]);
     }
-    if (player.canclimb && main.on('w,W,s,S')) {player.climb = 1; player.m = [0,0]}
+    if (player.canclimb && main.on('w,W,s,S,ArrowUp,ArrowDown')) {player.climb = 1; player.m = [0,0]}
     main.add(menu, pet, main.player);
     for (var n = -2; n <= 2; n++) {
         if (l+n >= 0 && l+n < lv.length) main.add(lv[l+n]);
@@ -1197,10 +1197,10 @@ main.scene('level', (t, dt) => {
             player.climb = (Math.sin(t/200)+1)/2;
             if (main.on('d,D,ArrowRight,gp_e')) player.x += dt/10;
             else player.x -= dt/10;
-        } else if (main.on('w,W,gp_n,s,S,gp_s')) {
+        } else if (main.on('w,W,gp_n,s,S,gp_s,ArrowUp,ArrowDown')) {
             main.play('sfx/vines.mp3', false, 0.5);
             player.climb = (Math.sin(t/100)+1)/2;
-            player.y += (main.on('w,W,gp_n')?-1:1)*dt/10;
+            player.y += (main.on('w,W,gp_n,ArrowUp')?-1:1)*dt/10;
         } else player.climb = 0;
         player.climing = true;
     }
