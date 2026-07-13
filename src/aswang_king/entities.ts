@@ -670,6 +670,14 @@ let entities:entities_type = {
                 o.btx.textAlign = 'end';
                 o.btx.textBaseline = 'top';
                 o.btx.fillText(String(p), o.w-2, 2);
+
+                // Essence Count & Icon
+                o.btx.fillStyle = '#FFE066'; // Lighter gold/yellow color
+                o.btx.fillText(String(o.player.total_essence), o.w-12, 14);
+                
+                o.btx.filter = 'brightness(1.5)';
+                o.sprites('Aswang Essencecorrected.png', [o.w-10, 14], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8, 0, 0, 0, 0, 0, 0]);
+                o.btx.filter = 'none';
                 // Plus points
                 if (o.player.points != d.points) {
                     if (o.player.points > d.points) {
@@ -1001,7 +1009,9 @@ let entities:entities_type = {
                 d.claimed = true;
                 o.play('sfx/Picked Up Something Good.mp3', true);
             }
+            o.btx.filter = 'brightness(1.5)';
             o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8]);
+            o.btx.filter = 'none';
         }
     },
     health_plant: {
