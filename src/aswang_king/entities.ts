@@ -5,7 +5,7 @@ let required_files:string[] = [
     // Menu
     'Rise_of_the_Aswang_King.png', 'Menu.png', 'Controls.png', 'credits.png', 'Icon Box.png',
     // Background
-    'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png', 'Game Over.png',
+    'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png', 'BLOODYCLOUDS.png', 'Game Over.png',
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocksv2.png', 'Treesv2.png', 'Lava.png',
     // Entities
@@ -354,9 +354,11 @@ let entities:entities_type = {
             o.btx.globalAlpha = 1;
             
             // Clouds
+            let inLevel2Plus = o.camera[0] >= 7800;
+            let cloudAsset = inLevel2Plus ? 'BLOODYCLOUDS.png' : 'Cloudsv1 (1).png';
             let drawCloud = (cx: number, cy: number, parallax: number) => {
                 let screenX = algo.mod(cx - o.camera[0] * parallax, o.w + 64) - 64;
-                o.sprites('Cloudsv1 (1).png', [screenX, cy],
+                o.sprites(cloudAsset, [screenX, cy],
                     [0, 16, 4, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
                     [16, 16, 20, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
                     [32, 16, 40, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
@@ -747,8 +749,8 @@ let entities:entities_type = {
                     d.x, d.y+8,
                     32, 24,
                             0,
-                    d.x+(d.fright?0:-64), d.y,
-                    d.nofollow ? 0 : 64+32, 40
+                    d.x+(d.fright?0:-128), d.y-16,
+                    d.nofollow ? 0 : 128+32, 72
                 ];
                 algo.physics(dt, d, o);
                 d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
@@ -1559,8 +1561,8 @@ let entities:entities_type = {
                 });
             }
             
-            let f = Math.floor(t / 200) % 13;
-            o.sprites('Priestv2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 64]);
+            let f = Math.floor(t / 500) % 2 === 0 ? 0 : 12;
+            o.sprites('Priestv2.png', [d.x, d.y + 3, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 64]);
         }
     },
     albularyo: {
