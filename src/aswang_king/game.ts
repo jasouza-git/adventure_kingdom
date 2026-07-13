@@ -73,10 +73,10 @@ function setupPlatforms() {
             if (entity['__type__'] == 'checkpoint') {
                 itemsToAdd.push(main.entity('health_plant', {x: entity.x + 8, y: entity.y + 48}));
                 
-                // Spawn shop next to checkpoints index 16 (Level 2 start), 33 (Level 3 start), and 41 (Boss checkpoint)
-                if (index === 16 || index === 33 || index === 41) {
+                // Spawn shop next to checkpoints index 17 (Level 2 start), 33 (Level 3 start), and 41 (Boss checkpoint)
+                if (index === 17 || index === 33 || index === 41) {
                     itemsToAdd.push(main.entity('merchant_board', {x: entity.x + 40, y: entity.y}));
-                    if (index === 16) {
+                    if (index === 17) {
                         itemsToAdd.push(main.entity('mysterious_person', {x: entity.x + 110, y: entity.y}));
                     } else if (index === 33) {
                         itemsToAdd.push(main.entity('wandering_hunter', {x: entity.x + 110, y: entity.y + 32}));
