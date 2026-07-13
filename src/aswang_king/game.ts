@@ -13,14 +13,163 @@ let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/1st Temp BG Song 
 algo.gravity = 20;
 let main = new engine({z:1, w:320, h:240, load: [...required_files, ...bg_songs], camera:[-160,0]});
 main.dom.style.filter = 'contrast(1.1)';
-let platforms = plts(main);
+// Dialog & Shop System variables
+let active_dialogue: any[] | null = null;
+let dialogue_index = 0;
+let dialogue_cooldown = 0;
+let dialogue_post_callback: (() => void) | null = null;
+let active_shop: any | null = null;
+let shop_sel = 0;
+let shop_cooldown = 0;
+let ending_active = false;
+let king_defeated = false;
+let partner_spawned = false;
+
+// Leaderboard & Name tracking variables
+let current_player_name = "";
+let player_record: any = null;
+let level_sel = 0;
+
+// startLevel helper function
+function startLevel(level_num: number) {
+    player.cur_body_t = player.body_t;
+    player.lives = [player.lives[1], player.lives[1]];
+    player.points = 0;
+    player.total_essence = 0;
+    
+    if (level_num === 1) {
+        player.x = 160;
+        player.y = 195;
+    } else if (level_num === 2) {
+        player.x = 8032;
+        player.y = 160;
+    } else if (level_num === 3) {
+        player.x = 16048;
+        player.y = 160;
+    }
+    
+    // Clear menus and state
+    menu_sub = -1;
+    paused = false;
+    cheat_menu_open = false;
+    current_level = level_num;
+    level_title_timer = 3000;
+    level_title_text = "LEVEL " + level_num;
+    
+    // Reset boss tracking
+    king_defeated = false;
+    partner_spawned = false;
+    ending_active = false;
+    
+    main.scene('level');
+}
+
+// Helper: setup platforms and automatically spawn health plants & shop components next to checkpoints
+function setupPlatforms() {
+    let p = plts(main);
+    p.forEach((section, index) => {
+        let itemsToAdd: any[] = [];
+        section.forEach(entity => {
+            if (entity['__type__'] == 'checkpoint') {
+                itemsToAdd.push(main.entity('health_plant', {x: entity.x + 8, y: entity.y + 48}));
+                
+                // Spawn shop next to checkpoints index 13 (Level 2 start), 21 (Level 3 start), and 29 (Boss checkpoint)
+                if (index === 13 || index === 21 || index === 29) {
+                    itemsToAdd.push(main.entity('merchant_board', {x: entity.x + 40, y: entity.y}));
+                    if (index === 13) {
+                        itemsToAdd.push(main.entity('mysterious_person', {x: entity.x + 110, y: entity.y}));
+                    } else if (index === 21) {
+                        itemsToAdd.push(main.entity('wandering_hunter', {x: entity.x + 110, y: entity.y + 32}));
+                    } else if (index === 29) {
+                        itemsToAdd.push(main.entity('priest', {x: entity.x + 110, y: entity.y}));
+                    }
+                    itemsToAdd.push(main.entity('albularyo', {x: entity.x + 150, y: entity.y}));
+                }
+            }
+        });
+        section.push(...itemsToAdd);
+    });
+    return p;
+}
+
+// Adjust essence counts per level to match target counts exactly: Lvl 1: 500, Lvl 2: 600, Lvl 3: 300
+function adjustLevelEssenceCount(sections: any[][]) {
+    let lvl1Essences: any[] = [];
+    let lvl2Essences: any[] = [];
+    let lvl3Essences: any[] = [];
+    
+    sections.forEach(sec => {
+        sec.forEach(e => {
+            if (e['__type__'] === 'essence') {
+                let x = e.x || 0;
+                if (x < 8000) {
+                    lvl1Essences.push({ entity: e, section: sec });
+                } else if (x < 16000) {
+                    lvl2Essences.push({ entity: e, section: sec });
+                } else {
+                    lvl3Essences.push({ entity: e, section: sec });
+                }
+            }
+        });
+    });
+    
+    if (lvl1Essences.length < 500 && lvl1Essences.length > 0) {
+        let needed = 500 - lvl1Essences.length;
+        for (let i = 0; i < needed; i++) {
+            let ref = lvl1Essences[i % lvl1Essences.length];
+            let clone = main.entity('essence', { x: ref.entity.x + 8, y: ref.entity.y, ess: ref.entity.ess });
+            ref.section.push(clone);
+        }
+    }
+    
+    if (lvl2Essences.length > 600) {
+        let toRemove = lvl2Essences.length - 600;
+        for (let i = 0; i < toRemove; i++) {
+            let item = lvl2Essences[i];
+            let idx = item.section.indexOf(item.entity);
+            if (idx > -1) {
+                item.section.splice(idx, 1);
+            }
+        }
+    }
+    
+    if (lvl3Essences.length < 300 && lvl3Essences.length > 0) {
+        let needed = 300 - lvl3Essences.length;
+        for (let i = 0; i < needed; i++) {
+            let ref = lvl3Essences[i % lvl3Essences.length];
+            let clone = main.entity('essence', { x: ref.entity.x + 8, y: ref.entity.y, ess: ref.entity.ess });
+            ref.section.push(clone);
+        }
+    }
+}
+
+let platforms = setupPlatforms();
 let lv = level(main);
+adjustLevelEssenceCount(lv);
 let bg = main.entity('background', {house:true});
 let player = main.entity('pinoy', {x: /*20200/*/0, y:195});
 main.player = player;
 let menu = main.entity('menu', {house:true});
 let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
 let off = 0;
+
+// Level title tracking
+let current_level = 0;
+let level_title_timer = 0;
+let level_title_text = "";
+
+// Cheat Menu tracking
+let cheat_menu_open = false;
+let cheat_sel = 0;
+let cheat_cooldown = 0;
+let cheat_items = [
+    'TELEPORT LEVEL 1',
+    'TELEPORT LEVEL 2',
+    'TELEPORT LEVEL 3',
+    'HEAL 5 HEARTS',
+    'RESTORE WEAPONS',
+    'CLOSE CHEATS'
+];
 
 player.ondeath = () => {
     for (let i = Math.floor(player.x/480); i > 0; i--) {
@@ -41,9 +190,9 @@ player.ondeath = () => {
 
 // === Main Menu Scene ===
 let menu_sel = 0;           // 0=START GAME, 1=CONTROLS, 2=CREDITS
-let menu_sub = -1;          // -1=main menu, 0=controls screen, 1=credits screen
+let menu_sub = -1;          // -1=main menu, 0=controls screen, 1=credits screen, 2=level selector, 3=leaderboard
 let menu_cooldown = 0;      // input cooldown to prevent rapid navigation
-let menu_items = ['START GAME', 'CONTROLS', 'CREDITS'];
+let menu_items = ['START GAME', 'CONTROLS', 'LEADERBOARDS'];
 
 // === Pause State ===
 let paused = false;
@@ -177,6 +326,132 @@ main.scene('main_menu', (t, dt) => {
         main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
     }
+    if (menu_sub == 3) {
+        // Leaderboard screen
+        main.btx.fillStyle = '#0F0B1E';
+        main.btx.fillRect(0, 0, main.w, main.h);
+        
+        main.btx.font = '14px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('LEADERBOARDS', main.w / 2, 20);
+        
+        main.btx.font = '7px arcade';
+        main.btx.fillStyle = '#C8A840';
+        main.btx.textAlign = 'left';
+        main.btx.fillText('RANK  NAME          SCORE   LEVEL', 35, 45);
+        
+        main.btx.fillStyle = '#8B6914';
+        main.btx.fillRect(30, 55, main.w - 60, 2);
+        
+        let leaderboard = JSON.parse(localStorage.getItem('aswang_global_leaderboard') || '[]');
+        main.btx.font = '7px arcade';
+        main.btx.fillStyle = '#FFFFFF';
+        
+        for (let i = 0; i < 7; i++) {
+            let y = 68 + i * 18;
+            if (i < leaderboard.length) {
+                let entry = leaderboard[i];
+                let rankStr = (i + 1) + ".   ";
+                let nameStr = (entry.name + "               ").substring(0, 13);
+                let scoreStr = ("     " + entry.score).slice(-5);
+                let lvStr = "    Lvl " + entry.maxLevel;
+                main.btx.fillText(rankStr + nameStr + scoreStr + lvStr, 35, y);
+            } else {
+                main.btx.fillStyle = '#444444';
+                main.btx.fillText((i + 1) + ".   ---           -----   ---", 35, y);
+                main.btx.fillStyle = '#FFFFFF';
+            }
+        }
+        
+        main.btx.font = '6px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillStyle = '#FFD700';
+        let blink = Math.floor(t / 500) % 2 === 0;
+        if (blink) {
+            main.btx.fillText('PRESS ENTER TO GO BACK', main.w / 2, main.h - 12);
+        }
+        
+        main.on('Enter', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        return;
+    }
+    if (menu_sub == 2) {
+        // Level selection screen
+        main.btx.fillStyle = '#0A0A1A';
+        main.btx.fillRect(0, 0, main.w, main.h);
+        
+        main.btx.font = '12px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('CHOOSE LEVEL', main.w / 2, 30);
+        
+        let maxLvl = player_record ? player_record.maxLevel : 1;
+        
+        let lv_items = [
+            'LEVEL 1: RISE OF THE ASWANG KING',
+            'LEVEL 2: THE DARK FOREST',
+            'LEVEL 3: THE FINAL CONFRONTATION',
+            'BACK'
+        ];
+        
+        for (let i = 0; i < lv_items.length; i++) {
+            let itemY = 70 + i * 24;
+            let selected = (i === level_sel);
+            let locked = (i < 3 && i >= maxLvl);
+            
+            if (selected) {
+                main.btx.fillStyle = 'rgba(212, 168, 48, 0.2)';
+                main.btx.fillRect(20, itemY - 4, main.w - 40, 16);
+            }
+            if (selected && Math.floor(t / 400) % 2 === 0) {
+                main.btx.font = '9px arcade';
+                main.btx.fillStyle = '#FFD700';
+                main.btx.textAlign = 'right';
+                main.btx.textBaseline = 'top';
+                main.btx.fillText('>', 40, itemY);
+            }
+            
+            main.btx.font = '8px arcade';
+            main.btx.textAlign = 'center';
+            main.btx.textBaseline = 'top';
+            if (locked) {
+                main.btx.fillStyle = '#555555';
+                main.btx.fillText('LOCKED', main.w / 2, itemY);
+            } else {
+                main.btx.fillStyle = selected ? '#FFFFFF' : '#888888';
+                main.btx.fillText(lv_items[i], main.w / 2, itemY);
+            }
+        }
+        
+        main.on('w,W,ArrowUp', e => {
+            if (e.init && menu_cooldown <= 0) {
+                level_sel = (level_sel - 1 + lv_items.length) % lv_items.length;
+                menu_cooldown = 150;
+            }
+        });
+        main.on('s,S,ArrowDown', e => {
+            if (e.init && menu_cooldown <= 0) {
+                level_sel = (level_sel + 1) % lv_items.length;
+                menu_cooldown = 150;
+            }
+        });
+        main.on('Enter', e => {
+            if (e.init && menu_cooldown <= 0) {
+                menu_cooldown = 300;
+                if (level_sel === 3) {
+                    menu_sub = -1;
+                } else {
+                    let locked = (level_sel >= maxLvl);
+                    if (!locked) {
+                        startLevel(level_sel + 1);
+                    }
+                }
+            }
+        });
+        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        return;
+    }
 
     // === Title logo (scaled down to match pixel density) ===
     // Original is 256x144, scale to ~154x86 (0.6x) for better pixel consistency
@@ -252,12 +527,22 @@ main.scene('main_menu', (t, dt) => {
         if (e.init && menu_cooldown <= 0) {
             menu_cooldown = 300;
             if (menu_sel == 0) {
-                // START GAME -> play intro video
-                main.scene('into');
+                let name = prompt("ENTER YOUR NAME:") || "Player";
+                current_player_name = name;
+                let record = JSON.parse(localStorage.getItem('aswang_leaderboard_' + name) || '{"maxLevel": 1, "highScore": 0}');
+                player_record = record;
+                
+                if (record.maxLevel > 1) {
+                    menu_sub = 2; // Level Selector
+                    level_sel = 0;
+                } else {
+                    startLevel(1);
+                    main.scene('into'); // play intro video
+                }
             } else if (menu_sel == 1) {
                 menu_sub = 0; // Controls
             } else if (menu_sel == 2) {
-                menu_sub = 1; // Credits
+                menu_sub = 3; // Leaderboards
             }
         }
     });
@@ -286,16 +571,372 @@ main.scene('into', (t,dt) => {
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
 
+    // === Dialogue Overlay ===
+    if (active_dialogue !== null) {
+        dialogue_cooldown -= dt;
+        
+        main.btx.save();
+        
+        // Draw dialog box at bottom of screen
+        main.btx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        main.btx.fillRect(10, main.h - 60, main.w - 20, 50);
+        
+        main.btx.strokeStyle = '#D4A830';
+        main.btx.lineWidth = 1.5;
+        main.btx.strokeRect(10, main.h - 60, main.w - 20, 50);
+        
+        let current_line = active_dialogue[dialogue_index];
+        
+        // Speaker name
+        main.btx.font = '8px arcade';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.textAlign = 'left';
+        main.btx.fillText(current_line.speaker, 20, main.h - 50);
+        
+        // Dialog text
+        main.btx.font = '6px arcade';
+        main.btx.fillStyle = '#FFFFFF';
+        main.btx.fillText(current_line.text, 20, main.h - 38);
+        
+        // Press Enter hint
+        main.btx.font = '5px arcade';
+        main.btx.fillStyle = '#AAAAAA';
+        main.btx.textAlign = 'right';
+        main.btx.fillText('PRESS ENTER', main.w - 20, main.h - 18);
+        
+        main.btx.restore();
+        
+        player.m[0] = 0;
+        
+        main.on('Enter', e => {
+            if (e.init && dialogue_cooldown <= 0) {
+                dialogue_cooldown = 200;
+                dialogue_index++;
+                if (dialogue_index >= active_dialogue.length) {
+                    let postCallback = dialogue_post_callback;
+                    active_dialogue = null;
+                    dialogue_post_callback = null;
+                    if (postCallback) postCallback();
+                }
+            }
+        });
+        return;
+    }
+
+    // === Shop Overlay ===
+    if (active_shop !== null) {
+        shop_cooldown -= dt;
+        
+        main.btx.save();
+        
+        // Dim screen background slightly
+        main.btx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        main.btx.fillRect(0, 0, main.w, main.h);
+        
+        // Shop board
+        let sBoardX = 60, sBoardY = 50, sBoardW = 200, sBoardH = 120;
+        main.btx.fillStyle = 'rgba(20, 15, 10, 0.95)';
+        main.btx.fillRect(sBoardX, sBoardY, sBoardW, sBoardH);
+        main.btx.strokeStyle = '#8B6914';
+        main.btx.lineWidth = 2;
+        main.btx.strokeRect(sBoardX, sBoardY, sBoardW, sBoardH);
+        main.btx.strokeStyle = '#D4A830';
+        main.btx.lineWidth = 1;
+        main.btx.strokeRect(sBoardX + 3, sBoardY + 3, sBoardW - 6, sBoardH - 6);
+        
+        // Shop Title
+        main.btx.font = '10px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('ALBULARYO SHOP', main.w / 2, sBoardY + 12);
+        
+        // Currency display
+        main.btx.font = '6px arcade';
+        main.btx.fillStyle = '#FFFFFF';
+        main.btx.fillText('YOUR ESSENCE: ' + player.points, main.w / 2, sBoardY + 24);
+        
+        let shop_items = [
+            'AGUA BENDITA (CROSS SHIELD) - 75 ESS',
+            'SALT POUCH (ASIN AMMO)    - 50 ESS',
+            'HEALING FOOD (+2 HEARTS)  - 75 ESS',
+            'EXIT SHOP'
+        ];
+        
+        for (let i = 0; i < shop_items.length; i++) {
+            let itemY = sBoardY + 40 + i * 18;
+            let selected = (i === shop_sel);
+            
+            if (selected) {
+                main.btx.fillStyle = 'rgba(212, 168, 48, 0.2)';
+                main.btx.fillRect(sBoardX + 8, itemY - 4, sBoardW - 16, 14);
+            }
+            if (selected && Math.floor(t / 400) % 2 === 0) {
+                main.btx.font = '8px arcade';
+                main.btx.fillStyle = '#FFD700';
+                main.btx.textAlign = 'right';
+                main.btx.textBaseline = 'top';
+                main.btx.fillText('>', sBoardX + 16, itemY - 2);
+            }
+            main.btx.font = '7px arcade';
+            main.btx.textAlign = 'center';
+            main.btx.textBaseline = 'top';
+            main.btx.fillStyle = selected ? '#FFFFFF' : '#A0A0A0';
+            main.btx.fillText(shop_items[i], main.w / 2, itemY - 2);
+        }
+        
+        main.btx.restore();
+        
+        player.m[0] = 0;
+        
+        main.on('w,W,ArrowUp', e => {
+            if (e.init && shop_cooldown <= 0) {
+                shop_sel = (shop_sel - 1 + shop_items.length) % shop_items.length;
+                shop_cooldown = 150;
+            }
+        });
+        main.on('s,S,ArrowDown', e => {
+            if (e.init && shop_cooldown <= 0) {
+                shop_sel = (shop_sel + 1) % shop_items.length;
+                shop_cooldown = 150;
+            }
+        });
+        
+        main.on('Enter', e => {
+            if (e.init && shop_cooldown <= 0) {
+                shop_cooldown = 300;
+                if (shop_sel === 3) {
+                    active_shop = null;
+                } else {
+                    let cost = (shop_sel === 0 || shop_sel === 2) ? 75 : 50;
+                    if (player.points >= cost) {
+                        player.points -= cost;
+                        if (shop_sel === 0) {
+                            player.weapons[2].durability = 5;
+                        } else if (shop_sel === 1) {
+                            player.weapons[1].durability = 20;
+                        } else if (shop_sel === 2) {
+                            player.lives[0] = Math.min(player.lives[0] + 2, player.lives[1]);
+                        }
+                        main.play('sfx/Picked Up Something Good.mp3', true);
+                        active_shop.npc.claimed = true;
+                        active_shop = null;
+                    } else {
+                        let npcName = active_shop.npc['__type__'] === 'albularyo' ? 'ALBULARYO' : 'NPC';
+                        active_shop = null;
+                        active_dialogue = [
+                            { speaker: npcName, text: "You do not have enough Aswang Essence." }
+                        ];
+                        dialogue_index = 0;
+                        dialogue_cooldown = 300;
+                    }
+                }
+            }
+        });
+        return;
+    }
+
+    // === Ending Overlay ===
+    if (ending_active) {
+        main.btx.save();
+        main.btx.fillStyle = '#000000';
+        main.btx.fillRect(0, 0, main.w, main.h);
+        
+        main.btx.fillStyle = '#FFD700';
+        main.btx.font = '16px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillText('VICTORY!', main.w / 2, 60);
+        
+        main.btx.fillStyle = '#FFFFFF';
+        main.btx.font = '8px arcade';
+        main.btx.fillText('YOU DEFEATED THE ASWANG KING', main.w / 2, 90);
+        main.btx.fillText('AND SAVED YOUR PARTNER!', main.w / 2, 105);
+        
+        let p = algo.score(player);
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('FINAL SCORE: ' + p, main.w / 2, 135);
+        
+        main.btx.fillStyle = '#888888';
+        main.btx.font = '6px arcade';
+        let blink = Math.floor(t / 500) % 2 === 0;
+        if (blink) {
+            main.btx.fillText('PRESS ENTER TO RETURN TO MENU', main.w / 2, 180);
+        }
+        
+        main.btx.restore();
+        
+        main.on('Enter', e => {
+            if (e.init) {
+                if (current_player_name) {
+                    if (player_record && player_record.maxLevel < 3) {
+                        player_record.maxLevel = 3;
+                    }
+                    if (p > player_record.highScore) {
+                        player_record.highScore = p;
+                    }
+                    localStorage.setItem('aswang_leaderboard_' + current_player_name, JSON.stringify(player_record));
+                    
+                    let leaderboard = JSON.parse(localStorage.getItem('aswang_global_leaderboard') || '[]');
+                    leaderboard = leaderboard.filter(el => el.name !== current_player_name);
+                    leaderboard.push({ name: current_player_name, score: p, maxLevel: player_record.maxLevel });
+                    leaderboard.sort((a, b) => b.score - a.score);
+                    localStorage.setItem('aswang_global_leaderboard', JSON.stringify(leaderboard.slice(0, 10)));
+                }
+                
+                ending_active = false;
+                king_defeated = false;
+                partner_spawned = false;
+                menu_sel = 0;
+                menu_sub = -1;
+                main.scene('main_menu');
+            }
+        });
+        return;
+    }
+
+    // === Check Aswang King Death ===
+    if (current_level === 3 && !king_defeated) {
+        let king_entity = null;
+        let l = Math.floor(player.x/480);
+        for (var n = -2; n <= 2; n++) {
+            if (l+n >= 0 && l+n < platforms.length) {
+                let section = platforms[l+n];
+                for (let j = 0; j < section.length; j++) {
+                    if (section[j]['__type__'] === 'king') {
+                        king_entity = section[j];
+                        break;
+                    }
+                }
+            }
+        }
+        if (king_entity && king_entity.dead === 0) {
+            king_defeated = true;
+        }
+    }
+    
+    if (king_defeated && !partner_spawned) {
+        partner_spawned = true;
+        platforms[41].push(main.entity('mc_partner', {x: 20600, y: 195}));
+    }
+
     // === Pause toggle ===
     main.on('Escape', e => {
         if (e.init) {
-            if (pause_sub == 0) { pause_sub = -1; pause_cooldown = 300; }
+            if (cheat_menu_open) { cheat_menu_open = false; cheat_cooldown = 300; }
+            else if (pause_sub == 0) { pause_sub = -1; pause_cooldown = 300; }
             else { paused = !paused; pause_sel = 0; pause_sub = -1; pause_cooldown = 300; }
         }
     });
     main.on('p,P', e => {
         if (e.init && pause_sub == -1) { paused = !paused; pause_sel = 0; pause_sub = -1; pause_cooldown = 300; }
     });
+
+    // === Cheat Menu ===
+    main.on('-,_', e => {
+        if (e.init) {
+            cheat_menu_open = !cheat_menu_open;
+            cheat_sel = 0;
+            cheat_cooldown = 300;
+        }
+    });
+
+    if (cheat_menu_open) {
+        cheat_cooldown -= dt;
+
+        // Dim overlay
+        main.btx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        main.btx.fillRect(0, 0, main.w, main.h);
+
+        // Title
+        main.btx.font = '14px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.textBaseline = 'top';
+        main.btx.fillStyle = '#FF3333';
+        main.btx.fillText('DEV CHEATS', main.w / 2, 40);
+
+        // Board frame
+        let cBoardX = 70, cBoardY = 65, cBoardW = 180, cBoardH = 135;
+        main.btx.fillStyle = 'rgba(26, 10, 10, 0.9)';
+        main.btx.fillRect(cBoardX, cBoardY, cBoardW, cBoardH);
+        main.btx.strokeStyle = '#8B0000';
+        main.btx.lineWidth = 2;
+        main.btx.strokeRect(cBoardX, cBoardY, cBoardW, cBoardH);
+        main.btx.strokeStyle = '#FF3333';
+        main.btx.lineWidth = 1;
+        main.btx.strokeRect(cBoardX + 3, cBoardY + 3, cBoardW - 6, cBoardH - 6);
+
+        // Menu items
+        for (let i = 0; i < cheat_items.length; i++) {
+            let itemY = cBoardY + 12 + i * 18;
+            let selected = (i == cheat_sel);
+
+            if (selected) {
+                main.btx.fillStyle = 'rgba(255, 51, 51, 0.2)';
+                main.btx.fillRect(cBoardX + 6, itemY - 3, cBoardW - 12, 14);
+            }
+            if (selected && Math.floor(t / 400) % 2 == 0) {
+                main.btx.font = '8px arcade';
+                main.btx.fillStyle = '#FF3333';
+                main.btx.textAlign = 'right';
+                main.btx.textBaseline = 'top';
+                main.btx.fillText('>', cBoardX + 18, itemY);
+            }
+            main.btx.font = '8px arcade';
+            main.btx.textAlign = 'center';
+            main.btx.textBaseline = 'top';
+            main.btx.fillStyle = selected ? '#FFFFFF' : '#888888';
+            main.btx.fillText(cheat_items[i], main.w / 2, itemY);
+        }
+
+        // Navigation
+        main.on('w,W,ArrowUp', e => {
+            if (e.init && cheat_cooldown <= 0) {
+                cheat_sel = (cheat_sel - 1 + cheat_items.length) % cheat_items.length;
+                cheat_cooldown = 150;
+            }
+        });
+        main.on('s,S,ArrowDown', e => {
+            if (e.init && cheat_cooldown <= 0) {
+                cheat_sel = (cheat_sel + 1) % cheat_items.length;
+                cheat_cooldown = 150;
+            }
+        });
+        main.on('Enter', e => {
+            if (e.init && cheat_cooldown <= 0) {
+                cheat_cooldown = 300;
+                if (cheat_sel == 0) {
+                    player.x = 160;
+                    player.y = 195;
+                    player.lives[0] = player.lives[1];
+                    cheat_menu_open = false;
+                    main.play('sfx/Picked Up Something Good.mp3', true);
+                } else if (cheat_sel == 1) {
+                    player.x = 8032;
+                    player.y = 160;
+                    player.lives[0] = player.lives[1];
+                    cheat_menu_open = false;
+                    main.play('sfx/Picked Up Something Good.mp3', true);
+                } else if (cheat_sel == 2) {
+                    player.x = 16048;
+                    player.y = 160;
+                    player.lives[0] = player.lives[1];
+                    cheat_menu_open = false;
+                    main.play('sfx/Picked Up Something Good.mp3', true);
+                } else if (cheat_sel == 3) {
+                    player.lives[0] = Math.min(player.lives[0] + 5, player.lives[1]);
+                    cheat_menu_open = false;
+                    main.play('sfx/Picked Up Something Good.mp3', true);
+                } else if (cheat_sel == 4) {
+                    player.weapons[1].durability = 20;
+                    player.weapons[2].durability = 5;
+                    cheat_menu_open = false;
+                    main.play('sfx/Picked Up Something Good.mp3', true);
+                } else if (cheat_sel == 5) {
+                    cheat_menu_open = false;
+                }
+            }
+        });
+        return;
+    }
 
     // === Pause Menu ===
     if (paused) {
@@ -403,8 +1044,15 @@ main.scene('level', (t, dt) => {
                 player.canclimb = false;
                 bg.night = false;
                 bg.day = 1;
-                platforms = plts(main);
+                player.total_essence = 0;
+                player.lives = [10, 10];
+                platforms = setupPlatforms();
                 lv = level(main);
+                adjustLevelEssenceCount(lv);
+                current_level = 0;
+                king_defeated = false;
+                partner_spawned = false;
+                ending_active = false;
             }
         });
         return;
@@ -505,6 +1153,78 @@ main.scene('level', (t, dt) => {
     } else if(main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8 * player.speed_rate;
     else if(main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8 * player.speed_rate;
     else player.m[0] = 0;
+
+    // === Level Title Overlay ===
+    let active_lv = 1;
+    if (player.x >= 16000) {
+        active_lv = 3;
+    } else if (player.x >= 8000) {
+        active_lv = 2;
+    }
+
+    if (current_level !== active_lv) {
+        current_level = active_lv;
+        level_title_timer = 3000;
+        level_title_text = "LEVEL " + active_lv;
+
+        // Update level unlocks in leaderboard
+        if (current_player_name) {
+            let record = JSON.parse(localStorage.getItem('aswang_leaderboard_' + current_player_name) || '{"maxLevel": 1, "highScore": 0}');
+            if (active_lv > record.maxLevel) {
+                record.maxLevel = active_lv;
+                localStorage.setItem('aswang_leaderboard_' + current_player_name, JSON.stringify(record));
+                player_record = record;
+            }
+        }
+    }
+
+    if (level_title_timer > 0) {
+        level_title_timer -= dt;
+
+        let alpha = 1;
+        if (level_title_timer > 2500) {
+            alpha = (3000 - level_title_timer) / 500;
+        } else if (level_title_timer < 1000) {
+            alpha = level_title_timer / 1000;
+        }
+
+        main.btx.save();
+        main.btx.globalAlpha = alpha;
+
+        // Banner background
+        main.btx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        main.btx.fillRect(0, main.h / 2 - 25, main.w, 40);
+
+        // Golden borders
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillRect(0, main.h / 2 - 25, main.w, 2);
+        main.btx.fillRect(0, main.h / 2 + 13, main.w, 2);
+
+        // Title text
+        main.btx.font = '16px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.textBaseline = 'middle';
+
+        // Drop shadow
+        main.btx.fillStyle = '#000000';
+        main.btx.fillText(level_title_text, main.w / 2 + 1, main.h / 2 - 5 + 1);
+
+        // Main text
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText(level_title_text, main.w / 2, main.h / 2 - 5);
+
+        // Subtitle
+        main.btx.font = '6px arcade';
+        let subtitle = "";
+        if (active_lv === 1) subtitle = "RISE OF THE ASWANG KING";
+        else if (active_lv === 2) subtitle = "THE DARK FOREST";
+        else if (active_lv === 3) subtitle = "THE FINAL CONFRONTATION";
+
+        main.btx.fillStyle = '#FFFFFF';
+        main.btx.fillText(subtitle, main.w / 2, main.h / 2 + 7);
+
+        main.btx.restore();
+    }
 
     // Reset
     

@@ -1,6 +1,33 @@
 # Rise of the Aswang King
 A game for the hackathon by CPU CSS of April 2024 themed Arcade
 
+## Installation & Running Guide
+Follow these steps to set up and run the game locally:
+
+### 1. Prerequisites
+Ensure you have **Node.js** (v14 or higher) installed on your machine. You can download it from [nodejs.org](https://nodejs.org/).
+
+### 2. Installation
+Navigate to the project root directory and install the necessary package dependencies:
+```bash
+npm install
+```
+
+### 3. Run the Development Server
+Start the local server and TypeScript compiler by running:
+```bash
+node index.js aswang_king
+```
+This will:
+- Start a local HTTP server hosting on port `8000`.
+- Watch game source files in `src/aswang_king/` and compile them automatically to `index.html` on change.
+
+### 4. Access the Game
+Open your web browser and navigate to:
+```
+http://localhost:8000/
+```
+
 ## Need list
  - [ ] Background tiles
  - [x] Game plan

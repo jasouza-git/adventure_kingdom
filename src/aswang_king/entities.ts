@@ -11,7 +11,9 @@ let required_files:string[] = [
     // Entities
     'Dog.png', 'Cat (1).png', 'Aswang KingV2.png', 'Arrow.png', 'Shooterv2.png', 'TakeoutSalt.png',
     // Objects
-    'Vine.png', 'Tripwire2Correct.png', 'pressure.png', 'Aswang Essencecorrected.png', 'checkpoint.png',
+    'Vine.png', 'Tripwire2Correct.png', 'pressure.png', 'Aswang Essencecorrected.png', 'checkpoint.png', 'Healing Plant Icon.png', 'Healing.png',
+    // Shop & Partners
+    'The Merchant Board corrected.png', 'The Mysterious Personv3.png', 'Albularyov2.png', 'MCpartner.png', 'Priestv2.png', 'Wandering Monster Hunter2.png',
     // Player
     'Mcpartsv3.png', 'Heart.png', 'sfx/walk_dirt.mp3', 'sfx/vines.mp3',
     // Poisonous Plants
@@ -49,6 +51,9 @@ let entities:entities_type = {
             speed_rate: 1,      // 0.0 - 1.0, indicate the speed reduce amount
             in_area_time: 0,    // Indicate the time pinoy stand in the poisonous area or touched by the poisonous plants
             points: 0,     // Accumulatd points
+            total_essence: 0,   // Total essence collected
+            heal_ticks: 0,      // Remaining heal ticks
+            heal_timer: 0,      // Timer between heal ticks
             highscore: 0,  // Highscore
             max_x: 0,      // Maximum distance traveled by the player
             canclimb:false,// Player can climb?
@@ -60,13 +65,28 @@ let entities:entities_type = {
             weapons: [      // all weapons the pinoy has. sword, asin and cross protection
                 {name: "sword", durability: 1000000, attack_range: [20, 29], asset_name: 'Sword.png',},     // no limited durability, but small range attack
                 {name: "asin", durability: 20, attack_range: [168, 29], asset_name: 'Asin pouch.png'},      // limited durability, but large range attack
-                {name: "cross", durability: 20, attack_range: [0, 0], asset_name: 'CrossIcon.png'},          // limited durability, used to block damage and poison, no damange for aswang.
+                {name: "cross", durability: 5, attack_range: [0, 0], asset_name: 'CrossIcon.png'},          // limited durability, used to block damage and poison, no damange for aswang.
             ],
         },
         update: (d, o, t, dt) => {
             let c = n => [n%6, Math.floor(n/6)];
             let leg = [0,0], body = [0,0];
             let weap = d.weapons[d.cur_weapon];
+
+            // Healing ticks logic (+1 heart every 200ms up to 5 times)
+            if (d.heal_ticks > 0) {
+                d.heal_timer -= dt;
+                if (d.heal_timer <= 0) {
+                    if (d.lives[0] < d.lives[1]) {
+                        d.lives[0]++;
+                        o.play('sfx/Picked Up Something Good.mp3', true, 0.4);
+                        d.bind.push(o.entity('heart_gained', {x: d.x + 8, y: d.y}));
+                    }
+                    d.heal_ticks--;
+                    d.heal_timer = 200;
+                }
+            }
+
             if (d.cur_body_t > 0) {
                 d.dead = -1;
                 d.poisoned = -1;
@@ -250,8 +270,8 @@ let entities:entities_type = {
             if (d.c_shield_break_t > 0) d.c_shield_break_t -= dt;
             if (r == 1) {
                 // console.log(r);
-                let u = d.weapons[2].durability > Math.floor(6 / 1.5) ? 2 :
-                        d.weapons[2].durability > Math.floor(6 / 2) ? 1 : 
+                let u = d.weapons[2].durability > Math.floor(5 / 1.5) ? 2 :
+                        d.weapons[2].durability > Math.floor(5 / 2) ? 1 : 
                         d.weapons[2].durability > 0 ? 0 : 
                         d.c_shield_break_t > 500 ? -1 :
                         d.c_shield_break_t > 0 ? -2 : -3;
@@ -261,7 +281,13 @@ let entities:entities_type = {
                     // Body 
                     [0, d.crouch ? 2 : 0, 32*body[0] , 32*body[1], 32, 32, 1-d.fright]
                 );
-                if (d.protection == true) o.sprites('Protection2.png', [d.x, d.y], [0, -1.5, 64 + 32 * u, 0, 32, 32]);
+                if (d.protection == true) {
+                    let pulseAlpha = 0.6 + 0.4 * Math.sin(t / 150);
+                    o.btx.save();
+                    o.btx.globalAlpha = pulseAlpha;
+                    o.sprites('Protection2.png', [d.x, d.y], [0, -1.5, 64 + 32 * u, 0, 32, 32]);
+                    o.btx.restore();
+                }
             }
             // === Weapon HUD ===
             {
@@ -280,7 +306,7 @@ let entities:entities_type = {
                 o.btx.fillText(weapNames[d.cur_weapon], hx + 18, hy);
 
                 // Durability text
-                let durText = d.cur_weapon == 0 ? '\u221E' : String(weap.durability) + '/' + String(d.weapons[d.cur_weapon == 1 ? 1 : 2].durability <= weap.durability ? weap.durability : '20');
+                let durText = d.cur_weapon == 0 ? '\u221E' : String(weap.durability) + '/' + String(d.weapons[d.cur_weapon == 1 ? 1 : 2].durability <= weap.durability ? weap.durability : (d.cur_weapon == 1 ? '20' : '5'));
                 if (d.cur_weapon == 0) durText = '\u221E';
                 else durText = String(weap.durability);
                 let lowDura = d.cur_weapon != 0 && weap.durability <= 5;
@@ -640,7 +666,9 @@ let entities:entities_type = {
                 o.btx.fillText(String(p), o.w-2, 2);
                 // Plus points
                 if (o.player.points != d.points) {
-                    d.bind.push(o.entity('points_gained', {x:o.player.x, y:o.player.y, point:o.player.points-d.points}));
+                    if (o.player.points > d.points) {
+                        d.bind.push(o.entity('points_gained', {x:o.player.x, y:o.player.y, point:o.player.points-d.points}));
+                    }
                     d.points = o.player.points;
                 }
             }
@@ -691,6 +719,7 @@ let entities:entities_type = {
                 d.dead += (1-d.dead)*dt/30;
                 if (d.dead > 0.99) {
                     o.player.points += d.ess;
+                    o.player.total_essence += d.ess;
                     d.dead = -1;
                     d.removed = true;
                     return;
@@ -962,10 +991,49 @@ let entities:entities_type = {
             if (algo.rectint(o.player.hitbox, d.hitbox)) {
                 d.hitbox = [];
                 o.player.points += d.ess;
+                o.player.total_essence += d.ess;
                 d.claimed = true;
                 o.play('sfx/Picked Up Something Good.mp3', true);
             }
             o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8]);
+        }
+    },
+    health_plant: {
+        default: {x: 0, y: 0, claimed: false, bind: []},
+        update: (d, o, t, dt) => {
+            for (let i = 0; i < d.bind.length; i++) {
+                if (d.bind[i].duration <= 0) {
+                    d.bind.splice(i, 1);
+                    i--;
+                }
+            }
+            if (d.claimed) return;
+            d.hitbox = [ 0,
+                d.x + 4, d.y + 4,
+                8, 8
+            ];
+            if (algo.rectint(o.player.hitbox, d.hitbox)) {
+                d.hitbox = [];
+                o.player.heal_ticks = 5;
+                o.player.heal_timer = 0;
+                d.claimed = true;
+                o.play('sfx/Picked Up Something Good.mp3', true);
+                d.bind.push(o.entity('healing_anim', {x: o.player.x, y: o.player.y}));
+            }
+            let bob = Math.sin(t / 200) * 2;
+            o.sprites('Healing Plant Icon.png', [d.x, d.y + bob], [0, 0, 0, 0, 16, 16]);
+        }
+    },
+    heart_gained: {
+        default: {x: 0, y: 0, duration: 1000},
+        update: (d, o, t, dt) => {
+            o.btx.fillStyle = '#FF3333';
+            o.btx.strokeStyle = '#000';
+            o.btx.font = `8px arcade`;
+            o.btx.textAlign = 'center';
+            o.btx.textBaseline = 'middle';
+            o.btx.fillText('+1 HEART', d.x - o.camera[0], d.y - 10 * Math.sin((1 - d.duration / 1000) * Math.PI / 2));
+            d.duration -= dt;
         }
     },
     // checkpoint: {
@@ -1023,10 +1091,12 @@ let entities:entities_type = {
         }
     },
     text: {
-        default: {x: 10, y: 20, z:10, text:'', color: '#FFF'},
+        default: {x: 10, y: 20, z:10, text:'', title:'', color: '#FFF'},
         update: (d, o, t, dt) => {
+            let txt = d.text || d.title || '';
             o.btx.font = `${d.z*o.z}px arcade`;
-            o.btx.fillText(d.text, d.x-o.camera[0], d.y-o.camera[1]);
+            o.btx.fillStyle = d.color;
+            o.btx.fillText(txt, d.x-o.camera[0], d.y-o.camera[1]);
         }
     },
     checkpoint: {
@@ -1211,6 +1281,7 @@ let entities:entities_type = {
                     d.status = 1;
                 } else if (d.lives[1] == 0) {
                     o.player.points += d.ess;
+                    o.player.total_essence += d.ess;
                     d.cur_dying_t = d.dying_t;
                     d.dying = true;
                     d.headStatus = 2;
@@ -1331,6 +1402,202 @@ let entities:entities_type = {
             }
         }
     },
+    healing_anim: {
+        default: {x: 0, y: 0, duration: 1200},
+        update: (d, o, t, dt) => {
+            if (d.duration <= 0) return;
+            d.x = o.player.x - 16;
+            d.y = o.player.y - 16;
+            
+            let frame = Math.floor((1200 - d.duration) / 200);
+            if (frame < 0) frame = 0;
+            if (frame > 5) frame = 5;
+            
+            o.btx.save();
+            o.btx.globalCompositeOperation = 'lighter';
+            o.sprites('Healing.png', [d.x, d.y], [0, 0, frame * 64, 0, 64, 64]);
+            o.btx.restore();
+            
+            d.duration -= dt;
+        }
+    },
+    merchant_board: {
+        default: {x: 0, y: 0},
+        update: (d, o, t, dt) => {
+            o.sprites('The Merchant Board corrected.png', [d.x, d.y], [0, 0, 0, 0, 64, 64]);
+        }
+    },
+    mysterious_person: {
+        default: {x: 0, y: 0, talked: false, claimed: false},
+        update: (d, o, t, dt) => {
+            if (d.claimed) return;
+            d.hitbox = [0, d.x, d.y, 32, 64];
+            
+            let dist = Math.abs(o.player.x - d.x);
+            if (dist < 40 && Math.abs(o.player.y - d.y) < 64) {
+                o.btx.font = '5px arcade';
+                o.btx.fillStyle = '#FFFFFF';
+                o.btx.textAlign = 'center';
+                o.btx.fillText('PRESS ENTER TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                
+                o.on('Enter', e => {
+                    if (e.init && active_dialogue === null && active_shop === null) {
+                        active_dialogue = [
+                            { speaker: "MYSTERIOUS PERSON", text: "Turn back! This forest is ruled by the horse-headed Tikbalang." },
+                            { speaker: "MYSTERIOUS PERSON", text: "They will lead you astray. And look out for the wailing White Lady!" },
+                            { speaker: "PINOY", text: "I cannot turn back. The Aswang King took my partner." },
+                            { speaker: "MYSTERIOUS PERSON", text: "Then be prepared. Take this warning, and stay safe." }
+                        ];
+                        dialogue_index = 0;
+                        dialogue_cooldown = 300;
+                        d.talked = true;
+                        dialogue_post_callback = () => {
+                            d.claimed = true;
+                        };
+                    }
+                });
+            }
+            
+            o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 0, 0, 32, 64]);
+        }
+    },
+    wandering_hunter: {
+        default: {x: 0, y: 0, talked: false, claimed: false},
+        update: (d, o, t, dt) => {
+            if (d.claimed) return;
+            d.hitbox = [0, d.x, d.y, 32, 32];
+            
+            let dist = Math.abs(o.player.x - d.x);
+            if (dist < 40 && Math.abs(o.player.y - d.y) < 32) {
+                o.btx.font = '5px arcade';
+                o.btx.fillStyle = '#FFFFFF';
+                o.btx.textAlign = 'center';
+                o.btx.fillText('PRESS ENTER TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                
+                o.on('Enter', e => {
+                    if (e.init && active_dialogue === null && active_shop === null) {
+                        active_dialogue = [
+                            { speaker: "MONSTER HUNTER", text: "Watch your step, kid. Demonic babies cry in the shadows." },
+                            { speaker: "MONSTER HUNTER", text: "Those are Tiyanaks, waiting to attack! And watch the skies..." },
+                            { speaker: "MONSTER HUNTER", text: "The detaching Manananggals fly under the moon looking for fresh blood!" },
+                            { speaker: "PINOY", text: "I'm looking for the Aswang King. Have you seen him?" },
+                            { speaker: "MONSTER HUNTER", text: "He resides in the ruins ahead. Buy some salt pouches, they'll save your skin." }
+                        ];
+                        dialogue_index = 0;
+                        dialogue_cooldown = 300;
+                        d.talked = true;
+                        dialogue_post_callback = () => {
+                            d.claimed = true;
+                        };
+                    }
+                });
+            }
+            
+            let f = Math.floor(t / 400) % 2;
+            o.sprites('Wandering Monster Hunter2.png', [d.x, d.y], [32 * f, 0, 0, 0, 32, 32]);
+        }
+    },
+    priest: {
+        default: {x: 0, y: 0, talked: false, claimed: false},
+        update: (d, o, t, dt) => {
+            if (d.claimed) return;
+            d.hitbox = [0, d.x, d.y, 32, 64];
+            
+            let dist = Math.abs(o.player.x - d.x);
+            if (dist < 40 && Math.abs(o.player.y - d.y) < 64) {
+                o.btx.font = '5px arcade';
+                o.btx.fillStyle = '#FFFFFF';
+                o.btx.textAlign = 'center';
+                o.btx.fillText('PRESS ENTER TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                
+                o.on('Enter', e => {
+                    if (e.init && active_dialogue === null && active_shop === null) {
+                        active_dialogue = [
+                            { speaker: "PRIEST", text: "May the light protect you, child. The Aswang King lies just ahead." },
+                            { speaker: "PRIEST", text: "He rules all shape-shifters, ghouls, and dark spirits in this land." },
+                            { speaker: "PINOY", text: "I am ready. The Aswang King must be stopped." },
+                            { speaker: "PRIEST", text: "Bless your weapons with Agua Bendita. Only holy power can shield you." }
+                        ];
+                        dialogue_index = 0;
+                        dialogue_cooldown = 300;
+                        d.talked = true;
+                        dialogue_post_callback = () => {
+                            d.claimed = true;
+                        };
+                    }
+                });
+            }
+            
+            let f = Math.floor(t / 200) % 13;
+            o.sprites('Priestv2.png', [d.x, d.y, 0.5, 0.5], [64 * f, 0, 0, 0, 64, 128]);
+        }
+    },
+    albularyo: {
+        default: {x: 0, y: 0, talked: false, claimed: false},
+        update: (d, o, t, dt) => {
+            if (d.claimed) return;
+            d.hitbox = [0, d.x, d.y, 32, 64];
+            
+            let dist = Math.abs(o.player.x - d.x);
+            if (dist < 40 && Math.abs(o.player.y - d.y) < 64) {
+                o.btx.font = '5px arcade';
+                o.btx.fillStyle = '#FFFFFF';
+                o.btx.textAlign = 'center';
+                o.btx.fillText('PRESS ENTER TO SHOP', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                
+                o.on('Enter', e => {
+                    if (e.init && active_dialogue === null && active_shop === null) {
+                        active_dialogue = [
+                            { speaker: "ALBULARYO", text: "Greetings, child. I am the Albularyo, healer of these lands." },
+                            { speaker: "ALBULARYO", text: "I can provide you with sacred tools to fight the dark beasts." }
+                        ];
+                        dialogue_index = 0;
+                        dialogue_cooldown = 300;
+                        dialogue_post_callback = () => {
+                            active_shop = { npc: d };
+                            shop_sel = 0;
+                            shop_cooldown = 300;
+                        };
+                    }
+                });
+            }
+            
+            o.sprites('Albularyov2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 128]);
+        }
+    },
+    mc_partner: {
+        default: {x: 0, y: 0, talked: false},
+        update: (d, o, t, dt) => {
+            d.hitbox = [0, d.x, d.y, 32, 32];
+            
+            let dist = Math.abs(o.player.x - d.x);
+            if (dist < 40 && Math.abs(o.player.y - d.y) < 32 && !d.talked) {
+                o.btx.font = '5px arcade';
+                o.btx.fillStyle = '#FFFFFF';
+                o.btx.textAlign = 'center';
+                o.btx.fillText('PRESS ENTER', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                
+                o.on('Enter', e => {
+                    if (e.init && active_dialogue === null) {
+                        active_dialogue = [
+                            { speaker: "PINOY", text: "Maria! I found you!" },
+                            { speaker: "MARIA", text: "You defeated the Aswang King... You saved me!" },
+                            { speaker: "PINOY", text: "Let's go home, Maria. It's finally over." },
+                            { speaker: "MARIA", text: "Yes. Let's go home." }
+                        ];
+                        dialogue_index = 0;
+                        dialogue_cooldown = 300;
+                        d.talked = true;
+                        dialogue_post_callback = () => {
+                            ending_active = true;
+                        };
+                    }
+                });
+            }
+            
+            o.sprites('MCpartner.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 64]);
+        }
+    },
 };
 
 function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_name, origins, sizes, dead_origins, dead_sizes, fright_reverse) {
@@ -1390,6 +1657,7 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
                 d.dead = 0;
                 o.player.points += d.ess;
+                o.player.total_essence += d.ess;
                 return;
             }
         }

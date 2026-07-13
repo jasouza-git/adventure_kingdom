@@ -61,26 +61,44 @@ let algo = {
         let c:number[][] = [];
 
         entity.ground = -1;
-        //if (nocollide != true) (entity.parent != undefined ? entity.parent.collide : entity.collide).forEach((collider, id) => {
+        
+        // Horizontal Pass (a = 1, 3)
         engine.interacts.forEach((collider, id) => {
             if (entity.nocollide != undefined && (entity.nocollide.indexOf(id) != -1 || entity.nocollide.indexOf(collider['__type__']) != -1)) return;
-            for (let a = 0; a < 4; a++) {
-                // Would have been easier if hitbox was [N,W,S,E] instead
-                // Optional (a+1)>>1&1 instead
-                let A = a==1||a==2?collider:entity;
-                let B = a==1||a==2?entity:collider;
+            [1, 3].forEach(a => {
+                let A = a==1?collider:entity;
+                let B = a==1?entity:collider;
                 if (entity.hitbox[0]>>a&1 && collider.hitbox[0]>>((a+2)%4)&1 &&
-                    A.hitbox[2-a%2] >= B.hitbox[2-a%2]+B.hitbox[4-a%2] &&
-                    A.hitbox[2-a%2]+p[1-a%2]*(a==1||a==2?-1:1) < B.hitbox[2-a%2]+B.hitbox[4-a%2] &&
-                    entity.hitbox[1+a%2] < collider.hitbox[1+a%2]+collider.hitbox[3+a%2] &&
-                    entity.hitbox[1+a%2]+entity.hitbox[3+a%2] > collider.hitbox[1+a%2]
+                    A.hitbox[1] >= B.hitbox[1]+B.hitbox[3] &&
+                    A.hitbox[1]+p[0]*(a==1?-1:1) < B.hitbox[1]+B.hitbox[3] &&
+                    entity.hitbox[2] < collider.hitbox[2]+collider.hitbox[4] &&
+                    entity.hitbox[2]+entity.hitbox[4] > collider.hitbox[2]
                 ) {
-                    p[1-a%2] = collider.hitbox[2-a%2]-entity.hitbox[2-a%2]+B.hitbox[4-a%2]*(a==1||a==2?-1:1);
-                    m[1-a%2] = 0;
-                    if (a==2) entity.ground = id;
-                    c.push([id, a]); // There can only be 1 side of collision, no need binary set
+                    p[0] = collider.hitbox[1]-entity.hitbox[1]+B.hitbox[3]*(a==1?-1:1);
+                    m[0] = 0;
+                    c.push([id, a]);
                 }
-            }
+            });
+        });
+
+        // Vertical Pass (a = 0, 2)
+        engine.interacts.forEach((collider, id) => {
+            if (entity.nocollide != undefined && (entity.nocollide.indexOf(id) != -1 || entity.nocollide.indexOf(collider['__type__']) != -1)) return;
+            [0, 2].forEach(a => {
+                let A = a==2?collider:entity;
+                let B = a==2?entity:collider;
+                if (entity.hitbox[0]>>a&1 && collider.hitbox[0]>>((a+2)%4)&1 &&
+                    A.hitbox[2] >= B.hitbox[2]+B.hitbox[4] &&
+                    A.hitbox[2]+p[1]*(a==2?-1:1) < B.hitbox[2]+B.hitbox[4] &&
+                    (entity.hitbox[1]+p[0]) < collider.hitbox[1]+collider.hitbox[3] &&
+                    (entity.hitbox[1]+entity.hitbox[3]+p[0]) > collider.hitbox[1]
+                ) {
+                    p[1] = collider.hitbox[2]-entity.hitbox[2]+B.hitbox[4]*(a==2?-1:1);
+                    m[1] = 0;
+                    if (a==2) entity.ground = id;
+                    c.push([id, a]);
+                }
+            });
         });
 
         entity.x += p[0];
