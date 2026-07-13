@@ -629,6 +629,27 @@ main.scene('into', (t,dt) => {
     });
 });
 
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+    let words = text.split(' ');
+    let lines: string[] = [];
+    let currentLine = '';
+    
+    for (let word of words) {
+        let testLine = currentLine ? currentLine + ' ' + word : word;
+        let metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+        } else {
+            currentLine = testLine;
+        }
+    }
+    if (currentLine) {
+        lines.push(currentLine);
+    }
+    return lines;
+}
+
 // Level Scene
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
@@ -655,10 +676,13 @@ main.scene('level', (t, dt) => {
         main.btx.textAlign = 'left';
         main.btx.fillText(current_line.speaker, 20, main.h - 50);
         
-        // Dialog text
+        // Dialog text (wrapped)
         main.btx.font = '6px arcade';
         main.btx.fillStyle = '#FFFFFF';
-        main.btx.fillText(current_line.text, 20, main.h - 38);
+        let lines = wrapText(main.btx, current_line.text, main.w - 40);
+        lines.forEach((line, idx) => {
+            main.btx.fillText(line, 20, main.h - 38 + idx * 8);
+        });
         
         // Press Enter hint
         main.btx.font = '5px arcade';
