@@ -816,15 +816,15 @@ let entities:entities_type = {
         default: {x:0, y:0, h:0},
         update: (d, o, t, dt) => {
             d.hitbox = [0,
-                d.x,d.y,
-                8, d.h
+                d.x, d.y,
+                16, d.h
             ]
             let a:number[][] = [];
             // x, y, x_offset_in_asset, y_offset_in_asset, asset_width, asset_height
             for(var i = 0; i < Math.floor(d.h/24); i++) a.push([0, 24*i, 0, 0, 7, 24]);
             if (d.h%24 != 0) a.push([0, 24*i, 0, 0, 7, d.h%24])
-            a.push([2, d.h, 0, 32, 3, 3]);
-            o.sprites('Vine.png', [d.x, d.y], ...a);
+            a.push([4, d.h, 0, 32, 3, 3]);
+            o.sprites('Vine.png', [d.x, d.y, 2, 1], ...a);
             //printLog(d.hitbox, o.player.hitbox, 608);
             if (o.player != undefined && algo.rectint(d.hitbox, o.player.hitbox)) o.player.canclimb = true;
         }
