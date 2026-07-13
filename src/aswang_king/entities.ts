@@ -1541,10 +1541,10 @@ let entities:entities_type = {
         default: {x: 0, y: 0, talked: false, claimed: false},
         update: (d, o, t, dt) => {
             if (d.claimed) return;
-            d.hitbox = [0, d.x, d.y, 32, 64];
+            d.hitbox = [0, d.x, d.y, 32, 32];
             
             let dist = Math.abs(o.player.x - d.x);
-            if (dist < 40 && Math.abs(o.player.y - d.y) < 64) {
+            if (dist < 40 && Math.abs(o.player.y - d.y) < 32) {
                 o.btx.font = '5px arcade';
                 o.btx.fillStyle = '#FFFFFF';
                 o.btx.textAlign = 'center';
@@ -1568,17 +1568,17 @@ let entities:entities_type = {
             }
             
             let f = Math.floor(t / 200) % 13;
-            o.sprites('Priestv2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 128]);
+            o.sprites('Priestv2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 64]);
         }
     },
     albularyo: {
         default: {x: 0, y: 0, talked: false, claimed: false},
         update: (d, o, t, dt) => {
             if (d.claimed) return;
-            d.hitbox = [0, d.x, d.y, 32, 64];
+            d.hitbox = [0, d.x, d.y, 32, 32];
             
             let dist = Math.abs(o.player.x - d.x);
-            if (dist < 40 && Math.abs(o.player.y - d.y) < 64) {
+            if (dist < 40 && Math.abs(o.player.y - d.y) < 32) {
                 o.btx.font = '5px arcade';
                 o.btx.fillStyle = '#FFFFFF';
                 o.btx.textAlign = 'center';
@@ -1602,7 +1602,7 @@ let entities:entities_type = {
             }
             
             let f = Math.floor(t / 200) % 13;
-            o.sprites('Albularyov2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 128]);
+            o.sprites('Albularyov2.png', [d.x, d.y, 0.5, 0.5], [0, 0, 64 * f, 0, 64, 64]);
         }
     },
     mc_partner: {

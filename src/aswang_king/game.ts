@@ -103,7 +103,7 @@ function setupPlatforms() {
                     let npc2X = entity.x + 150;
                     
                     let boardY = findGround(boardX) - 29;
-                    let npc2Y = findGround(npc2X) - 61; // Albularyo height is 64, stands on ground
+                    let npc2Y = findGround(npc2X) - 29; // Albularyo height is now 32, stands on ground
                     
                     itemsToAdd.push(main.entity('merchant_board', {x: boardX, y: boardY}));
                     
@@ -119,7 +119,7 @@ function setupPlatforms() {
                         itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
                     } else if (entity.x === 20064) {
                         // Boss Checkpoint: Priest + Albularyo
-                        let npc1Y = findGround(npc1X) - 61; // Priest height is 64
+                        let npc1Y = findGround(npc1X) - 29; // Priest height is now 32
                         itemsToAdd.push(main.entity('priest', {x: npc1X, y: npc1Y}));
                         itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
                     }
