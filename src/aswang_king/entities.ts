@@ -355,15 +355,19 @@ let entities:entities_type = {
             
             // Clouds
             let inLevel2Plus = o.camera[0] >= 7800;
-            let cloudAsset = inLevel2Plus ? 'BLOODYCLOUDS.png' : 'Cloudsv1 (1).png';
             let drawCloud = (cx: number, cy: number, parallax: number) => {
-                let screenX = algo.mod(cx - o.camera[0] * parallax, o.w + 64) - 64;
-                o.sprites(cloudAsset, [screenX, cy],
-                    [0, 16, 4, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
-                    [16, 16, 20, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
-                    [32, 16, 40, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
-                    [16, 0, 20, 4, 16, 16, 0, 0, 0, 0, 0, 0, 0]
-                );
+                let margin = inLevel2Plus ? 128 : 64;
+                let screenX = algo.mod(cx - o.camera[0] * parallax, o.w + margin) - margin;
+                if (inLevel2Plus) {
+                    o.sprites('BLOODYCLOUDS.png', [screenX, cy, 2.0, 2.0], [0, 0, 0, 0, 48, 48]);
+                } else {
+                    o.sprites('Cloudsv1 (1).png', [screenX, cy],
+                        [0, 16, 4, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
+                        [16, 16, 20, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
+                        [32, 16, 40, 20, 16, 16, 0, 0, 0, 0, 0, 0, 0],
+                        [16, 0, 20, 4, 16, 16, 0, 0, 0, 0, 0, 0, 0]
+                    );
+                }
             };
             drawCloud(40 + t / 60, 10, 0.05);
             drawCloud(160 + t / 40, 24, 0.1);

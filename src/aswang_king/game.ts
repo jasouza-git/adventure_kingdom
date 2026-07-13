@@ -1,17 +1,17 @@
-import {algo} from "../algorithms.ts";
-import {required_files} from "./entities.ts";
-import {engine} from "../engine.ts";
-import {plts, level} from "./levels.ts";
+import { algo } from "../algorithms.ts";
+import { required_files } from "./entities.ts";
+import { engine } from "../engine.ts";
+import { plts, level } from "./levels.ts";
 
 // Video element (created on demand)
-let v:HTMLVideoElement|null = null;
+let v: HTMLVideoElement | null = null;
 
 // Media
-let bg_song_fade_to = 0, bg_song = [1,0,0],  bg_songs = ['song/1st Temp BG Song (New Area).mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
+let bg_song_fade_to = 0, bg_song = [1, 0, 0], bg_songs = ['song/1st Temp BG Song (New Area).mp3', 'song/2nd Temp BG Song (Starting & Slow Pace) .mp3', 'song/3rd Temp BG Song.mp3'];
 
 // Set gravity, game, levels, player, and player collisions
 algo.gravity = 20;
-let main = new engine({z:1, w:320, h:240, load: [...required_files, ...bg_songs], camera:[-160,0]});
+let main = new engine({ z: 1, w: 320, h: 240, load: [...required_files, ...bg_songs], camera: [-160, 0] });
 main.dom.style.filter = 'contrast(1.1)';
 // Dialog & Shop System variables
 let active_dialogue: any[] | null = null;
@@ -35,12 +35,12 @@ function startLevel(level_num: number) {
     platforms = setupPlatforms();
     lv = level(main);
     adjustLevelEssenceCount(lv);
-    
+
     player.cur_body_t = player.body_t;
     player.lives = [player.lives[1], player.lives[1]];
     player.points = 0;
     player.total_essence = 0;
-    
+
     if (level_num === 1) {
         player.x = 30;
         player.y = 195;
@@ -54,7 +54,7 @@ function startLevel(level_num: number) {
         player.x = 20064;
         player.y = 112;
     }
-    
+
     // Clear menus and state
     menu_sub = -1;
     paused = false;
@@ -62,12 +62,12 @@ function startLevel(level_num: number) {
     current_level = level_num;
     level_title_timer = 3000;
     level_title_text = level_num === 4 ? "BOSS LEVEL" : "LEVEL " + level_num;
-    
+
     // Reset boss tracking
     king_defeated = false;
     partner_spawned = false;
     ending_active = false;
-    
+
     main.scene('level');
 }
 
@@ -78,8 +78,8 @@ function setupPlatforms() {
         let itemsToAdd: any[] = [];
         section.forEach(entity => {
             if (entity['__type__'] == 'checkpoint') {
-                itemsToAdd.push(main.entity('health_plant', {x: entity.x + 8, y: entity.y + 48}));
-                
+                itemsToAdd.push(main.entity('health_plant', { x: entity.x + 8, y: entity.y + 48 }));
+
                 let findGround = (x: number) => {
                     let groundY = entity.y + 64; // default fallback
                     for (let item of section) {
@@ -101,27 +101,27 @@ function setupPlatforms() {
                     let boardX = entity.x + 15;
                     let npc1X = entity.x + 100;
                     let npc2X = entity.x + 50;
-                    
+
                     let boardY = findGround(boardX) - 29;
                     let npc2Y = findGround(npc2X) - 29; // Albularyo height is now 32, stands on ground
-                    
-                    itemsToAdd.push(main.entity('merchant_board', {x: boardX, y: boardY}));
-                    
+
+                    itemsToAdd.push(main.entity('merchant_board', { x: boardX, y: boardY }));
+
                     if (entity.x === 8032) {
                         // Level 2 Start: Mysterious Person + Albularyo
                         let npc1Y = findGround(npc1X) - 29; // Mysterious Person height is now 32
-                        itemsToAdd.push(main.entity('mysterious_person', {x: npc1X, y: npc1Y}));
-                        itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
+                        itemsToAdd.push(main.entity('mysterious_person', { x: npc1X, y: npc1Y }));
+                        itemsToAdd.push(main.entity('albularyo', { x: npc2X, y: npc2Y }));
                     } else if (entity.x === 16048) {
                         // Level 3 Start: Wandering Hunter + Albularyo
                         let npc1Y = findGround(npc1X) - 29; // Wandering Hunter height is 32
-                        itemsToAdd.push(main.entity('wandering_hunter', {x: npc1X, y: npc1Y}));
-                        itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
+                        itemsToAdd.push(main.entity('wandering_hunter', { x: npc1X, y: npc1Y }));
+                        itemsToAdd.push(main.entity('albularyo', { x: npc2X, y: npc2Y }));
                     } else if (entity.x === 20064) {
                         // Boss Checkpoint: Priest + Albularyo
                         let npc1Y = findGround(npc1X) - 24; // Priest lower on the ground
-                        itemsToAdd.push(main.entity('priest', {x: npc1X, y: npc1Y}));
-                        itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
+                        itemsToAdd.push(main.entity('priest', { x: npc1X, y: npc1Y + 9 }));
+                        itemsToAdd.push(main.entity('albularyo', { x: npc2X, y: npc2Y }));
                     }
                 }
             }
@@ -136,7 +136,7 @@ function adjustLevelEssenceCount(sections: any[][]) {
     let lvl1Essences: any[] = [];
     let lvl2Essences: any[] = [];
     let lvl3Essences: any[] = [];
-    
+
     sections.forEach(sec => {
         sec.forEach(e => {
             if (e['__type__'] === 'essence') {
@@ -151,7 +151,7 @@ function adjustLevelEssenceCount(sections: any[][]) {
             }
         });
     });
-    
+
     if (lvl1Essences.length < 500 && lvl1Essences.length > 0) {
         let needed = 500 - lvl1Essences.length;
         for (let i = 0; i < needed; i++) {
@@ -160,7 +160,7 @@ function adjustLevelEssenceCount(sections: any[][]) {
             ref.section.push(clone);
         }
     }
-    
+
     if (lvl2Essences.length > 600) {
         let toRemove = lvl2Essences.length - 600;
         for (let i = 0; i < toRemove; i++) {
@@ -171,7 +171,7 @@ function adjustLevelEssenceCount(sections: any[][]) {
             }
         }
     }
-    
+
     if (lvl3Essences.length < 300 && lvl3Essences.length > 0) {
         let needed = 300 - lvl3Essences.length;
         for (let i = 0; i < needed; i++) {
@@ -185,11 +185,11 @@ function adjustLevelEssenceCount(sections: any[][]) {
 let platforms = setupPlatforms();
 let lv = level(main);
 adjustLevelEssenceCount(lv);
-let bg = main.entity('background', {house:true});
-let player = main.entity('pinoy', {x: /*20200/*/0, y:195});
+let bg = main.entity('background', { house: true });
+let player = main.entity('pinoy', { x: /*20200/*/0, y: 195 });
 main.player = player;
-let menu = main.entity('menu', {house:true});
-let pet = main.entity('pet', {x:15, y:209, animal:0, follow:player});
+let menu = main.entity('menu', { house: true });
+let pet = main.entity('pet', { x: 15, y: 209, animal: 0, follow: player });
 let off = 0;
 
 // Level title tracking
@@ -212,7 +212,7 @@ let cheat_items = [
 ];
 
 player.ondeath = () => {
-    for (let i = Math.floor(player.x/480); i > 0; i--) {
+    for (let i = Math.floor(player.x / 480); i > 0; i--) {
         let l = platforms[i];
         for (let j = 0; j < l.length; j++) {
             if (l[j]['__type__'] == 'checkpoint') {
@@ -242,7 +242,7 @@ let pause_sub = -1;         // -1=pause menu, 0=controls screen
 let pause_items = ['RESUME', 'CONTROLS', 'MAIN MENU'];
 
 // Helper: draw readable controls screen on the canvas
-function drawControlsScreen(btx:any, w:number, h:number, t:number) {
+function drawControlsScreen(btx: any, w: number, h: number, t: number) {
     // Dark background
     btx.fillStyle = '#0A0A2A';
     btx.fillRect(0, 0, w, h);
@@ -260,19 +260,19 @@ function drawControlsScreen(btx:any, w:number, h:number, t:number) {
 
     // Controls list
     let controls = [
-        ['MOVEMENT',    ''],
-        ['  WALK',      'A / D  or  LEFT / RIGHT'],
-        ['  JUMP',      'SPACE  or  UP'],
-        ['  CROUCH',    'S  or  DOWN'],
-        ['  CLIMB',     'W / S  on vines'],
-        ['',            ''],
-        ['COMBAT',      ''],
-        ['  ATTACK',    'J'],
+        ['MOVEMENT', ''],
+        ['  WALK', 'A / D  or  LEFT / RIGHT'],
+        ['  JUMP', 'SPACE  or  UP'],
+        ['  CROUCH', 'S  or  DOWN'],
+        ['  CLIMB', 'W / S  on vines'],
+        ['', ''],
+        ['COMBAT', ''],
+        ['  ATTACK', 'J'],
         ['  SWAP WEAPON', 'R  or  1 / 2 / 3'],
-        ['  SHIELD',    'E  (toggle on/off)'],
-        ['',            ''],
-        ['CAMERA',      'U / I / O'],
-        ['PAUSE',       'ESC  or  P'],
+        ['  SHIELD', 'E  (toggle on/off)'],
+        ['', ''],
+        ['CAMERA', 'U / I / O'],
+        ['PAUSE', 'ESC  or  P'],
     ];
 
     let startY = 36;
@@ -370,24 +370,24 @@ main.scene('main_menu', (t, dt) => {
         // Leaderboard screen
         main.btx.fillStyle = '#0F0B1E';
         main.btx.fillRect(0, 0, main.w, main.h);
-        
+
         main.btx.font = '14px arcade';
         main.btx.textAlign = 'center';
         main.btx.fillStyle = '#FFD700';
         main.btx.fillText('LEADERBOARDS', main.w / 2, 20);
-        
+
         main.btx.font = '7px arcade';
         main.btx.fillStyle = '#C8A840';
         main.btx.textAlign = 'left';
         main.btx.fillText('RANK  NAME          SCORE   LEVEL', 35, 45);
-        
+
         main.btx.fillStyle = '#8B6914';
         main.btx.fillRect(30, 55, main.w - 60, 2);
-        
+
         let leaderboard = JSON.parse(localStorage.getItem('aswang_global_leaderboard') || '[]');
         main.btx.font = '7px arcade';
         main.btx.fillStyle = '#FFFFFF';
-        
+
         for (let i = 0; i < 7; i++) {
             let y = 68 + i * 18;
             if (i < leaderboard.length) {
@@ -403,7 +403,7 @@ main.scene('main_menu', (t, dt) => {
                 main.btx.fillStyle = '#FFFFFF';
             }
         }
-        
+
         main.btx.font = '6px arcade';
         main.btx.textAlign = 'center';
         main.btx.fillStyle = '#FFD700';
@@ -411,7 +411,7 @@ main.scene('main_menu', (t, dt) => {
         if (blink) {
             main.btx.fillText('PRESS ENTER TO GO BACK', main.w / 2, main.h - 12);
         }
-        
+
         main.on('Enter', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
@@ -420,14 +420,14 @@ main.scene('main_menu', (t, dt) => {
         // Level selection screen
         main.btx.fillStyle = '#0A0A1A';
         main.btx.fillRect(0, 0, main.w, main.h);
-        
+
         main.btx.font = '12px arcade';
         main.btx.textAlign = 'center';
         main.btx.fillStyle = '#FFD700';
         main.btx.fillText('CHOOSE LEVEL', main.w / 2, 30);
-        
+
         let maxLvl = player_record ? player_record.maxLevel : 1;
-        
+
         let lv_items = [
             'LEVEL 1: FINDING CLUES',
             'LEVEL 2: THE DARK FOREST',
@@ -435,7 +435,7 @@ main.scene('main_menu', (t, dt) => {
             'BOSS LEVEL: THE FINAL BATTLE',
             'BACK'
         ];
-        
+
         for (let i = 0; i < lv_items.length; i++) {
             let itemY = 65 + i * 24;
             let selected = (i === level_sel);
@@ -444,7 +444,7 @@ main.scene('main_menu', (t, dt) => {
                 let requiredLvl = i === 3 ? 3 : (i + 1);
                 locked = (requiredLvl > maxLvl);
             }
-            
+
             if (selected) {
                 main.btx.fillStyle = 'rgba(212, 168, 48, 0.2)';
                 main.btx.fillRect(20, itemY - 4, main.w - 40, 16);
@@ -456,7 +456,7 @@ main.scene('main_menu', (t, dt) => {
                 main.btx.textBaseline = 'top';
                 main.btx.fillText('>', 40, itemY);
             }
-            
+
             main.btx.font = '8px arcade';
             main.btx.textAlign = 'center';
             main.btx.textBaseline = 'top';
@@ -468,7 +468,7 @@ main.scene('main_menu', (t, dt) => {
                 main.btx.fillText(lv_items[i], main.w / 2, itemY);
             }
         }
-        
+
         main.on('w,W,ArrowUp', e => {
             if (e.init && menu_cooldown <= 0) {
                 level_sel = (level_sel - 1 + lv_items.length) % lv_items.length;
@@ -502,12 +502,12 @@ main.scene('main_menu', (t, dt) => {
         // Draw Name Entry Screen
         main.btx.fillStyle = '#0A0A1A';
         main.btx.fillRect(0, 0, main.w, main.h);
-        
+
         main.btx.font = '12px arcade';
         main.btx.textAlign = 'center';
         main.btx.fillStyle = '#FFD700';
         main.btx.fillText('ENTER YOUR NAME', main.w / 2, 60);
-        
+
         // Draw input box
         let boxX = 60, boxY = 90, boxW = 200, boxH = 24;
         main.btx.fillStyle = 'rgba(139, 105, 20, 0.3)';
@@ -515,32 +515,32 @@ main.scene('main_menu', (t, dt) => {
         main.btx.strokeStyle = '#D4A830';
         main.btx.lineWidth = 1.5;
         main.btx.strokeRect(boxX, boxY, boxW, boxH);
-        
+
         // Draw current name text
         main.btx.font = '10px arcade';
         main.btx.textAlign = 'left';
         main.btx.textBaseline = 'middle';
         main.btx.fillStyle = '#FFFFFF';
-        
+
         let displayName = current_player_name;
         let blink = Math.floor(t / 400) % 2 === 0;
         if (blink) displayName += '_';
-        
+
         main.btx.fillText(displayName, boxX + 10, boxY + boxH / 2);
-        
+
         // Draw instructions
         main.btx.font = '5px arcade';
         main.btx.textAlign = 'center';
         main.btx.fillStyle = '#AAAAAA';
         main.btx.fillText('USE KEYBOARD TO TYPE  -  MAX 12 CHARACTERS', main.w / 2, 140);
         main.btx.fillText('PRESS ENTER TO CONFIRM  -  ESC TO BACK', main.w / 2, 155);
-        
+
         // Handle input events
         Object.keys(main.evented).forEach(key => {
             let ev = main.evented[key];
             if (ev.init) {
                 ev.init = false; // consume event
-                
+
                 if (key === 'Backspace') {
                     if (current_player_name.length > 0) {
                         current_player_name = current_player_name.slice(0, -1);
@@ -657,11 +657,11 @@ main.scene('main_menu', (t, dt) => {
 });
 
 // === Intro Scene ===
-let load_level = ()=>{
+let load_level = () => {
     if (v && v.parentNode) document.body.removeChild(v);
     main.scene('level');
 };
-main.scene('into', (t,dt) => {
+main.scene('into', (t, dt) => {
     if (!v) {
         v = document.createElement('video');
         v.src = 'Aswang King Final Game Story(480p).mp4';
@@ -679,7 +679,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     let words = text.split(' ');
     let lines: string[] = [];
     let currentLine = '';
-    
+
     for (let word of words) {
         let testLine = currentLine ? currentLine + ' ' + word : word;
         let metrics = ctx.measureText(testLine);
@@ -703,25 +703,25 @@ main.scene('level', (t, dt) => {
     // === Dialogue Overlay ===
     if (active_dialogue !== null) {
         dialogue_cooldown -= dt;
-        
+
         main.btx.save();
-        
+
         // Draw dialog box at bottom of screen
         main.btx.fillStyle = 'rgba(0, 0, 0, 0.85)';
         main.btx.fillRect(10, main.h - 60, main.w - 20, 50);
-        
+
         main.btx.strokeStyle = '#D4A830';
         main.btx.lineWidth = 1.5;
         main.btx.strokeRect(10, main.h - 60, main.w - 20, 50);
-        
+
         let current_line = active_dialogue[dialogue_index];
-        
+
         // Speaker name
         main.btx.font = '8px arcade';
         main.btx.fillStyle = '#FFD700';
         main.btx.textAlign = 'left';
         main.btx.fillText(current_line.speaker, 20, main.h - 50);
-        
+
         // Dialog text (wrapped)
         main.btx.font = '6px arcade';
         main.btx.fillStyle = '#FFFFFF';
@@ -729,17 +729,17 @@ main.scene('level', (t, dt) => {
         lines.forEach((line, idx) => {
             main.btx.fillText(line, 20, main.h - 38 + idx * 8);
         });
-        
+
         // Press Enter hint
         main.btx.font = '5px arcade';
         main.btx.fillStyle = '#AAAAAA';
         main.btx.textAlign = 'right';
         main.btx.fillText('PRESS ENTER', main.w - 20, main.h - 18);
-        
+
         main.btx.restore();
-        
+
         player.m[0] = 0;
-        
+
         main.on('Enter', e => {
             if (e.init && dialogue_cooldown <= 0) {
                 dialogue_cooldown = 200;
@@ -758,13 +758,13 @@ main.scene('level', (t, dt) => {
     // === Shop Overlay ===
     if (active_shop !== null) {
         shop_cooldown -= dt;
-        
+
         main.btx.save();
-        
+
         // Dim screen background slightly
         main.btx.fillStyle = 'rgba(0, 0, 0, 0.6)';
         main.btx.fillRect(0, 0, main.w, main.h);
-        
+
         // Shop board
         let sBoardX = 40, sBoardY = 50, sBoardW = 240, sBoardH = 140;
         main.btx.fillStyle = 'rgba(20, 15, 10, 0.95)';
@@ -775,34 +775,34 @@ main.scene('level', (t, dt) => {
         main.btx.strokeStyle = '#D4A830';
         main.btx.lineWidth = 1;
         main.btx.strokeRect(sBoardX + 3, sBoardY + 3, sBoardW - 6, sBoardH - 6);
-        
+
         // Shop Title
         main.btx.font = '10px arcade';
         main.btx.textAlign = 'center';
         main.btx.fillStyle = '#FFD700';
         main.btx.fillText('ALBULARYO SHOP', main.w / 2, sBoardY + 12);
-        
+
         // Currency display
         main.btx.font = '6px arcade';
         main.btx.fillStyle = '#FFFFFF';
         main.btx.fillText('YOUR ESSENCE: ' + player.points, main.w / 2, sBoardY + 24);
-        
+
         // Split Layout: Left Menu, Right Preview
         let menuX = sBoardX + 12;
         let previewCenterX = sBoardX + 175;
-        
+
         let shop_items = [
             'AGUA BENDITA',
             'SALT POUCH',
             'HEALING FOOD',
             'EXIT SHOP'
         ];
-        
+
         // Draw Menu Items
         for (let i = 0; i < shop_items.length; i++) {
             let itemY = sBoardY + 40 + i * 22;
             let selected = (i === shop_sel);
-            
+
             if (selected) {
                 main.btx.fillStyle = 'rgba(212, 168, 48, 0.2)';
                 main.btx.fillRect(menuX - 4, itemY - 4, 110, 16);
@@ -820,7 +820,7 @@ main.scene('level', (t, dt) => {
             main.btx.fillStyle = selected ? '#FFFFFF' : '#888888';
             main.btx.fillText(shop_items[i], menuX + 10, itemY);
         }
-        
+
         // Draw Highlighted Item Preview on the Right
         if (shop_sel >= 0 && shop_sel < 3) {
             // Draw Icon Box
@@ -828,24 +828,24 @@ main.scene('level', (t, dt) => {
             let boxX = previewCenterX - boxSize / 2;
             let boxY = sBoardY + 40;
             main.sprites('Icon Box.png', [boxX, boxY, 2, 2], [0, 0, 0, 0, 16, 16]);
-            
+
             // Draw Item Icon inside box
             let iconAsset = '';
             if (shop_sel === 0) iconAsset = 'CrossIcon.png';
             else if (shop_sel === 1) iconAsset = 'Asin pouch.png';
             else if (shop_sel === 2) iconAsset = 'Healing Plant Icon.png';
-            
+
             if (iconAsset) {
                 main.sprites(iconAsset, [boxX + 8, boxY + 8], [0, 0, 0, 0, 16, 16]);
             }
-            
+
             // Draw Price
             let cost = (shop_sel === 0 || shop_sel === 2) ? 150 : 100;
             main.btx.font = '7px arcade';
             main.btx.textAlign = 'center';
             main.btx.fillStyle = '#FFD700';
             main.btx.fillText(cost + ' ESSENCE', previewCenterX, boxY + 42);
-            
+
             // Draw Description
             main.btx.font = '5px arcade';
             main.btx.fillStyle = '#CCCCCC';
@@ -857,7 +857,7 @@ main.scene('level', (t, dt) => {
             } else if (shop_sel === 2) {
                 descLines = ['RECOVERY OF', '+2 HEARTS'];
             }
-            
+
             descLines.forEach((line, idx) => {
                 main.btx.fillText(line, previewCenterX, boxY + 54 + idx * 7);
             });
@@ -868,11 +868,11 @@ main.scene('level', (t, dt) => {
             main.btx.fillStyle = '#FF5555';
             main.btx.fillText('EXIT TO FOREST', previewCenterX, sBoardY + 70);
         }
-        
+
         main.btx.restore();
-        
+
         player.m[0] = 0;
-        
+
         main.on('w,W,ArrowUp', e => {
             if (e.init && shop_cooldown <= 0) {
                 shop_sel = (shop_sel - 1 + shop_items.length) % shop_items.length;
@@ -885,7 +885,7 @@ main.scene('level', (t, dt) => {
                 shop_cooldown = 150;
             }
         });
-        
+
         main.on('Enter', e => {
             if (e.init && shop_cooldown <= 0) {
                 shop_cooldown = 300;
@@ -925,30 +925,30 @@ main.scene('level', (t, dt) => {
         main.btx.save();
         main.btx.fillStyle = '#000000';
         main.btx.fillRect(0, 0, main.w, main.h);
-        
+
         main.btx.fillStyle = '#FFD700';
         main.btx.font = '16px arcade';
         main.btx.textAlign = 'center';
         main.btx.fillText('VICTORY!', main.w / 2, 60);
-        
+
         main.btx.fillStyle = '#FFFFFF';
         main.btx.font = '8px arcade';
         main.btx.fillText('YOU DEFEATED THE ASWANG KING', main.w / 2, 90);
         main.btx.fillText('AND SAVED YOUR PARTNER!', main.w / 2, 105);
-        
+
         let p = algo.score(player);
         main.btx.fillStyle = '#FFD700';
         main.btx.fillText('FINAL SCORE: ' + p, main.w / 2, 135);
-        
+
         main.btx.fillStyle = '#888888';
         main.btx.font = '6px arcade';
         let blink = Math.floor(t / 500) % 2 === 0;
         if (blink) {
             main.btx.fillText('PRESS ENTER TO RETURN TO MENU', main.w / 2, 180);
         }
-        
+
         main.btx.restore();
-        
+
         main.on('Enter', e => {
             if (e.init) {
                 if (current_player_name) {
@@ -959,14 +959,14 @@ main.scene('level', (t, dt) => {
                         player_record.highScore = p;
                     }
                     localStorage.setItem('aswang_leaderboard_' + current_player_name, JSON.stringify(player_record));
-                    
+
                     let leaderboard = JSON.parse(localStorage.getItem('aswang_global_leaderboard') || '[]');
                     leaderboard = leaderboard.filter(el => el.name !== current_player_name);
                     leaderboard.push({ name: current_player_name, score: p, maxLevel: player_record.maxLevel });
                     leaderboard.sort((a, b) => b.score - a.score);
                     localStorage.setItem('aswang_global_leaderboard', JSON.stringify(leaderboard.slice(0, 10)));
                 }
-                
+
                 ending_active = false;
                 king_defeated = false;
                 partner_spawned = false;
@@ -981,10 +981,10 @@ main.scene('level', (t, dt) => {
     // === Check Aswang King Death ===
     if (current_level === 3 && !king_defeated) {
         let king_entity = null;
-        let l = Math.floor(player.x/480);
+        let l = Math.floor(player.x / 480);
         for (var n = -2; n <= 2; n++) {
-            if (l+n >= 0 && l+n < lv.length) {
-                let section = lv[l+n];
+            if (l + n >= 0 && l + n < lv.length) {
+                let section = lv[l + n];
                 for (let j = 0; j < section.length; j++) {
                     if (section[j]['__type__'] === 'king') {
                         king_entity = section[j];
@@ -997,10 +997,10 @@ main.scene('level', (t, dt) => {
             king_defeated = true;
         }
     }
-    
+
     if (king_defeated && !partner_spawned) {
         partner_spawned = true;
-        platforms[42].push(main.entity('mc_partner', {x: 20555, y: 115}));
+        platforms[42].push(main.entity('mc_partner', { x: 20555, y: 115 }));
     }
 
     // === Pause toggle ===
@@ -1218,7 +1218,7 @@ main.scene('level', (t, dt) => {
         });
         return;
     }
-    off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead*Math.PI)*3);
+    off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead * Math.PI) * 3);
 
     if (player.lives[0] < 0) {
         menu.over = true;
@@ -1231,6 +1231,8 @@ main.scene('level', (t, dt) => {
                 player.lives = [3, 3];
                 player.max_x = player.x = 30;
                 player.y = 195;
+                player.dead = -1;
+                player.m = [0, 0];
                 player.climb = player.poisoned = -1;
                 player.canclimb = false;
                 bg.night = false;
@@ -1254,33 +1256,42 @@ main.scene('level', (t, dt) => {
 
     // Layers
     main.add(bg);
-    let l = Math.floor(player.x/480);
+    let l = Math.floor(player.x / 480);
     for (var n = -2; n <= 2; n++) {
-        if (l+n >= 0 && l+n < platforms.length) main.add(platforms[l+n]);
+        if (l + n >= 0 && l + n < platforms.length) main.add(platforms[l + n]);
     }
-    if (player.canclimb && main.on('w,W,s,S,ArrowUp,ArrowDown')) {player.climb = 1; player.m = [0,0]}
+    if (player.canclimb && main.on('w,W,s,S,ArrowUp,ArrowDown')) { player.climb = 1; player.m = [0, 0] }
     main.add(menu, pet, main.player);
+    // Render checkpoints on top of grass blocks (after player layer)
     for (var n = -2; n <= 2; n++) {
-        if (l+n >= 0 && l+n < lv.length) main.add(lv[l+n]);
+        if (l + n >= 0 && l + n < platforms.length) {
+            let sec = platforms[l + n];
+            for (let j = 0; j < sec.length; j++) {
+                if (sec[j]['__type__'] === 'checkpoint') main.add(sec[j]);
+            }
+        }
+    }
+    for (var n = -2; n <= 2; n++) {
+        if (l + n >= 0 && l + n < lv.length) main.add(lv[l + n]);
     }
 
     // Music
-    if (player.ground != -1 && player.ground < main.interacts.length && [0,1,2].indexOf(main.interacts[player.ground].mode) != -1) {
+    if (player.ground != -1 && player.ground < main.interacts.length && [0, 1, 2].indexOf(main.interacts[player.ground].mode) != -1) {
         bg_song_fade_to = main.interacts[player.ground].mode;
     }
     for (var i = 0; i < bg_song.length; i++) {
-        bg_song[i] += (i == bg_song_fade_to ? 1-bg_song[i] : -bg_song[i])*dt/1000;
+        bg_song[i] += (i == bg_song_fade_to ? 1 - bg_song[i] : -bg_song[i]) * dt / 1000;
         main.play(bg_songs[i], false, bg_song[i]);
     }
-    
+
 
     // Developer Tools
-    if(main.on('x')) lv[0][0].darkmode = !lv[0][0].darkmode;
+    if (main.on('x')) lv[0][0].darkmode = !lv[0][0].darkmode;
     main.on('z', e => {
-        if(e.init) main.sprite_boxed = main.hitbox_boxed = main.rotate_boxed = !main.sprite_boxed;
+        if (e.init) main.sprite_boxed = main.hitbox_boxed = main.rotate_boxed = !main.sprite_boxed;
     });
     main.on('h', e => {
-        if(e.init) main.hitbox_boxed = !main.hitbox_boxed;
+        if (e.init) main.hitbox_boxed = !main.hitbox_boxed;
     });
 
     // Background
@@ -1291,7 +1302,7 @@ main.scene('level', (t, dt) => {
 
     // Player Controls
     main.on('gp_j0', e => {
-        player.camera = e.x*100;
+        player.camera = e.x * 100;
     });
     main.on('u,U', e => {
         player.camera = -100;
@@ -1303,7 +1314,7 @@ main.scene('level', (t, dt) => {
         player.camera = 100;
     });
     main.on('j,J,gp_1', e => {
-        if(e.init && player.swinging < 0.1) player.swing = true;
+        if (e.init && player.swinging < 0.1) player.swing = true;
     });
     main.on('r,R,gp_3', e => {
         if (e.init) player.cur_weapon = (player.cur_weapon + 1) % player.weapons.length
@@ -1320,32 +1331,32 @@ main.scene('level', (t, dt) => {
     main.on('3', e => {
         if (e.init) player.cur_weapon = 2
     });
-    
+
     if (player.climb != -1) {
-        if(main.on(' ,ArrowUp,gp_2')) {
+        if (main.on(' ,ArrowUp,gp_2')) {
             player.m[1] = 20 * (player.poisoned >= 0 ? 0.75 : 1);
             player.climb = -1;
         } else if (main.on('d,D,ArrowRight,gp_e,a,A,ArrowLeft,gp_w')) {
-            player.climb = (Math.sin(t/200)+1)/2;
-            if (main.on('d,D,ArrowRight,gp_e')) player.x += dt/10;
-            else player.x -= dt/10;
+            player.climb = (Math.sin(t / 200) + 1) / 2;
+            if (main.on('d,D,ArrowRight,gp_e')) player.x += dt / 10;
+            else player.x -= dt / 10;
         } else if (main.on('w,W,gp_n,s,S,gp_s,ArrowUp,ArrowDown')) {
             main.play('sfx/vines.mp3', false, 0.5);
-            player.climb = (Math.sin(t/100)+1)/2;
-            player.y += (main.on('w,W,gp_n,ArrowUp')?-1:1)*dt/10;
+            player.climb = (Math.sin(t / 100) + 1) / 2;
+            player.y += (main.on('w,W,gp_n,ArrowUp') ? -1 : 1) * dt / 10;
         } else player.climb = 0;
         player.climing = true;
     }
 
-    if(main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
+    if (main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20 * (!player.protection && player.poisoned >= 0 ? 0.75 : 1);
     } else if (main.on('s,S,ArrowDown,gp_s')) {
         player.crouch = true;
         player.m[0] = 0;
     } else if (player.crouch) {
         player.crouch = player.jumping = false;
-    } else if(main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8 * player.speed_rate;
-    else if(main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8 * player.speed_rate;
+    } else if (main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8 * player.speed_rate;
+    else if (main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8 * player.speed_rate;
     else player.m[0] = 0;
 
     // === Level Title Overlay ===
@@ -1421,24 +1432,24 @@ main.scene('level', (t, dt) => {
     }
 
     // Reset
-    
+
 });
 main.render();
 
 main.filter = d => {
-    var w = main.w*main.z;
-    var h = main.h*main.z;
-    var t = ((new Date()).getTime()-main.time_init.getTime())*10;
+    var w = main.w * main.z;
+    var h = main.h * main.z;
+    var t = ((new Date()).getTime() - main.time_init.getTime()) * 10;
     for (var y = 0; y < h; y++) {
         for (var x = 0; x < w; x++) {
-            var p = (x+y*w)*4;
-            var o = 255-255*Math.max(Math.hypot(x-w/2, y-h/2)-7*w/20,0)/Math.min(w,h);
-            if (y % 2 == 0) o *= (w*y/2+x-t)*0.000001%0.02 + 0.98;
+            var p = (x + y * w) * 4;
+            var o = 255 - 255 * Math.max(Math.hypot(x - w / 2, y - h / 2) - 7 * w / 20, 0) / Math.min(w, h);
+            if (y % 2 == 0) o *= (w * y / 2 + x - t) * 0.000001 % 0.02 + 0.98;
             if (off != 0) {
-                d.data[p+1] = d.data[p+1+off*4];
-                d.data[p+3] = d.data[p+3+off*4];
+                d.data[p + 1] = d.data[p + 1 + off * 4];
+                d.data[p + 3] = d.data[p + 3 + off * 4];
             }
-            d.data[p+3] = Math.floor(o);
+            d.data[p + 3] = Math.floor(o);
         }
     }
     return d;
@@ -1540,23 +1551,23 @@ const mobileKeyMap: { [id: string]: string } = {
 function setupMobileButton(id: string, key: string) {
     const btn = document.getElementById(id);
     if (!btn) return;
-    
+
     const press = (e: Event) => {
         e.preventDefault();
         if (!main.evented[key]) {
             main.evented[key] = { init: true };
         }
     };
-    
+
     const release = (e: Event) => {
         e.preventDefault();
         delete main.evented[key];
     };
-    
+
     btn.addEventListener('touchstart', press, { passive: false });
     btn.addEventListener('touchend', release, { passive: false });
     btn.addEventListener('touchcancel', release, { passive: false });
-    
+
     // Fallback mouse events for emulation/testing
     btn.addEventListener('mousedown', press);
     btn.addEventListener('mouseup', release);
