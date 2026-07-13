@@ -1447,9 +1447,26 @@ let entities:entities_type = {
         }
     },
     mysterious_person: {
-        default: {x: 0, y: 0, talked: false, claimed: false},
+        default: {x: 0, y: 0, talked: false, claimed: false, fadeTimer: -1, gone: false},
         update: (d, o, t, dt) => {
-            if (d.claimed) return;
+            if (d.gone) return;
+            
+            // Fade-out animation after dialogue
+            if (d.fadeTimer >= 0) {
+                d.fadeTimer -= dt;
+                let alpha = Math.max(0, d.fadeTimer / 1500);
+                if (alpha <= 0) {
+                    d.gone = true;
+                    d.hitbox = [];
+                    return;
+                }
+                o.btx.save();
+                o.btx.globalAlpha = alpha;
+                o.sprites('The Mysterious Personv3.png', [d.x, d.y], [0, 0, 0, 0, 32, 64]);
+                o.btx.restore();
+                return;
+            }
+            
             d.hitbox = [0, d.x, d.y, 32, 64];
             
             let dist = Math.abs(o.player.x - d.x);
@@ -1472,6 +1489,8 @@ let entities:entities_type = {
                         d.talked = true;
                         dialogue_post_callback = () => {
                             d.claimed = true;
+                            d.fadeTimer = 1500;
+                            d.hitbox = [];
                         };
                     }
                 });
