@@ -73,18 +73,47 @@ function setupPlatforms() {
             if (entity['__type__'] == 'checkpoint') {
                 itemsToAdd.push(main.entity('health_plant', {x: entity.x + 8, y: entity.y + 48}));
                 
-                // Spawn shop next to checkpoints index 17 (Level 2 start), 33 (Level 3 start), and 41 (Boss checkpoint)
-                if (index === 17 || index === 33 || index === 41) {
-                    itemsToAdd.push(main.entity('merchant_board', {x: entity.x + 15, y: entity.y + 35}));
-                    if (index === 17) {
-                        itemsToAdd.push(main.entity('mysterious_person', {x: entity.x + 100, y: entity.y + 3}));
-                        itemsToAdd.push(main.entity('albularyo', {x: entity.x + 150, y: entity.y + 3}));
-                    } else if (index === 33) {
-                        itemsToAdd.push(main.entity('wandering_hunter', {x: entity.x + 100, y: entity.y + 35}));
-                        itemsToAdd.push(main.entity('albularyo', {x: entity.x + 150, y: entity.y + 3}));
-                    } else if (index === 41) {
-                        itemsToAdd.push(main.entity('priest', {x: entity.x + 100, y: entity.y + 19}));
-                        itemsToAdd.push(main.entity('albularyo', {x: entity.x + 150, y: entity.y + 35}));
+                let findGround = (x: number) => {
+                    let groundY = entity.y + 64; // default fallback
+                    for (let item of section) {
+                        if (item['__type__'] === 'plat') {
+                            let itemX = item.x;
+                            let itemW = (item.w || 1) * 16;
+                            if (x >= itemX && x < itemX + itemW) {
+                                if (item.y >= entity.y && item.y < groundY + 16) {
+                                    groundY = item.y;
+                                }
+                            }
+                        }
+                    }
+                    return groundY;
+                };
+
+                // Spawn shop next to Level 2 and Level 3 checkpoints (Level 1 should have no NPCs)
+                if (entity.x >= 8032) {
+                    let boardX = entity.x + 15;
+                    let npc1X = entity.x + 100;
+                    let npc2X = entity.x + 150;
+                    
+                    let boardY = findGround(boardX) - 29;
+                    let npc1Y = findGround(npc1X) - 61;
+                    let npc2Y = findGround(npc2X) - 61;
+                    
+                    itemsToAdd.push(main.entity('merchant_board', {x: boardX, y: boardY}));
+                    
+                    if (entity.x < 16048) {
+                        // Level 2 Checkpoints: Mysterious Person + Albularyo
+                        itemsToAdd.push(main.entity('mysterious_person', {x: npc1X, y: npc1Y}));
+                        itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
+                    } else if (entity.x < 20064) {
+                        // Level 3 Checkpoints: Wandering Hunter + Albularyo
+                        let hunterY = findGround(npc1X) - 29;
+                        itemsToAdd.push(main.entity('wandering_hunter', {x: npc1X, y: hunterY}));
+                        itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
+                    } else {
+                        // Boss Checkpoint: Priest + Albularyo
+                        itemsToAdd.push(main.entity('priest', {x: npc1X, y: npc1Y}));
+                        itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
                     }
                 }
             }
