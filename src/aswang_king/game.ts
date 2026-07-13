@@ -50,6 +50,9 @@ function startLevel(level_num: number) {
     } else if (level_num === 3) {
         player.x = 16048;
         player.y = 160;
+    } else if (level_num === 4) {
+        player.x = 20064;
+        player.y = 112;
     }
     
     // Clear menus and state
@@ -58,7 +61,7 @@ function startLevel(level_num: number) {
     cheat_menu_open = false;
     current_level = level_num;
     level_title_timer = 3000;
-    level_title_text = "LEVEL " + level_num;
+    level_title_text = level_num === 4 ? "BOSS LEVEL" : "LEVEL " + level_num;
     
     // Reset boss tracking
     king_defeated = false;
@@ -428,13 +431,18 @@ main.scene('main_menu', (t, dt) => {
             'LEVEL 1: RISE OF THE ASWANG KING',
             'LEVEL 2: THE DARK FOREST',
             'LEVEL 3: THE FINAL CONFRONTATION',
+            'BOSS LEVEL: THE FINAL BATTLE',
             'BACK'
         ];
         
         for (let i = 0; i < lv_items.length; i++) {
-            let itemY = 70 + i * 24;
+            let itemY = 65 + i * 24;
             let selected = (i === level_sel);
-            let locked = (i < 3 && i >= maxLvl);
+            let locked = false;
+            if (i < 4) {
+                let requiredLvl = i === 3 ? 3 : (i + 1);
+                locked = (requiredLvl > maxLvl);
+            }
             
             if (selected) {
                 main.btx.fillStyle = 'rgba(212, 168, 48, 0.2)';
@@ -475,10 +483,11 @@ main.scene('main_menu', (t, dt) => {
         main.on('Enter', e => {
             if (e.init && menu_cooldown <= 0) {
                 menu_cooldown = 300;
-                if (level_sel === 3) {
+                if (level_sel === 4) {
                     menu_sub = -1;
                 } else {
-                    let locked = (level_sel >= maxLvl);
+                    let requiredLvl = level_sel === 3 ? 3 : (level_sel + 1);
+                    let locked = (requiredLvl > maxLvl);
                     if (!locked) {
                         startLevel(level_sel + 1);
                     }
