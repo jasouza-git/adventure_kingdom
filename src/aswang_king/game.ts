@@ -971,7 +971,7 @@ main.scene('level', (t, dt) => {
                 king_defeated = false;
                 partner_spawned = false;
                 menu_sel = 0;
-                menu_sub = -1;
+                menu_sub = 1;
                 main.scene('main_menu');
             }
         });
@@ -1000,7 +1000,7 @@ main.scene('level', (t, dt) => {
     
     if (king_defeated && !partner_spawned) {
         partner_spawned = true;
-        platforms[42].push(main.entity('mc_partner', {x: 20600, y: 128}));
+        platforms[42].push(main.entity('mc_partner', {x: 20555, y: 115}));
     }
 
     // === Pause toggle ===

@@ -1483,7 +1483,7 @@ let entities:entities_type = {
                         active_dialogue = [
                             { speaker: "MYSTERIOUS PERSON", text: "Turn back! This forest is ruled by the horse-headed Tikbalang." },
                             { speaker: "MYSTERIOUS PERSON", text: "They will lead you astray. And look out for the wailing White Lady!" },
-                            { speaker: "PINOY", text: "I cannot turn back. The Aswang King took my partner." },
+                            { speaker: "You", text: "I cannot turn back. The Aswang King took my partner." },
                             { speaker: "MYSTERIOUS PERSON", text: "Then be prepared. Take this warning, and stay safe." }
                         ];
                         dialogue_index = 0;
@@ -1519,7 +1519,7 @@ let entities:entities_type = {
                             { speaker: "MONSTER HUNTER", text: "Watch your step, kid. Demonic babies cry in the shadows." },
                             { speaker: "MONSTER HUNTER", text: "Those are Tiyanaks, waiting to attack! And watch the skies..." },
                             { speaker: "MONSTER HUNTER", text: "The detaching Manananggals fly under the moon looking for fresh blood!" },
-                            { speaker: "PINOY", text: "I'm looking for the Aswang King. Have you seen him?" },
+                            { speaker: "You", text: "I'm looking for the Aswang King. Have you seen him?" },
                             { speaker: "MONSTER HUNTER", text: "He resides in the ruins ahead. Buy some salt pouches, they'll save your skin." }
                         ];
                         dialogue_index = 0;
@@ -1550,7 +1550,7 @@ let entities:entities_type = {
                         active_dialogue = [
                             { speaker: "PRIEST", text: "My child, the Aswang King has corrupted this sacred ground." },
                             { speaker: "PRIEST", text: "Take this Holy Cross shield to protect yourself from his dark curses!" },
-                            { speaker: "PINOY", text: "Thank you, Father. I will end his terror." }
+                            { speaker: "You", text: "Thank you, Father. I will end his terror." }
                         ];
                         dialogue_index = 0;
                         dialogue_cooldown = 300;
@@ -1611,9 +1611,9 @@ let entities:entities_type = {
                 o.on('Enter', e => {
                     if (e.init && active_dialogue === null) {
                         active_dialogue = [
-                            { speaker: "PINOY", text: "Maria! I found you!" },
+                            { speaker: "You", text: "Maria! I found you!" },
                             { speaker: "MARIA", text: "You defeated the Aswang King... You saved me!" },
-                            { speaker: "PINOY", text: "Let's go home, Maria. It's finally over." },
+                            { speaker: "You", text: "Let's go home, Maria. It's finally over." },
                             { speaker: "MARIA", text: "Yes. Let's go home." }
                         ];
                         dialogue_index = 0;
@@ -1626,7 +1626,7 @@ let entities:entities_type = {
                 });
             }
             
-            o.sprites('MCpartner.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 64]);
+            o.sprites('MCpartner.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 64, 0, 0, -Math.PI / 2, 16, 16]);
         }
     },
 };
