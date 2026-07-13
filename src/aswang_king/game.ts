@@ -1468,3 +1468,7 @@ if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
         window.removeEventListener('touchstart', onFirstTouch);
     }, { passive: true });
 }
+
+// Expose objects to global window scope for console debugging
+(window as any).player = player;
+(window as any).main = main;
