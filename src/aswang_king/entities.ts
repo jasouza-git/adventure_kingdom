@@ -736,7 +736,7 @@ let entities:entities_type = {
                 d.dead += (1-d.dead)*dt/30;
                 if (d.dead > 0.99) {
                     o.player.points += d.ess;
-                    o.player.total_essence += d.ess;
+                    o.player.total_essence += 1;
                     d.dead = -1;
                     d.removed = true;
                     return;
@@ -1008,7 +1008,7 @@ let entities:entities_type = {
             if (algo.rectint(o.player.hitbox, d.hitbox)) {
                 d.hitbox = [];
                 o.player.points += d.ess;
-                o.player.total_essence += d.ess;
+                o.player.total_essence += 1;
                 d.claimed = true;
                 o.play('sfx/Picked Up Something Good.mp3', true);
             }
@@ -1300,7 +1300,7 @@ let entities:entities_type = {
                     d.status = 1;
                 } else if (d.lives[1] == 0) {
                     o.player.points += d.ess;
-                    o.player.total_essence += d.ess;
+                    o.player.total_essence += 1;
                     d.cur_dying_t = d.dying_t;
                     d.dying = true;
                     d.headStatus = 2;
@@ -1695,7 +1695,7 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
                 d.dead = 0;
                 o.player.points += d.ess;
-                o.player.total_essence += d.ess;
+                o.player.total_essence += 1;
                 return;
             }
         }
