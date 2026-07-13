@@ -96,8 +96,8 @@ function setupPlatforms() {
                     return groundY;
                 };
 
-                // Spawn shop next to Level 2 and Level 3 checkpoints (Level 1 should have no NPCs)
-                if (entity.x >= 8032) {
+                // Spawn shop next to Level 2 and Level 3 start checkpoints, and the Boss checkpoint
+                if (entity.x === 8032 || entity.x === 16048 || entity.x === 20064) {
                     let boardX = entity.x + 15;
                     let npc1X = entity.x + 100;
                     let npc2X = entity.x + 150;
@@ -108,16 +108,16 @@ function setupPlatforms() {
                     
                     itemsToAdd.push(main.entity('merchant_board', {x: boardX, y: boardY}));
                     
-                    if (entity.x < 16048) {
-                        // Level 2 Checkpoints: Mysterious Person + Albularyo
+                    if (entity.x === 8032) {
+                        // Level 2 Start: Mysterious Person + Albularyo
                         itemsToAdd.push(main.entity('mysterious_person', {x: npc1X, y: npc1Y}));
                         itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
-                    } else if (entity.x < 20064) {
-                        // Level 3 Checkpoints: Wandering Hunter + Albularyo
+                    } else if (entity.x === 16048) {
+                        // Level 3 Start: Wandering Hunter + Albularyo
                         let hunterY = findGround(npc1X) - 29;
                         itemsToAdd.push(main.entity('wandering_hunter', {x: npc1X, y: hunterY}));
                         itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
-                    } else {
+                    } else if (entity.x === 20064) {
                         // Boss Checkpoint: Priest + Albularyo
                         itemsToAdd.push(main.entity('priest', {x: npc1X, y: npc1Y}));
                         itemsToAdd.push(main.entity('albularyo', {x: npc2X, y: npc2Y}));
