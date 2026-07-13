@@ -99,8 +99,8 @@ function setupPlatforms() {
                 // Spawn shop next to Level 2 and Level 3 start checkpoints, and the Boss checkpoint
                 if (entity.x === 8032 || entity.x === 16048 || entity.x === 20064) {
                     let boardX = entity.x + 15;
-                    let npc1X = entity.x + 50;
-                    let npc2X = entity.x + 100;
+                    let npc1X = entity.x + 100;
+                    let npc2X = entity.x + 50;
                     
                     let boardY = findGround(boardX) - 29;
                     let npc2Y = findGround(npc2X) - 29; // Albularyo height is now 32, stands on ground

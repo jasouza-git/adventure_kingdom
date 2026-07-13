@@ -149,7 +149,7 @@ let plts = main => [
 		main.entity('plat', {x:7680, y:224, w:20, h:1, mode:0, col:15, clip:[[], [0], [], []]}),
 		main.entity('plat', {x:7682, y:0, w:2, h:10, dropoff: true, mode:0, col:15, clip:[[], [], [], []]}),
 	], [
-		main.entity('text', {x:8000, title:'Level 2'}),
+		main.entity('text', {x:8000, title:'Level 2: The Dark Forest'}),
 		main.entity('plat', {x:8000, y:224, w:13, h:1, mode:2, col:15, clip:[[], [], [0], []]}),
 		main.entity('plat', {x:8208, y:192, w:5, h:3, mode:2, col:15, clip:[[], [2], [2], []]}),
 		main.entity('plat', {x:8288, y:224, w:12, h:1, mode:2, col:15, clip:[[], [0], [0], []]}),
@@ -299,7 +299,7 @@ let plts = main => [
 		main.entity('plat', {x:15680, y:0, w:2, h:10, mode:2, col:15, clip:[[], [], [], []]}),
 		main.entity('plat', {x:15680, y:224, w:20, h:1, mode:2, col:15, clip:[[], [0], [], []]}),
 	], [
-		main.entity('text', {x:16000, title:'Level 3'}),
+		main.entity('text', {x:16000, title:'Level 3: The Final Confrontation'}),
 		main.entity('plat', {x:16000, y:0, w:1, h:11, mode:1, col:15, clip:[[], [], [0], []]}),
 		main.entity('plat', {x:16000, y:224, w:14, h:1, mode:1, col:15, clip:[[], [], [0], []]}),
 		main.entity('plat', {x:16016, y:0, w:29, h:1, mode:1, col:15, clip:[[], [0], [0], []]}),
