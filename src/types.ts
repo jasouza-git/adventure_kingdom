@@ -21,7 +21,7 @@ interface engine_type {
     interacts:{[index:string]:any}[],
     player:any,
     btx:CanvasRenderingContext2D,
-    play(audio:string, single?:boolean, volume?:number) 
+    play(audio:string, single?:boolean, volume?:number): void 
 }
 interface entities_type {
     [entity_id:string]:{

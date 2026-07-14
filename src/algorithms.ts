@@ -106,7 +106,7 @@ let algo = {
         entity.m = m;
         return c;
     },
-    intersect: (A, Bs, fil?):number => {
+    intersect: (A: any, Bs: any[], fil?: (B: any) => boolean):number => {
         for(var n = 0; n < Bs.length; n++) {
             var B = Bs[n];
             if (( A.hitbox[1] < B.hitbox[1] && B.hitbox[1] < A.hitbox[1]+A.hitbox[3] &&
@@ -118,7 +118,7 @@ let algo = {
         }
         return -1;
     },
-    rectint: (A,B):boolean => {
+    rectint: (A: number[], B: number[]):boolean => {
         if (B.length < 5) {
             // console.log("Rectint has zero length");
             return false;
@@ -136,7 +136,7 @@ let algo = {
                (B[1] < A[1] && A[1] < B[1]+B[3] &&
                 B[2] < A[2] && A[2] < B[2]+B[4] );*/
     },
-    sprite: (n,w) => [n%w, Math.floor(n/w)],
+    sprite: (n: number, w: number): [number, number] => [n%w, Math.floor(n/w)],
     /*
     collision: (entity:{[index:string]:any}, area?:number):number[] => {
         let collide:number[] = [0, -1];

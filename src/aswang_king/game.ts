@@ -31,28 +31,75 @@ let player_record: any = null;
 let level_sel = 0;
 
 // startLevel helper function
-function startLevel(level_num: number) {
+function startLevel(level_num: number, use_checkpoint: boolean = false) {
     platforms = setupPlatforms();
     lv = level(main);
     adjustLevelEssenceCount(lv);
 
     player.cur_body_t = player.body_t;
-    player.lives = [player.lives[1], player.lives[1]];
+    player.lives = [3, 3];
+    player.player_lives = 3;
     player.points = 0;
     player.total_essence = 0;
+    player.farthest_checkpoint_x = -1;
+    if (player.weapons) {
+        player.weapons[0].durability = 1000000;
+        player.weapons[1].durability = 0;
+        player.weapons[2].durability = 0;
+        player.cur_weapon = 0;
+    }
 
-    if (level_num === 1) {
-        player.x = 30;
-        player.y = 195;
-    } else if (level_num === 2) {
-        player.x = 8032;
-        player.y = 160;
-    } else if (level_num === 3) {
-        player.x = 16048;
-        player.y = 160;
-    } else if (level_num === 4) {
-        player.x = 20064;
-        player.y = 112;
+    let checkpoint = (player_record && player_record.saved_checkpoint && player_record.saved_checkpoint.level === level_num) ? player_record.saved_checkpoint : null;
+
+    if (use_checkpoint && checkpoint) {
+        player.lives = [checkpoint.lives[0], checkpoint.lives[1]];
+        player.player_lives = checkpoint.player_lives;
+        player.points = checkpoint.points;
+        player.total_essence = checkpoint.total_essence;
+        player.farthest_checkpoint_x = checkpoint.x;
+        if (player.weapons && checkpoint.weapons) {
+            player.weapons[0].durability = checkpoint.weapons[0].durability;
+            player.weapons[1].durability = checkpoint.weapons[1].durability;
+            player.weapons[2].durability = checkpoint.weapons[2].durability;
+            player.cur_weapon = checkpoint.cur_weapon;
+        }
+        player.x = checkpoint.x;
+        player.y = checkpoint.y;
+    } else {
+        if (level_num === 1) {
+            player.x = 30;
+            player.y = 195;
+        } else if (level_num === 2) {
+            player.x = 8032;
+            player.y = 160;
+        } else if (level_num === 3) {
+            player.x = 16048;
+            player.y = 160;
+        } else if (level_num === 4) {
+            player.x = 20064;
+            player.y = 112;
+        }
+    }
+    player.max_x = player.x;
+
+    // Save initial progress at start of the level
+    if (current_player_name) {
+        player_record.saved_checkpoint = {
+            level: level_num,
+            x: player.x,
+            y: player.y,
+            lives: [player.lives[0], player.lives[1]],
+            player_lives: player.player_lives,
+            points: player.points,
+            total_essence: player.total_essence,
+            weapons: [
+                { durability: player.weapons[0].durability },
+                { durability: player.weapons[1].durability },
+                { durability: player.weapons[2].durability }
+            ],
+            cur_weapon: player.cur_weapon
+        };
+        localStorage.setItem('aswang_leaderboard_' + current_player_name, JSON.stringify(player_record));
     }
 
     // Clear menus and state
@@ -207,12 +254,27 @@ let cheat_items = [
     'TELEPORT LEVEL 3',
     'TELEPORT BOSS LEVEL',
     'HEAL 5 HEARTS',
+    'SET HP TO 1',
+    'ONE HIT BOSS',
     'RESTORE WEAPONS',
     'CLOSE CHEATS'
 ];
 
 player.ondeath = () => {
-    for (let i = Math.floor(player.x / 480); i > 0; i--) {
+    player.player_lives--;
+    if (player.player_lives <= 0) {
+        player.lives[0] = -1;
+        return;
+    }
+    player.lives[0] = player.lives[1];
+
+    let minSection = 0;
+    if (current_level === 2) minSection = Math.floor(8000 / 480);
+    else if (current_level === 3) minSection = Math.floor(16000 / 480);
+    else if (current_level === 4) minSection = Math.floor(20000 / 480);
+
+    for (let i = Math.floor(player.max_x / 480); i >= minSection; i--) {
+        if (i >= platforms.length) continue;
         let l = platforms[i];
         for (let j = 0; j < l.length; j++) {
             if (l[j]['__type__'] == 'checkpoint') {
@@ -224,15 +286,28 @@ player.ondeath = () => {
         }
     }
     player.cur_body_t = player.body_t;
-    player.x = 30;
-    player.y = 195;
+    if (current_level === 2) {
+        player.x = 8032;
+        player.y = 160;
+    } else if (current_level === 3) {
+        player.x = 16048;
+        player.y = 160;
+    } else if (current_level === 4) {
+        player.x = 20064;
+        player.y = 112;
+    } else {
+        player.x = 30;
+        player.y = 195;
+    }
 };
 
 // === Main Menu Scene ===
 let menu_sel = 0;           // 0=START GAME, 1=CONTROLS, 2=CREDITS
-let menu_sub = -1;          // -1=main menu, 0=controls screen, 1=credits screen, 2=level selector, 3=leaderboard
+let menu_sub = -1;          // -1=main menu, 0=controls screen, 1=credits screen, 2=level selector, 3=leaderboard, 5=profile selector
 let menu_cooldown = 0;      // input cooldown to prevent rapid navigation
 let menu_items = ['START GAME', 'CONTROLS', 'LEADERBOARDS'];
+let saved_profiles: string[] = [];
+let profile_sel = 0;
 
 // === Pause State ===
 let paused = false;
@@ -571,6 +646,85 @@ main.scene('main_menu', (t, dt) => {
         return;
     }
 
+    if (menu_sub == 5) {
+        // Profile selection screen
+        main.btx.fillStyle = '#0A0A1A';
+        main.btx.fillRect(0, 0, main.w, main.h);
+
+        main.btx.font = '12px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillStyle = '#FFD700';
+        main.btx.fillText('SELECT PROFILE', main.w / 2, 30);
+
+        let items = [...saved_profiles, 'NEW PROFILE', 'BACK'];
+
+        for (let i = 0; i < items.length; i++) {
+            let itemY = 65 + i * 20;
+            let selected = (i === profile_sel);
+
+            if (selected) {
+                main.btx.fillStyle = 'rgba(212, 168, 48, 0.2)';
+                main.btx.fillRect(20, itemY - 4, main.w - 40, 16);
+            }
+            if (selected && Math.floor(t / 400) % 2 === 0) {
+                main.btx.font = '9px arcade';
+                main.btx.fillStyle = '#FFD700';
+                main.btx.textAlign = 'right';
+                main.btx.textBaseline = 'top';
+                main.btx.fillText('>', 40, itemY);
+            }
+
+            main.btx.font = '8px arcade';
+            main.btx.textAlign = 'center';
+            main.btx.textBaseline = 'top';
+            main.btx.fillStyle = selected ? '#FFFFFF' : '#888888';
+            main.btx.fillText(items[i], main.w / 2, itemY);
+        }
+
+        main.on('w,W,ArrowUp', e => {
+            if (e.init && menu_cooldown <= 0) {
+                profile_sel = (profile_sel - 1 + items.length) % items.length;
+                menu_cooldown = 150;
+            }
+        });
+        main.on('s,S,ArrowDown', e => {
+            if (e.init && menu_cooldown <= 0) {
+                profile_sel = (profile_sel + 1) % items.length;
+                menu_cooldown = 150;
+            }
+        });
+        main.on('Enter', e => {
+            if (e.init && menu_cooldown <= 0) {
+                menu_cooldown = 300;
+                if (profile_sel === items.length - 1) {
+                    // BACK
+                    menu_sub = -1;
+                } else if (profile_sel === items.length - 2) {
+                    // NEW PROFILE
+                    current_player_name = "";
+                    menu_sub = 4;
+                } else {
+                    // Loaded existing profile
+                    current_player_name = items[profile_sel];
+                    let record = JSON.parse(localStorage.getItem('aswang_leaderboard_' + current_player_name) || '{"maxLevel": 1, "highScore": 0}');
+                    player_record = record;
+                    
+                    if (record.saved_checkpoint) {
+                        startLevel(record.saved_checkpoint.level, true);
+                    } else if (record.maxLevel > 1) {
+                        menu_sub = 2; // Level Selector
+                        level_sel = 0;
+                    } else {
+                        startLevel(1);
+                        main.scene('into');
+                    }
+                }
+            }
+        });
+        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        return;
+    }
+
     // === Title logo (scaled down to match pixel density) ===
     // Original is 256x144, scale to ~154x86 (0.6x) for better pixel consistency
     let logoW = 154, logoH = 86;
@@ -645,8 +799,20 @@ main.scene('main_menu', (t, dt) => {
         if (e.init && menu_cooldown <= 0) {
             menu_cooldown = 300;
             if (menu_sel == 0) {
-                current_player_name = "";
-                menu_sub = 4; // Name Entry Screen
+                saved_profiles = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    let key = localStorage.key(i);
+                    if (key && key.startsWith('aswang_leaderboard_')) {
+                        saved_profiles.push(key.substring('aswang_leaderboard_'.length));
+                    }
+                }
+                if (saved_profiles.length > 0) {
+                    menu_sub = 5; // Profile Selection Screen
+                    profile_sel = 0;
+                } else {
+                    current_player_name = "";
+                    menu_sub = 4; // Name Entry Screen
+                }
             } else if (menu_sel == 1) {
                 menu_sub = 0; // Controls
             } else if (menu_sel == 2) {
@@ -700,11 +866,68 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 main.scene('level', (t, dt) => {
     if (dt > 100) return;
 
+    // Decrement level title timer
+    if (level_title_timer > 0) {
+        level_title_timer -= dt;
+    }
+
+    let drawLevelTitle = () => {
+        if (level_title_timer > 0) {
+            let alpha = 1;
+            if (level_title_timer > 2500) {
+                alpha = (3000 - level_title_timer) / 500;
+            } else if (level_title_timer < 1000) {
+                alpha = level_title_timer / 1000;
+            }
+
+            main.btx.save();
+            main.btx.globalAlpha = alpha;
+
+            // Banner background
+            main.btx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            main.btx.fillRect(0, main.h / 2 - 25, main.w, 40);
+
+            // Golden borders
+            main.btx.fillStyle = '#FFD700';
+            main.btx.fillRect(0, main.h / 2 - 25, main.w, 2);
+            main.btx.fillRect(0, main.h / 2 + 13, main.w, 2);
+
+            // Title text
+            main.btx.font = '16px arcade';
+            main.btx.textAlign = 'center';
+            main.btx.textBaseline = 'middle';
+
+            // Drop shadow
+            main.btx.fillStyle = '#000000';
+            main.btx.fillText(level_title_text, main.w / 2 + 1, main.h / 2 - 5 + 1);
+
+            // Main text
+            main.btx.fillStyle = '#FFD700';
+            main.btx.fillText(level_title_text, main.w / 2, main.h / 2 - 5);
+
+            // Subtitle
+            main.btx.font = '6px arcade';
+            let subtitle = "";
+            let active_lv = current_level;
+            if (active_lv === 1) subtitle = "FINDING CLUES";
+            else if (active_lv === 2) subtitle = "THE DARK FOREST";
+            else if (active_lv === 3) subtitle = "THE FINAL CONFRONTATION";
+
+            main.btx.fillStyle = '#FFFFFF';
+            main.btx.fillText(subtitle, main.w / 2, main.h / 2 + 7);
+
+            main.btx.restore();
+        }
+    };
+
     // === Dialogue Overlay ===
     if (active_dialogue !== null) {
         dialogue_cooldown -= dt;
 
         main.btx.save();
+
+        // Draw level label first (so it's layered behind the dialogue box and appears below it)
+        drawLevelTitle();
 
         // Draw dialog box at bottom of screen
         main.btx.fillStyle = 'rgba(0, 0, 0, 0.85)';
@@ -840,7 +1063,7 @@ main.scene('level', (t, dt) => {
             }
 
             // Draw Price
-            let cost = (shop_sel === 0 || shop_sel === 2) ? 150 : 100;
+            let cost = (shop_sel === 0 || shop_sel === 2) ? 3 : 2;
             main.btx.font = '7px arcade';
             main.btx.textAlign = 'center';
             main.btx.fillStyle = '#FFD700';
@@ -869,6 +1092,12 @@ main.scene('level', (t, dt) => {
             main.btx.fillText('EXIT TO FOREST', previewCenterX, sBoardY + 70);
         }
 
+        // Draw Button Guide at the bottom of the board (shortened to prevent overflow)
+        main.btx.font = '5px arcade';
+        main.btx.textAlign = 'center';
+        main.btx.fillStyle = '#888888';
+        main.btx.fillText('W/S OR ARROWS: CHOOSE  -  ENTER: BUY', main.w / 2, sBoardY + sBoardH - 8);
+
         main.btx.restore();
 
         player.m[0] = 0;
@@ -890,29 +1119,34 @@ main.scene('level', (t, dt) => {
             if (e.init && shop_cooldown <= 0) {
                 shop_cooldown = 300;
                 if (shop_sel === 3) {
+                    active_shop.npc.claimed = true;
                     active_shop = null;
                 } else {
-                    let cost = (shop_sel === 0 || shop_sel === 2) ? 150 : 100;
+                    let cost = (shop_sel === 0 || shop_sel === 2) ? 3 : 2;
                     if (player.points >= cost) {
                         player.points -= cost;
                         if (shop_sel === 0) {
-                            player.weapons[2].durability = 5;
+                            player.weapons[2].durability += 5;
                         } else if (shop_sel === 1) {
-                            player.weapons[1].durability = 10;
+                            player.weapons[1].durability += 10;
                         } else if (shop_sel === 2) {
                             player.lives[0] = Math.min(player.lives[0] + 2, player.lives[1]);
                         }
                         main.play('sfx/Picked Up Something Good.mp3', true);
-                        active_shop.npc.claimed = true;
-                        active_shop = null;
                     } else {
                         let npcName = active_shop.npc['__type__'] === 'albularyo' ? 'ALBULARYO' : 'NPC';
+                        let npcRef = active_shop.npc;
                         active_shop = null;
                         active_dialogue = [
                             { speaker: npcName, text: "You do not have enough Aswang Essence." }
                         ];
                         dialogue_index = 0;
                         dialogue_cooldown = 300;
+                        dialogue_post_callback = () => {
+                            active_shop = { npc: npcRef };
+                            shop_sel = 0;
+                            shop_cooldown = 300;
+                        };
                     }
                 }
             }
@@ -926,25 +1160,29 @@ main.scene('level', (t, dt) => {
         main.btx.fillStyle = '#000000';
         main.btx.fillRect(0, 0, main.w, main.h);
 
-        main.btx.fillStyle = '#FFD700';
-        main.btx.font = '16px arcade';
-        main.btx.textAlign = 'center';
-        main.btx.fillText('VICTORY!', main.w / 2, 60);
+        // Draw You Win background image
+        main.sprites('You Win.png', [], [0, 0, 0, 0, 320, 240, 0, 0, 0, 0, 0, 0]);
 
-        main.btx.fillStyle = '#FFFFFF';
-        main.btx.font = '8px arcade';
-        main.btx.fillText('YOU DEFEATED THE ASWANG KING', main.w / 2, 90);
-        main.btx.fillText('AND SAVED YOUR PARTNER!', main.w / 2, 105);
+        // Draw Victory Subtitles at the top (sky area) with a clear outline
+        let drawOutlinedText = (text: string, x: number, y: number, color: string, font: string) => {
+            main.btx.font = font;
+            main.btx.textAlign = 'center';
+            main.btx.strokeStyle = '#000000';
+            main.btx.lineWidth = 3;
+            main.btx.strokeText(text, x, y);
+            main.btx.fillStyle = color;
+            main.btx.fillText(text, x, y);
+        };
+
+        drawOutlinedText('YOU DEFEATED THE ASWANG KING', main.w / 2, 35, '#FFFFFF', '8px arcade');
+        drawOutlinedText('AND SAVED YOUR PARTNER!', main.w / 2, 48, '#FFFFFF', '8px arcade');
 
         let p = algo.score(player);
-        main.btx.fillStyle = '#FFD700';
-        main.btx.fillText('FINAL SCORE: ' + p, main.w / 2, 135);
+        drawOutlinedText('FINAL SCORE: ' + p, main.w / 2, 145, '#FFD700', '8px arcade');
 
-        main.btx.fillStyle = '#888888';
-        main.btx.font = '6px arcade';
         let blink = Math.floor(t / 500) % 2 === 0;
         if (blink) {
-            main.btx.fillText('PRESS ENTER TO RETURN TO MENU', main.w / 2, 180);
+            drawOutlinedText('PRESS ENTER TO RETURN TO MENU', main.w / 2, 190, '#FFFFFF', '6px arcade');
         }
 
         main.btx.restore();
@@ -972,7 +1210,7 @@ main.scene('level', (t, dt) => {
                 partner_spawned = false;
                 menu_sel = 0;
                 menu_sub = 1;
-                main.scene('main_menu');
+                window.location.reload();
             }
         });
         return;
@@ -1000,7 +1238,7 @@ main.scene('level', (t, dt) => {
 
     if (king_defeated && !partner_spawned) {
         partner_spawned = true;
-        platforms[42].push(main.entity('mc_partner', { x: 20555, y: 115 }));
+        platforms[42].push(main.entity('mc_partner', { x: 20555, y: 125 }));
     }
 
     // === Pause toggle ===
@@ -1091,24 +1329,32 @@ main.scene('level', (t, dt) => {
                 if (cheat_sel == 0) {
                     player.x = 30;
                     player.y = 195;
+                    player.max_x = 30;
+                    player.farthest_checkpoint_x = -1;
                     player.lives[0] = player.lives[1];
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
                 } else if (cheat_sel == 1) {
                     player.x = 8032;
                     player.y = 160;
+                    player.max_x = 8032;
+                    player.farthest_checkpoint_x = -1;
                     player.lives[0] = player.lives[1];
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
                 } else if (cheat_sel == 2) {
                     player.x = 16048;
                     player.y = 160;
+                    player.max_x = 16048;
+                    player.farthest_checkpoint_x = -1;
                     player.lives[0] = player.lives[1];
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
                 } else if (cheat_sel == 3) {
                     player.x = 20064;
                     player.y = 112;
+                    player.max_x = 20064;
+                    player.farthest_checkpoint_x = -1;
                     player.lives[0] = player.lives[1];
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
@@ -1117,11 +1363,27 @@ main.scene('level', (t, dt) => {
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
                 } else if (cheat_sel == 5) {
+                    player.lives[0] = 1;
+                    cheat_menu_open = false;
+                    main.play('sfx/Picked Up Something Good.mp3', true);
+                } else if (cheat_sel == 6) {
+                    for (let i = 0; i < platforms.length; i++) {
+                        let section = platforms[i];
+                        if (!section) continue;
+                        for (let j = 0; j < section.length; j++) {
+                            if (section[j]['__type__'] === 'king') {
+                                section[j].lives[1] = 1;
+                            }
+                        }
+                    }
+                    cheat_menu_open = false;
+                    main.play('sfx/Picked Up Something Good.mp3', true);
+                } else if (cheat_sel == 7) {
                     player.weapons[1].durability = 10;
                     player.weapons[2].durability = 5;
                     cheat_menu_open = false;
                     main.play('sfx/Picked Up Something Good.mp3', true);
-                } else if (cheat_sel == 6) {
+                } else if (cheat_sel == 8) {
                     cheat_menu_open = false;
                 }
             }
@@ -1220,7 +1482,7 @@ main.scene('level', (t, dt) => {
     }
     off = player.dead == -1 ? 0 : Math.floor(Math.sin(player.dead * Math.PI) * 3);
 
-    if (player.lives[0] < 0) {
+    if (player.player_lives <= 0) {
         menu.over = true;
         main.add(menu);
         main.on('Enter', e => {
@@ -1229,8 +1491,10 @@ main.scene('level', (t, dt) => {
                 player.points = 0;
                 menu.over = false;
                 player.lives = [3, 3];
+                player.player_lives = 3;
                 player.max_x = player.x = 30;
                 player.y = 195;
+                player.farthest_checkpoint_x = -1;
                 player.dead = -1;
                 player.m = [0, 0];
                 player.climb = player.poisoned = -1;
@@ -1238,10 +1502,12 @@ main.scene('level', (t, dt) => {
                 bg.night = false;
                 bg.day = 1;
                 player.total_essence = 0;
-                player.lives = [10, 10];
                 main.camera = [-160, 0];
                 if (player.weapons) {
-                    player.weapons.forEach((w: any) => w.durability = 0);
+                    player.weapons[0].durability = 1000000;
+                    player.weapons[1].durability = 0;
+                    player.weapons[2].durability = 0;
+                    player.cur_weapon = 0;
                 }
                 platforms = setupPlatforms();
                 lv = level(main);
@@ -1387,53 +1653,7 @@ main.scene('level', (t, dt) => {
         }
     }
 
-    if (level_title_timer > 0) {
-        level_title_timer -= dt;
-
-        let alpha = 1;
-        if (level_title_timer > 2500) {
-            alpha = (3000 - level_title_timer) / 500;
-        } else if (level_title_timer < 1000) {
-            alpha = level_title_timer / 1000;
-        }
-
-        main.btx.save();
-        main.btx.globalAlpha = alpha;
-
-        // Banner background
-        main.btx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-        main.btx.fillRect(0, main.h / 2 - 25, main.w, 40);
-
-        // Golden borders
-        main.btx.fillStyle = '#FFD700';
-        main.btx.fillRect(0, main.h / 2 - 25, main.w, 2);
-        main.btx.fillRect(0, main.h / 2 + 13, main.w, 2);
-
-        // Title text
-        main.btx.font = '16px arcade';
-        main.btx.textAlign = 'center';
-        main.btx.textBaseline = 'middle';
-
-        // Drop shadow
-        main.btx.fillStyle = '#000000';
-        main.btx.fillText(level_title_text, main.w / 2 + 1, main.h / 2 - 5 + 1);
-
-        // Main text
-        main.btx.fillStyle = '#FFD700';
-        main.btx.fillText(level_title_text, main.w / 2, main.h / 2 - 5);
-
-        // Subtitle
-        main.btx.font = '6px arcade';
-        let subtitle = "";
-        if (active_lv === 1) subtitle = "FINDING CLUES";
-        else if (active_lv === 2) subtitle = "THE DARK FOREST";
-        else if (active_lv === 3) subtitle = "THE FINAL CONFRONTATION";
-
-        main.btx.fillStyle = '#FFFFFF';
-        main.btx.fillText(subtitle, main.w / 2, main.h / 2 + 7);
-
-        main.btx.restore();
-    }
+    drawLevelTitle();
 
     // Reset
 

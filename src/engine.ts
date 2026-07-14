@@ -148,26 +148,69 @@ class engine {
         let gp = navigator.getGamepads()[0];
         if (gp != null) {
             this.evented['gp_j0'] = {init:this.evented['gp_j0']==undefined, x:gp.axes[0], y:gp.axes[1]};
-            this.evented['gp_j1'] = {init:this.evented['gp_j1']==undefined, x:gp.axes[2], y:gp.axes[5]};
-            if (Math.abs(gp.axes[9]+0.43)<0.1) this.evented['gp_e'] = this.evented['gp_e'] == undefined ? {init:true} : {init:false};
-            else delete this.evented['gp_e'];
-            if (Math.abs(gp.axes[9]-0.71)<0.1) this.evented['gp_w'] =  this.evented['gp_w'] == undefined ? {init:true} : {init:false};
-            else delete this.evented['gp_w'];
-            if (Math.abs(gp.axes[9]-0.14)<0.1) this.evented['gp_s'] =  this.evented['gp_s'] == undefined ? {init:true} : {init:false};
-            else delete this.evented['gp_s'];
-            if (Math.abs(gp.axes[9]+1) < 0.1) this.evented['gp_n'] = this.evented['gp_n'] == undefined ? {init:true} : {init:false};
+            let rx = gp.axes[2];
+            let ry = gp.axes.length > 5 ? gp.axes[5] : (gp.axes.length > 3 ? gp.axes[3] : 0);
+            this.evented['gp_j1'] = {init:this.evented['gp_j1']==undefined, x:rx, y:ry};
+
+            let dpad_up = false;
+            let dpad_down = false;
+            let dpad_left = false;
+            let dpad_right = false;
+
+            if (gp.buttons.length > 15) {
+                dpad_up = gp.buttons[12] && (gp.buttons[12].value > 0.5 || gp.buttons[12].pressed);
+                dpad_down = gp.buttons[13] && (gp.buttons[13].value > 0.5 || gp.buttons[13].pressed);
+                dpad_left = gp.buttons[14] && (gp.buttons[14].value > 0.5 || gp.buttons[14].pressed);
+                dpad_right = gp.buttons[15] && (gp.buttons[15].value > 0.5 || gp.buttons[15].pressed);
+            }
+            
+            if (gp.axes && gp.axes.length > 9 && gp.axes[9] !== undefined) {
+                let pov = gp.axes[9];
+                if (Math.abs(pov + 1) < 0.1) dpad_up = true;
+                if (Math.abs(pov - 0.14) < 0.1) dpad_down = true;
+                if (Math.abs(pov - 0.71) < 0.1) dpad_left = true;
+                if (Math.abs(pov + 0.43) < 0.1) dpad_right = true;
+            }
+
+            if (dpad_up) this.evented['gp_n'] = this.evented['gp_n'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_n'];
-            if (gp.buttons[0].value == 1) this.evented['gp_1'] = this.evented['gp_1'] == undefined ? {init:true} : {init:false};
+
+            if (dpad_down) this.evented['gp_s'] = this.evented['gp_s'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_s'];
+
+            if (dpad_left) this.evented['gp_w'] = this.evented['gp_w'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_w'];
+
+            if (dpad_right) this.evented['gp_e'] = this.evented['gp_e'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_e'];
+
+            let getBtn = (idx: number) => {
+                if (!gp.buttons[idx]) return false;
+                return gp.buttons[idx].value > 0.5 || gp.buttons[idx].pressed;
+            };
+
+            if (getBtn(0)) this.evented['gp_1'] = this.evented['gp_1'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_1'];
-            if (gp.buttons[1].value == 1) this.evented['gp_2'] = this.evented['gp_2'] == undefined ? {init:true} : {init:false};
+
+            if (getBtn(1)) this.evented['gp_2'] = this.evented['gp_2'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_2'];
-            if (gp.buttons[2].value == 1) this.evented['gp_3'] = this.evented['gp_3'] == undefined ? {init:true} : {init:false};
-            else delete this.evented['gp_4'];
-            if (gp.buttons[3].value == 1) this.evented['gp_4'] = this.evented['gp_4'] == undefined ? {init:true} : {init:false};
+
+            if (getBtn(2)) this.evented['gp_3'] = this.evented['gp_3'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_3'];
+
+            if (getBtn(3)) this.evented['gp_4'] = this.evented['gp_4'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_4'];
         } else {
             delete this.evented['gp_j0'];
             delete this.evented['gp_j1'];
+            delete this.evented['gp_n'];
+            delete this.evented['gp_s'];
+            delete this.evented['gp_w'];
+            delete this.evented['gp_e'];
+            delete this.evented['gp_1'];
+            delete this.evented['gp_2'];
+            delete this.evented['gp_3'];
+            delete this.evented['gp_4'];
         }
         this.time_last = new Date();
         this.ctx.drawImage(this.buf, 0, 0);

@@ -1,11 +1,23 @@
 import { entities_type } from "../types";
 import { algo } from "../algorithms";
 
+declare let active_dialogue: any[] | null;
+declare let dialogue_index: number;
+declare let dialogue_cooldown: number;
+declare let dialogue_post_callback: (() => void) | null;
+declare let active_shop: any | null;
+declare let shop_sel: number;
+declare let shop_cooldown: number;
+declare let ending_active: boolean;
+declare let current_player_name: string;
+declare let player_record: any;
+declare let current_level: number;
+
 let required_files:string[] = [
     // Menu
     'Rise_of_the_Aswang_King.png', 'Menu.png', 'Controls.png', 'credits.png', 'Icon Box.png',
     // Background
-    'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png', 'BLOODYCLOUDS.png', 'Game Over.png',
+    'Housesv2.png', 'mountainsprite.png', 'moonSprite.png', 'Cloudsv1 (1).png', 'BLOODYCLOUDS.png', 'Game Over.png', 'You Win.png',
     // Platforms
     'Flowers.png', 'Bgitems.png', 'Blocksv2.png', 'Treesv2.png', 'Lava.png',
     // Entities
@@ -46,7 +58,10 @@ let entities:entities_type = {
             interact:true, // Physics entities interacts
             dead: -1,      // Level of deadness (-1 Not dead, 0->1 Dying)
             ground: -1,    // Collider character is on
-            lives: [10,10],  // Lives [A,B] meaning A lives left out of B lives
+            lives: [3,3],  // lives[0] is current HP, lives[1] is max HP
+            player_lives: 3,
+            damage: null as any,
+            farthest_checkpoint_x: -1,
             poisoned: -1,       // Indicate the pinoy is poisoned or not
             speed_rate: 1,      // 0.0 - 1.0, indicate the speed reduce amount
             in_area_time: 0,    // Indicate the time pinoy stand in the poisonous area or touched by the poisonous plants
@@ -70,11 +85,33 @@ let entities:entities_type = {
             ],
         },
         update: (d, o, t, dt) => {
+            if (d.damage === undefined || d.damage === null) {
+                d.damage = (amount: number = 1) => {
+                    if (d.cur_body_t > 0 || d.dead != -1) return;
+                    if (d.weapons[2].durability > 0 && d.protection == true) {
+                        d.weapons[2].durability--;
+                        d.cur_body_t = d.body_t;
+                        if (d.weapons[2].durability <= 0) {
+                            d.c_shield_break_t = 1000;
+                            d.protection = false;
+                        }
+                        return;
+                    }
+                    d.lives[0] -= amount;
+                    o.play('sfx/Dying.mp3', true);
+                    if (d.lives[0] <= 0) {
+                        d.dead = 0; // Trigger dying & respawn process
+                    } else {
+                        d.cur_body_t = d.body_t; // Only set invincibility if still alive
+                    }
+                };
+            }
+
             let c = n => [n%6, Math.floor(n/6)];
             let leg = [0,0], body = [0,0];
             let weap = d.weapons[d.cur_weapon];
 
-            // Healing ticks logic (+1 heart every 200ms up to 5 times)
+            // Healing ticks logic (+1 heart every 1000ms up to 5 times)
             if (d.heal_ticks > 0) {
                 d.heal_timer -= dt;
                 if (d.heal_timer <= 0) {
@@ -84,12 +121,11 @@ let entities:entities_type = {
                         d.bind.push(o.entity('heart_gained', {x: d.x + 8, y: d.y}));
                     }
                     d.heal_ticks--;
-                    d.heal_timer = 200;
+                    d.heal_timer = 1000;
                 }
             }
 
             if (d.cur_body_t > 0) {
-                d.dead = -1;
                 d.poisoned = -1;
                 d.cur_body_t -= dt;
             }
@@ -134,8 +170,18 @@ let entities:entities_type = {
                 // Weapons
                 if (d.swing && d.dead == -1) {
                     if (!d.plswing) {
-                        if (d.cur_weapon == 0) o.play(`sfx/sword attack ${Math.round(Math.random()+1)}.mp3`, true, 0.3);
-                        else if (d.cur_weapon == 1) o.play('sfx/asin throw (temporary) .mp3', true);
+                        if (d.cur_weapon == 0) {
+                            o.play(`sfx/sword attack ${Math.round(Math.random()+1)}.mp3`, true, 0.3);
+                        } else if (d.cur_weapon == 1) {
+                            o.play('sfx/asin throw (temporary) .mp3', true);
+                            if (weap.durability > 0) {
+                                weap.durability--;
+                                if (weap.durability < 0) weap.durability = 0;
+                            }
+                        } else if (d.cur_weapon == 2) {
+                            console.log("YES");
+                            d.protection = !d.protection;
+                        }
                     }
                     d.plswing = true;
                     d.swinging += (1-d.swinging)*dt/100;
@@ -148,16 +194,7 @@ let entities:entities_type = {
                 let s = Math.round(d.swinging*2.4);
                 let v = d.swinging * 3.4;
 
-                // Weapon swap
-                if (d.swing && s == 0 ) {
-                    if (d.cur_weapon == 1) {
-                        weap.durability -= 1;
-                    } else if (d.cur_weapon == 2) {
-                        console.log("YES");
-                        d.protection = !d.protection;
-                    }
-                }   
-                if (weap.durability == 0) {
+                if (weap.durability <= 0) {
                     if (d.cur_weapon == 2) d.protection = false;
                     d.cur_weapon = (d.cur_weapon + 1) % d.weapons.length;
                     return;
@@ -201,8 +238,9 @@ let entities:entities_type = {
             if (d.cur_body_t <= 0) {
                 // Poison
                 if (d.in_area_time >= 3000) {
-                    d.dead = 0;
-                    d.poisoned = -1
+                    d.damage(1);
+                    d.in_area_time = 0;
+                    d.poisoned = -1;
                 } else if (d.in_area_time >= 2000) {
                     d.poisoned = 1;
                 }
@@ -214,9 +252,9 @@ let entities:entities_type = {
                         d.poison_duration = 0;
                         d.speed_rate = 1;
                         d.in_area_time = 0;
-                        if (d.weapons[2].durability == 0) {
+                        if (d.weapons[2].durability <= 0) {
                             d.c_shield_break_t = 1000;
-                            d.protection == false
+                            d.protection = false;
                         }
                     } else {
                         d.poison_duration -= dt;
@@ -235,9 +273,9 @@ let entities:entities_type = {
                         d.weapons[2].durability --;
                         d.cur_body_t = d.body_t;
                         d.dead = -1;
-                        if (d.weapons[2].durability == 0) {
+                        if (d.weapons[2].durability <= 0) {
                             d.c_shield_break_t = 1000;
-                            d.protection == false;
+                            d.protection = false;
                         }
                     } else {
                         d.lives[0]--;
@@ -464,7 +502,7 @@ let entities:entities_type = {
             }
             // Arrow hits player
             if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
-                o.player.dead = 0;
+                if (o.player.damage) o.player.damage(1);
                 o.play('sfx/arrow hit.mp3', true);
             }
             // Arrow is in air or ground
@@ -669,6 +707,12 @@ let entities:entities_type = {
             if (o.player != undefined) {
                 // Hearts
                 for(let i = 0; i < o.player.lives[1]; i++) o.sprites('Heart.png', [], [2+i*18, 2, i < o.player.lives[0] ? 0 : 16, 0, 16, 16, 0, 0, 0, 0, 0, 0]);
+                // Lives Count
+                o.btx.fillStyle = '#FFFFFF';
+                o.btx.font = '6px arcade';
+                o.btx.textAlign = 'left';
+                o.btx.textBaseline = 'top';
+                o.btx.fillText('LIVES: ' + o.player.player_lives, 2, 20);
                 // Point
                 let p = algo.score(o.player);
                 o.btx.fillStyle = '#fff';
@@ -680,7 +724,7 @@ let entities:entities_type = {
 
                 // Essence Count & Icon
                 o.btx.fillStyle = '#FFE066'; // Lighter gold/yellow color
-                let essStr = String(o.player.total_essence);
+                let essStr = String(o.player.points);
                 o.btx.fillText(essStr, o.w-2, 14);
                 
                 let textW = o.btx.measureText(essStr).width;
@@ -742,7 +786,7 @@ let entities:entities_type = {
                 d.hitbox = [];
                 d.dead += (1-d.dead)*dt/30;
                 if (d.dead > 0.99) {
-                    o.player.points += d.ess;
+                    o.player.points += 50;
                     o.player.total_essence += 1;
                     d.dead = -1;
                     d.removed = true;
@@ -796,7 +840,9 @@ let entities:entities_type = {
                     if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) d.dead = 0;
                 }
                 //printLog(d.hitbox, d.follow.hitbox, 556);
-                if (algo.rectint(d.hitbox,d.follow.hitbox)) d.follow.dead = 0;
+                if (algo.rectint(d.hitbox,d.follow.hitbox)) {
+                    if (d.follow.damage) d.follow.damage(1);
+                }
             }
             
             let dd = d.dead == -1 ? 0 : Math.round(d.dead*2);
@@ -1014,7 +1060,7 @@ let entities:entities_type = {
             ];
             if (algo.rectint(o.player.hitbox, d.hitbox)) {
                 d.hitbox = [];
-                o.player.points += d.ess;
+                o.player.points += 1;
                 o.player.total_essence += 1;
                 d.claimed = true;
                 o.play('sfx/Picked Up Something Good.mp3', true);
@@ -1126,9 +1172,58 @@ let entities:entities_type = {
         }
     },
     checkpoint: {
-        default: {x:0, y: 195} ,
+        default: {x: 0, y: 195, anim_t: -1},
         update: (d, o, t, dt) => {
-            o.sprites('checkpoint.png', [d.x,d.y], [0,35,Math.floor(t/100)%3*34, 0, 32, 32]);
+            if (!o.player) return;
+            
+            // Check if player reaches this checkpoint
+            if (o.player.x >= d.x && d.x > o.player.farthest_checkpoint_x) {
+                o.player.farthest_checkpoint_x = d.x;
+                
+                // Save progress
+                if (current_player_name) {
+                    player_record.saved_checkpoint = {
+                        level: current_level,
+                        x: d.x,
+                        y: d.y,
+                        lives: [o.player.lives[0], o.player.lives[1]],
+                        player_lives: o.player.player_lives,
+                        points: o.player.points,
+                        total_essence: o.player.total_essence,
+                        weapons: [
+                            { durability: o.player.weapons[0].durability },
+                            { durability: o.player.weapons[1].durability },
+                            { durability: o.player.weapons[2].durability }
+                        ],
+                        cur_weapon: o.player.cur_weapon
+                    };
+                    localStorage.setItem('aswang_leaderboard_' + current_player_name, JSON.stringify(player_record));
+                }
+            }
+            
+            let is_active = (d.x === o.player.farthest_checkpoint_x);
+            let frame = 1; // Default lowered (Frame 1, source X = 34)
+            
+            if (is_active) {
+                if (d.anim_t === -1) {
+                    d.anim_t = 0; // Start raising animation
+                }
+                d.anim_t += dt;
+                
+                if (d.anim_t < 150) {
+                    frame = 1; // Lowered
+                } else if (d.anim_t < 300) {
+                    frame = 0; // Half-raised
+                } else {
+                    frame = 2; // Fully raised
+                }
+            } else {
+                d.anim_t = -1; // Reset animation state
+                frame = 1; // Lowered
+            }
+            
+            let sx = frame * 34;
+            o.sprites('checkpoint.png', [d.x, d.y], [0, 35, sx, 0, 32, 32]);
         }
     },
     king: {
@@ -1203,7 +1298,9 @@ let entities:entities_type = {
                 }
                 d.hitbox = d.hitbox.concat(d.attackBox);
                 if (d.follow != undefined) {
-                    if (algo.rectint(d.attackBox, d.follow.hitbox)) d.follow.dead = 0;
+                    if (algo.rectint(d.attackBox, d.follow.hitbox)) {
+                        if (d.follow.damage) d.follow.damage(1);
+                    }
                     let fire = false;
                     d.cur_cooldown -= dt;
                     if (d.cur_cooldown <= 0) {
@@ -1234,6 +1331,16 @@ let entities:entities_type = {
                                 let p = Math.floor(curAswang[1].p[0] + (Math.random() * (curAswang[1].p[2] - curAswang[1].p[0])));
                                 curAswang[1].x = p;
                                 d.bind.push(o.entity(curAswang[0], curAswang[1]));
+                            }
+                            // Spawn 4 manananggal
+                            for (let i = 0; i < 4; i++) {
+                                let rx = Math.floor(20224 + Math.random() * (20891 - 20224));
+                                d.bind.push(o.entity('mananangal', {
+                                    x: rx,
+                                    y: 16,
+                                    p: [20224, 16, 20891, 16],
+                                    ess: 200
+                                }));
                             }
                         } else if (d.attack_method == 0) { // "Blab Long Range Attack"
                             let mousePoint = [d.x + d.hitbox[3] / 2 - 5, d.y + 8];
@@ -1306,7 +1413,7 @@ let entities:entities_type = {
                     d.headStatus = 1;
                     d.status = 1;
                 } else if (d.lives[1] == 0) {
-                    o.player.points += d.ess;
+                    o.player.points += 300;
                     o.player.total_essence += 1;
                     d.cur_dying_t = d.dying_t;
                     d.dying = true;
@@ -1542,27 +1649,32 @@ let entities:entities_type = {
     priest: {
         default: {x: 0, y: 0, talked: false, claimed: false},
         update: (d, o, t, dt) => {
-            d.hitbox = [0, d.x, d.y, 32, 32];
+            d.hitbox = d.talked ? [] : [0, d.x, d.y, 32, 32];
             
-            let dist = Math.abs(o.player.x - d.x);
-            if (dist < 40 && Math.abs(o.player.y - d.y) < 32) {
-                o.btx.font = '5px arcade';
-                o.btx.fillStyle = '#FFFFFF';
-                o.btx.textAlign = 'center';
-                o.btx.fillText('PRESS ENTER TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
-                
-                o.on('Enter', e => {
-                    if (e.init && active_dialogue === null && active_shop === null) {
-                        active_dialogue = [
-                            { speaker: "PRIEST", text: "My child, the Aswang King has corrupted this sacred ground." },
-                            { speaker: "PRIEST", text: "Take this Holy Cross shield to protect yourself from his dark curses!" },
-                            { speaker: "You", text: "Thank you, Father. I will end his terror." }
-                        ];
-                        dialogue_index = 0;
-                        dialogue_cooldown = 300;
-                        d.talked = true;
-                    }
-                });
+            if (!d.talked) {
+                let dist = Math.abs(o.player.x - d.x);
+                if (dist < 40 && Math.abs(o.player.y - d.y) < 32) {
+                    o.btx.font = '5px arcade';
+                    o.btx.fillStyle = '#FFFFFF';
+                    o.btx.textAlign = 'center';
+                    o.btx.fillText('PRESS ENTER TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                    
+                    o.on('Enter', e => {
+                        if (e.init && active_dialogue === null && active_shop === null) {
+                            active_dialogue = [
+                                { speaker: "PRIEST", text: "My child, the Aswang King has corrupted this sacred ground." },
+                                { speaker: "PRIEST", text: "Take this Holy Cross shield to protect yourself from his dark curses!" },
+                                { speaker: "You", text: "Thank you, Father. I will end his terror." }
+                            ];
+                            dialogue_index = 0;
+                            dialogue_cooldown = 300;
+                            d.talked = true;
+                            dialogue_post_callback = () => {
+                                o.player.weapons[2].durability += 5; // Give Agua Bendita (Holy Cross shield)
+                            };
+                        }
+                    });
+                }
             }
             
             let f = Math.floor(t / 500) % 2 === 0 ? 0 : 12;
@@ -1632,7 +1744,8 @@ let entities:entities_type = {
                 });
             }
             
-            o.sprites('MCpartner.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 64, 0, 0, -Math.PI / 2, 16, 16]);
+            let angle = d.talked ? 0 : -Math.PI / 2;
+            o.sprites('MCpartner.png', [d.x, d.y, 0.5, 0.5], [0, 0, 0, 0, 64, 64, 0, 0, angle, 16, 16]);
         }
     },
 };
@@ -1659,7 +1772,9 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             if (!algo.rectint(d.actionRange, d.follow.hitbox)) d.follow = undefined;
             else d.m[0] = (d.follow.x == d.x) ? 0 : ((d.follow.x > d.x) ? d.s : -d.s);
             printLog(d.hitbox, o.player.hitbox, 836);
-            if (algo.rectint(d.hitbox, o.player.hitbox)) o.player.dead = 0;
+            if (algo.rectint(d.hitbox, o.player.hitbox)) {
+                if (o.player.damage) o.player.damage(1);
+            }
             
             if (o.interacts[o.player.ground] != undefined) {
                 if (o.player.ground != -1 && o.interacts[o.player.ground].y < d.y && !d.jumping) {
@@ -1693,7 +1808,7 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             printLog(d.hitbox.slice(0,5),o.player.hitbox.slice(5), 861);
             if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
                 d.dead = 0;
-                o.player.points += d.ess;
+                o.player.points += 50;
                 o.player.total_essence += 1;
                 return;
             }
