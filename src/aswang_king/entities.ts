@@ -193,8 +193,8 @@ let entities:entities_type = {
                     d.plswing = false;
                 }
 
-                let s = Math.round(d.swinging*2.4);
-                let v = d.swinging * 3.4;
+                let s = d.swing ? Math.round(d.swinging*2.4) : 0;
+                let v = d.swing ? d.swinging * 3.4 : 0;
 
                 if (weap.durability <= 0) {
                     if (d.cur_weapon == 2) d.protection = false;
