@@ -64,7 +64,7 @@ function startLevel(level_num: number, use_checkpoint: boolean = false) {
             player.cur_weapon = checkpoint.cur_weapon;
         }
         player.x = checkpoint.x;
-        player.y = checkpoint.y;
+        player.y = checkpoint.y - 8;
     } else {
         if (level_num === 1) {
             player.x = 30;
@@ -280,7 +280,7 @@ player.ondeath = () => {
             if (l[j]['__type__'] == 'checkpoint') {
                 player.cur_body_t = player.body_t;
                 player.x = l[j].x;
-                player.y = l[j].y;
+                player.y = l[j].y - 16;
                 return;
             }
         }
@@ -1133,7 +1133,7 @@ main.scene('level', (t, dt) => {
             } else if (shop_sel === 1) {
                 descLines = ['SALT POUCH', 'CRUSHED ROCK SALT.', 'USED AS PROJECTILE TO', 'ATTACK ASWANGS', 'FROM A DISTANCE.'];
             } else if (shop_sel === 2) {
-                descLines = ['HEALING FOOD', 'WARM CHICKEN & RICE.', 'RESTORES 2 HEARTS', 'TO REGAIN STRENGTH', 'AND VITALITY.'];
+                descLines = ['HEALING FOOD', 'WARM CHICKEN & RICE.', 'RESTORES 3 HEARTS', 'TO REGAIN STRENGTH', 'AND VITALITY.'];
             }
 
             descLines.forEach((line, idx) => {
@@ -1201,7 +1201,8 @@ main.scene('level', (t, dt) => {
                         } else if (shop_sel === 1) {
                             player.weapons[1].durability += 10;
                         } else if (shop_sel === 2) {
-                            player.lives[0] = Math.min(player.lives[0] + 2, player.lives[1]);
+                            player.lives[0] = Math.min(player.lives[0] + 3, player.lives[1]);
+                            player.bind.push(main.entity('heart_gained', {x: player.x + 8, y: player.y, amount: 3}));
                         }
                         main.play('sfx/Picked Up Something Good.mp3', true);
                     } else {

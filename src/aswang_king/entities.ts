@@ -113,17 +113,17 @@ let entities:entities_type = {
             let leg = [0,0], body = [0,0];
             let weap = d.weapons[d.cur_weapon];
 
-            // Healing ticks logic (+1 heart every 1000ms up to 5 times)
+            // Healing ticks logic (+1 HP every 1500ms up to 2 times)
             if (d.heal_ticks > 0) {
                 d.heal_timer -= dt;
                 if (d.heal_timer <= 0) {
                     if (d.lives[0] < d.lives[1]) {
                         d.lives[0]++;
                         o.play('sfx/Picked Up Something Good.mp3', true, 0.4);
-                        d.bind.push(o.entity('heart_gained', {x: d.x + 8, y: d.y}));
+                        d.bind.push(o.entity('heart_gained', {x: d.x + 8, y: d.y, amount: 1}));
                     }
                     d.heal_ticks--;
-                    d.heal_timer = 1000;
+                    d.heal_timer = 1500;
                 }
             }
 
@@ -186,10 +186,10 @@ let entities:entities_type = {
                         }
                     }
                     d.plswing = true;
-                    d.swinging += (1-d.swinging)*dt/100;
+                    d.swinging += (1-d.swinging)*dt/160;
                     if (d.swinging > 0.9) d.swing = false;
                 } else {
-                    d.swinging -= d.swinging*dt/100;
+                    d.swinging -= d.swinging*dt/160;
                     d.plswing = false;
                 }
 
@@ -860,6 +860,7 @@ let entities:entities_type = {
                             if (d.lives === undefined) d.lives = [2, 2];
                             d.lives[0] -= 1;
                             o.play('sfx/arrow hit.mp3', true);
+                            d.bind.push(o.entity('damage_indicator', {x: d.x + 16, y: d.y}));
                             if (d.lives[0] <= 0) {
                                 d.dead = 0;
                                 o.player.points += 50;
@@ -895,6 +896,22 @@ let entities:entities_type = {
                 o.btx.filter = 'none';
             } else {
                 o.sprites('Mananangalv3.png', [d.x, d.y+Math.sin(t/200)*0.5*dr], ...c);
+            }
+
+            // HP bar above head
+            if (d.lives && d.lives[0] > 0 && d.dead === -1) {
+                let barW = 20;
+                let barH = 3;
+                let barX = d.x + 16 - (barW / 2) - o.camera[0];
+                let barY = d.y - 6 - o.camera[1];
+
+                o.btx.fillStyle = '#000000';
+                o.btx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+                o.btx.fillStyle = '#FF0000';
+                o.btx.fillRect(barX, barY, barW, barH);
+                o.btx.fillStyle = '#00FF00';
+                let hpRatio = d.lives[0] / d.lives[1];
+                o.btx.fillRect(barX, barY, Math.ceil(barW * hpRatio), barH);
             }
         }
     },
@@ -1008,6 +1025,7 @@ let entities:entities_type = {
                     d.hit_cooldown = 400;
                     d.lives[0] -= 1;
                     o.play('sfx/arrow hit.mp3', true);
+                    d.bind.push(o.entity('damage_indicator', {x: d.x + 11, y: d.y}));
                     if (d.lives[0] <= 0) {
                         d.removed = true;
                         o.player.points += 10;
@@ -1047,6 +1065,7 @@ let entities:entities_type = {
                     d.hit_cooldown = 400;
                     d.lives[0] -= 1;
                     o.play('sfx/arrow hit.mp3', true);
+                    d.bind.push(o.entity('damage_indicator', {x: d.x + 16, y: d.y}));
                     if (d.lives[0] <= 0) {
                         d.removed = true;
                         o.player.points += 20;
@@ -1191,8 +1210,8 @@ let entities:entities_type = {
             ];
             if (algo.rectint(o.player.hitbox, d.hitbox)) {
                 d.hitbox = [];
-                o.player.heal_ticks = 5;
-                o.player.heal_timer = 0;
+                o.player.heal_ticks = 2;
+                o.player.heal_timer = 1500;
                 d.claimed = true;
                 o.play('sfx/Picked Up Something Good.mp3', true);
                 d.bind.push(o.entity('healing_anim', {x: o.player.x, y: o.player.y}));
@@ -1202,14 +1221,32 @@ let entities:entities_type = {
         }
     },
     heart_gained: {
-        default: {x: 0, y: 0, duration: 1000},
+        default: {x: 0, y: 0, duration: 1000, amount: 1},
         update: (d, o, t, dt) => {
+            if (d.duration <= 0) return;
             o.btx.fillStyle = '#FF3333';
-            o.btx.strokeStyle = '#000';
+            o.btx.strokeStyle = '#000000';
             o.btx.font = `8px arcade`;
             o.btx.textAlign = 'center';
             o.btx.textBaseline = 'middle';
-            o.btx.fillText('+1 HEART', d.x - o.camera[0], d.y - 10 * Math.sin((1 - d.duration / 1000) * Math.PI / 2));
+            let txt = '+' + d.amount + ' HP';
+            o.btx.strokeText(txt, d.x - o.camera[0], d.y - 10 * Math.sin((1 - d.duration / 1000) * Math.PI / 2));
+            o.btx.fillText(txt, d.x - o.camera[0], d.y - 10 * Math.sin((1 - d.duration / 1000) * Math.PI / 2));
+            d.duration -= dt;
+        }
+    },
+    damage_indicator: {
+        default: {x: 0, y: 0, amount: 1, duration: 800},
+        update: (d, o, t, dt) => {
+            if (d.duration <= 0) return;
+            o.btx.fillStyle = '#FF5555';
+            o.btx.strokeStyle = '#000000';
+            o.btx.font = `8px arcade`;
+            o.btx.textAlign = 'center';
+            o.btx.textBaseline = 'middle';
+            let txt = '-' + d.amount + ' HP';
+            o.btx.strokeText(txt, d.x - o.camera[0], d.y - 12 * Math.sin((1 - d.duration / 800) * Math.PI / 2));
+            o.btx.fillText(txt, d.x - o.camera[0], d.y - 12 * Math.sin((1 - d.duration / 800) * Math.PI / 2));
             d.duration -= dt;
         }
     },
@@ -1928,6 +1965,7 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
                     if (d.lives === undefined) d.lives = [2, 2];
                     d.lives[0] -= 1;
                     o.play('sfx/arrow hit.mp3', true);
+                    d.bind.push(o.entity('damage_indicator', {x: d.x + hitboxSize[0] / 2, y: d.y}));
                     if (d.lives[0] <= 0) {
                         d.dead = 0;
                         o.player.points += 50;
@@ -1954,6 +1992,22 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             o.btx.filter = 'none';
         } else {
             o.sprites(asset_name, [d.x, d.y], [0, 0, origins[v][0], origins[v][1], sizes[v][0], sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
+        }
+
+        // HP bar above head
+        if (d.lives && d.lives[0] > 0) {
+            let barW = 20;
+            let barH = 3;
+            let barX = d.x + (hitboxSize[0] / 2) - (barW / 2) - o.camera[0];
+            let barY = d.y - 6 - o.camera[1];
+
+            o.btx.fillStyle = '#000000';
+            o.btx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+            o.btx.fillStyle = '#FF0000';
+            o.btx.fillRect(barX, barY, barW, barH);
+            o.btx.fillStyle = '#00FF00';
+            let hpRatio = d.lives[0] / d.lives[1];
+            o.btx.fillRect(barX, barY, Math.ceil(barW * hpRatio), barH);
         }
     }
 }
