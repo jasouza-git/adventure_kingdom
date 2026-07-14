@@ -890,8 +890,24 @@ let entities:entities_type = {
                         }
                     }
                 }
-                if (algo.rectint(d.hitbox,d.follow.hitbox)) {
-                    if (d.follow.damage) d.follow.damage(1, d.x);
+                if (d.hitbox.length > 0 && algo.rectint(d.hitbox, d.follow.hitbox) && o.player.cur_body_t <= 0) {
+                    if (d.contact_cooldown === undefined) d.contact_cooldown = 0;
+                    if (d.contact_cooldown <= 0) {
+                        if (d.follow.damage) d.follow.damage(1, d.x);
+                        d.contact_cooldown = 1500;
+                    }
+                }
+                if (d.contact_cooldown === undefined) d.contact_cooldown = 0;
+                if (d.contact_cooldown > 0) d.contact_cooldown -= dt;
+
+                // Prevent overlap with player
+                {
+                    let dx = o.player.x - d.x;
+                    let dy = o.player.y - d.y;
+                    if (Math.abs(dy) < 20 && Math.abs(dx) < 24) {
+                        if (dx > 0 && d.m[0] > 0) d.m[0] = 0;
+                        else if (dx < 0 && d.m[0] < 0) d.m[0] = 0;
+                    }
                 }
             }
             
@@ -1940,8 +1956,13 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             if (!algo.rectint(d.actionRange, d.follow.hitbox)) d.follow = undefined;
             else d.m[0] = (d.follow.x == d.x) ? 0 : ((d.follow.x > d.x) ? d.s : -d.s);
             printLog(d.hitbox, o.player.hitbox, 836);
-            if (algo.rectint(d.hitbox, o.player.hitbox)) {
-                if (o.player.damage) o.player.damage(1, d.x);
+            // Body contact damage with cooldown (only when player is NOT invincible)
+            if (algo.rectint(d.hitbox, o.player.hitbox) && o.player.cur_body_t <= 0) {
+                if (d.contact_cooldown === undefined) d.contact_cooldown = 0;
+                if (d.contact_cooldown <= 0) {
+                    if (o.player.damage) o.player.damage(1, d.x);
+                    d.contact_cooldown = 1500; // 1.5s cooldown matches player invincibility
+                }
             }
             
             if (o.interacts[o.player.ground] != undefined) {
@@ -1957,12 +1978,17 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             else if (d.x >= d.p[2]) d.m[0] = -d.s/2;
         }
 
-        // Prevent overlap with player
-        if (d.knockback_timer <= 0 && d.follow === o.player && Math.abs(o.player.y - d.y) < 20) {
-            let dist = o.player.x - d.x;
-            if (Math.abs(dist) < 18) {
-                if (dist > 0 && d.m[0] > 0) d.m[0] = 0;
-                else if (dist < 0 && d.m[0] < 0) d.m[0] = 0;
+        // Tick down contact cooldown
+        if (d.contact_cooldown === undefined) d.contact_cooldown = 0;
+        if (d.contact_cooldown > 0) d.contact_cooldown -= dt;
+
+        // Prevent overlap with player — always check regardless of follow state
+        {
+            let dx = o.player.x - d.x;
+            let dy = o.player.y - d.y;
+            if (Math.abs(dy) < hitboxSize[1] * 0.8 && Math.abs(dx) < hitboxSize[0] + 4) {
+                if (dx > 0 && d.m[0] > 0) d.m[0] = 0;
+                else if (dx < 0 && d.m[0] < 0) d.m[0] = 0;
             }
         }
         // Movement
