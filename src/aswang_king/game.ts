@@ -327,49 +327,65 @@ function drawControlsScreen(btx: any, w: number, h: number, t: number) {
     btx.textAlign = 'center';
     btx.textBaseline = 'top';
     btx.fillStyle = '#FFD700';
-    btx.fillText('CONTROLS', w / 2, 10);
+    btx.fillText('CONTROLS', w / 2, 6);
 
     // Separator line
     btx.fillStyle = '#8B6914';
-    btx.fillRect(40, 28, w - 80, 2);
+    btx.fillRect(20, 22, w - 40, 2);
 
-    // Controls list
-    let controls = [
-        ['MOVEMENT', ''],
-        ['  WALK', 'A / D  or  LEFT / RIGHT'],
-        ['  JUMP', 'SPACE  or  UP'],
-        ['  CROUCH', 'S  or  DOWN'],
-        ['  CLIMB', 'W / S  on vines'],
-        ['', ''],
-        ['COMBAT', ''],
-        ['  ATTACK', 'J'],
-        ['  SWAP WEAPON', 'R  or  1 / 2 / 3'],
-        ['  SHIELD', 'E  (toggle on/off)'],
-        ['', ''],
-        ['CAMERA', 'U / I / O'],
-        ['PAUSE', 'ESC  or  P'],
+    // Column headers
+    btx.font = '6px arcade';
+    btx.textBaseline = 'top';
+    btx.fillStyle = '#66CCFF';
+    btx.textAlign = 'center';
+    btx.fillText('KEYBOARD', w / 2 - 40, 27);
+    btx.fillStyle = '#FF9966';
+    btx.fillText('CONTROLLER', w / 2 + 50, 27);
+
+    // Controls list: [action, keyboard key, controller key]
+    let controls: string[][] = [
+        ['MOVEMENT', '', ''],
+        ['  WALK', 'A/D  ARROWS', 'L-STICK / D-PAD'],
+        ['  JUMP', 'SPACE  UP', 'B BUTTON'],
+        ['  CROUCH', 'S  DOWN', 'D-PAD DOWN'],
+        ['  CLIMB', 'W/S ON VINES', 'L-STICK / D-PAD'],
+        ['', '', ''],
+        ['COMBAT', '', ''],
+        ['  ATTACK', 'J', 'A BUTTON'],
+        ['  SWAP WEAPON', 'R  or 1/2/3', 'X BUTTON'],
+        ['  SHIELD', 'E (TOGGLE)', 'Y BUTTON'],
+        ['', '', ''],
+        ['SYSTEM', '', ''],
+        ['  PAUSE', 'ESC / P', 'START'],
+        ['  DEV CHEATS', '- KEY', 'SELECT'],
+        ['  CAMERA', 'U / I / O', 'R-STICK'],
+        ['  CONFIRM', 'ENTER', 'A BUTTON'],
     ];
 
-    let startY = 36;
+    let startY = 38;
     for (let i = 0; i < controls.length; i++) {
-        let y = startY + i * 14;
+        let y = startY + i * 12;
         let entry = controls[i];
-        if (entry[1] == '' && entry[0] != '') {
+        if (entry[1] == '' && entry[2] == '' && entry[0] != '') {
             // Section header
-            btx.font = '7px arcade';
+            btx.font = '6px arcade';
             btx.fillStyle = '#FFD700';
             btx.textAlign = 'left';
-            btx.fillText(entry[0], 20, y);
+            btx.fillText(entry[0], 10, y);
         } else if (entry[0] != '') {
-            // Action name
-            btx.font = '6px arcade';
+            // Action name (left)
+            btx.font = '5px arcade';
             btx.fillStyle = '#CCCCCC';
             btx.textAlign = 'left';
-            btx.fillText(entry[0], 20, y);
-            // Key binding
+            btx.fillText(entry[0], 10, y);
+            // Keyboard key (center-left)
             btx.fillStyle = '#66CCFF';
-            btx.textAlign = 'right';
-            btx.fillText(entry[1], w - 20, y);
+            btx.textAlign = 'center';
+            btx.fillText(entry[1], w / 2 - 40, y);
+            // Controller key (center-right)
+            btx.fillStyle = '#FF9966';
+            btx.textAlign = 'center';
+            btx.fillText(entry[2], w / 2 + 50, y);
         }
     }
 
@@ -379,7 +395,7 @@ function drawControlsScreen(btx: any, w: number, h: number, t: number) {
     btx.textBaseline = 'bottom';
     btx.fillStyle = '#FFD700';
     let blink = Math.floor(t / 500) % 2 == 0;
-    if (blink) btx.fillText('PRESS ENTER OR ESC TO GO BACK', w / 2, h - 12);
+    if (blink) btx.fillText('PRESS ENTER / A TO GO BACK', w / 2, h - 8);
 }
 
 // Helper: draw a thick multi-piece pixel-art cloud (matching the in-game style)
@@ -423,8 +439,8 @@ main.scene('main_menu', (t, dt) => {
     if (menu_sub == 0) {
         // Controls screen (text-based, readable)
         drawControlsScreen(main.btx, main.w, main.h, t);
-        main.on('Enter', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
-        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Enter,gp_1', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Escape,gp_2', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
     }
     if (menu_sub == 1) {
@@ -437,8 +453,8 @@ main.scene('main_menu', (t, dt) => {
         main.btx.textBaseline = 'bottom';
         main.btx.fillStyle = '#FFD700';
         main.btx.fillText('PRESS ENTER TO GO BACK', main.w / 2, main.h - 8);
-        main.on('Enter', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
-        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Enter,gp_1', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Escape,gp_2', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
     }
     if (menu_sub == 3) {
@@ -487,8 +503,8 @@ main.scene('main_menu', (t, dt) => {
             main.btx.fillText('PRESS ENTER TO GO BACK', main.w / 2, main.h - 12);
         }
 
-        main.on('Enter', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
-        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Enter,gp_1', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Escape,gp_2', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
     }
     if (menu_sub == 2) {
@@ -544,19 +560,19 @@ main.scene('main_menu', (t, dt) => {
             }
         }
 
-        main.on('w,W,ArrowUp', e => {
+        main.on('w,W,ArrowUp,gp_n', e => {
             if (e.init && menu_cooldown <= 0) {
                 level_sel = (level_sel - 1 + lv_items.length) % lv_items.length;
                 menu_cooldown = 150;
             }
         });
-        main.on('s,S,ArrowDown', e => {
+        main.on('s,S,ArrowDown,gp_s', e => {
             if (e.init && menu_cooldown <= 0) {
                 level_sel = (level_sel + 1) % lv_items.length;
                 menu_cooldown = 150;
             }
         });
-        main.on('Enter', e => {
+        main.on('Enter,gp_1', e => {
             if (e.init && menu_cooldown <= 0) {
                 menu_cooldown = 300;
                 if (level_sel === 4) {
@@ -570,7 +586,7 @@ main.scene('main_menu', (t, dt) => {
                 }
             }
         });
-        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Escape,gp_2', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
     }
     if (menu_sub == 4) {
@@ -681,19 +697,19 @@ main.scene('main_menu', (t, dt) => {
             main.btx.fillText(items[i], main.w / 2, itemY);
         }
 
-        main.on('w,W,ArrowUp', e => {
+        main.on('w,W,ArrowUp,gp_n', e => {
             if (e.init && menu_cooldown <= 0) {
                 profile_sel = (profile_sel - 1 + items.length) % items.length;
                 menu_cooldown = 150;
             }
         });
-        main.on('s,S,ArrowDown', e => {
+        main.on('s,S,ArrowDown,gp_s', e => {
             if (e.init && menu_cooldown <= 0) {
                 profile_sel = (profile_sel + 1) % items.length;
                 menu_cooldown = 150;
             }
         });
-        main.on('Enter', e => {
+        main.on('Enter,gp_1', e => {
             if (e.init && menu_cooldown <= 0) {
                 menu_cooldown = 300;
                 if (profile_sel === items.length - 1) {
@@ -721,7 +737,7 @@ main.scene('main_menu', (t, dt) => {
                 }
             }
         });
-        main.on('Escape', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
+        main.on('Escape,gp_2', e => { if (e.init) { menu_sub = -1; menu_cooldown = 300; } });
         return;
     }
 
@@ -780,22 +796,22 @@ main.scene('main_menu', (t, dt) => {
     main.btx.textAlign = 'center';
     main.btx.textBaseline = 'bottom';
     main.btx.fillStyle = '#FFFFFF';
-    main.btx.fillText('USE W/S OR ARROWS TO NAVIGATE  -  ENTER TO SELECT', main.w / 2, main.h - 10);
+    main.btx.fillText('W/S  ARROWS  D-PAD TO NAVIGATE  -  ENTER / A TO SELECT', main.w / 2, main.h - 10);
 
     // === Navigation input ===
-    main.on('w,W,ArrowUp', e => {
+    main.on('w,W,ArrowUp,gp_n', e => {
         if (e.init && menu_cooldown <= 0) {
             menu_sel = (menu_sel - 1 + menu_items.length) % menu_items.length;
             menu_cooldown = 150;
         }
     });
-    main.on('s,S,ArrowDown', e => {
+    main.on('s,S,ArrowDown,gp_s', e => {
         if (e.init && menu_cooldown <= 0) {
             menu_sel = (menu_sel + 1) % menu_items.length;
             menu_cooldown = 150;
         }
     });
-    main.on('Enter', e => {
+    main.on('Enter,gp_1', e => {
         if (e.init && menu_cooldown <= 0) {
             menu_cooldown = 300;
             if (menu_sel == 0) {
@@ -1249,12 +1265,12 @@ main.scene('level', (t, dt) => {
             else { paused = !paused; pause_sel = 0; pause_sub = -1; pause_cooldown = 300; }
         }
     });
-    main.on('p,P', e => {
+    main.on('p,P,gp_start', e => {
         if (e.init && pause_sub == -1) { paused = !paused; pause_sel = 0; pause_sub = -1; pause_cooldown = 300; }
     });
 
     // === Cheat Menu ===
-    main.on('-,_', e => {
+    main.on('-,_,gp_select', e => {
         if (e.init) {
             cheat_menu_open = !cheat_menu_open;
             cheat_sel = 0;
@@ -1277,7 +1293,7 @@ main.scene('level', (t, dt) => {
         main.btx.fillText('DEV CHEATS', main.w / 2, 40);
 
         // Board frame
-        let cBoardX = 70, cBoardY = 65, cBoardW = 180, cBoardH = 135;
+        let cBoardX = 50, cBoardY = 58, cBoardW = 220, cBoardH = 170;
         main.btx.fillStyle = 'rgba(26, 10, 10, 0.9)';
         main.btx.fillRect(cBoardX, cBoardY, cBoardW, cBoardH);
         main.btx.strokeStyle = '#8B0000';
@@ -1289,7 +1305,7 @@ main.scene('level', (t, dt) => {
 
         // Menu items
         for (let i = 0; i < cheat_items.length; i++) {
-            let itemY = cBoardY + 12 + i * 18;
+            let itemY = cBoardY + 12 + i * 17;
             let selected = (i == cheat_sel);
 
             if (selected) {
@@ -1311,19 +1327,19 @@ main.scene('level', (t, dt) => {
         }
 
         // Navigation
-        main.on('w,W,ArrowUp', e => {
+        main.on('w,W,ArrowUp,gp_n', e => {
             if (e.init && cheat_cooldown <= 0) {
                 cheat_sel = (cheat_sel - 1 + cheat_items.length) % cheat_items.length;
                 cheat_cooldown = 150;
             }
         });
-        main.on('s,S,ArrowDown', e => {
+        main.on('s,S,ArrowDown,gp_s', e => {
             if (e.init && cheat_cooldown <= 0) {
                 cheat_sel = (cheat_sel + 1) % cheat_items.length;
                 cheat_cooldown = 150;
             }
         });
-        main.on('Enter', e => {
+        main.on('Enter,gp_1', e => {
             if (e.init && cheat_cooldown <= 0) {
                 cheat_cooldown = 300;
                 if (cheat_sel == 0) {
@@ -1398,7 +1414,7 @@ main.scene('level', (t, dt) => {
         // Controls sub-screen within pause
         if (pause_sub == 0) {
             drawControlsScreen(main.btx, main.w, main.h, t);
-            main.on('Enter', e => { if (e.init) { pause_sub = -1; pause_cooldown = 300; } });
+            main.on('Enter,gp_1', e => { if (e.init) { pause_sub = -1; pause_cooldown = 300; } });
             return;
         }
 
@@ -1448,19 +1464,19 @@ main.scene('level', (t, dt) => {
         }
 
         // Navigation
-        main.on('w,W,ArrowUp', e => {
+        main.on('w,W,ArrowUp,gp_n', e => {
             if (e.init && pause_cooldown <= 0) {
                 pause_sel = (pause_sel - 1 + pause_items.length) % pause_items.length;
                 pause_cooldown = 150;
             }
         });
-        main.on('s,S,ArrowDown', e => {
+        main.on('s,S,ArrowDown,gp_s', e => {
             if (e.init && pause_cooldown <= 0) {
                 pause_sel = (pause_sel + 1) % pause_items.length;
                 pause_cooldown = 150;
             }
         });
-        main.on('Enter', e => {
+        main.on('Enter,gp_1', e => {
             if (e.init && pause_cooldown <= 0) {
                 pause_cooldown = 300;
                 if (pause_sel == 0) {

@@ -152,18 +152,21 @@ class engine {
             let ry = gp.axes.length > 5 ? gp.axes[5] : (gp.axes.length > 3 ? gp.axes[3] : 0);
             this.evented['gp_j1'] = {init:this.evented['gp_j1']==undefined, x:rx, y:ry};
 
+            // D-pad: combine digital buttons (12-15), legacy POV axis (9), and left analog stick deadzone
             let dpad_up = false;
             let dpad_down = false;
             let dpad_left = false;
             let dpad_right = false;
 
+            // Standard digital D-pad buttons (buttons 12-15)
             if (gp.buttons.length > 15) {
                 dpad_up = gp.buttons[12] && (gp.buttons[12].value > 0.5 || gp.buttons[12].pressed);
                 dpad_down = gp.buttons[13] && (gp.buttons[13].value > 0.5 || gp.buttons[13].pressed);
                 dpad_left = gp.buttons[14] && (gp.buttons[14].value > 0.5 || gp.buttons[14].pressed);
                 dpad_right = gp.buttons[15] && (gp.buttons[15].value > 0.5 || gp.buttons[15].pressed);
             }
-            
+
+            // Legacy POV hat axis (DirectInput controllers)
             if (gp.axes && gp.axes.length > 9 && gp.axes[9] !== undefined) {
                 let pov = gp.axes[9];
                 if (Math.abs(pov + 1) < 0.1) dpad_up = true;
@@ -171,6 +174,12 @@ class engine {
                 if (Math.abs(pov - 0.71) < 0.1) dpad_left = true;
                 if (Math.abs(pov + 0.43) < 0.1) dpad_right = true;
             }
+
+            // Left analog stick as D-pad (deadzone 0.5)
+            if (gp.axes[1] < -0.5) dpad_up = true;
+            if (gp.axes[1] > 0.5) dpad_down = true;
+            if (gp.axes[0] < -0.5) dpad_left = true;
+            if (gp.axes[0] > 0.5) dpad_right = true;
 
             if (dpad_up) this.evented['gp_n'] = this.evented['gp_n'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_n'];
@@ -184,11 +193,13 @@ class engine {
             if (dpad_right) this.evented['gp_e'] = this.evented['gp_e'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_e'];
 
+            // Face buttons helper
             let getBtn = (idx: number) => {
                 if (!gp.buttons[idx]) return false;
                 return gp.buttons[idx].value > 0.5 || gp.buttons[idx].pressed;
             };
 
+            // Face buttons (A=0, B=1, X=2, Y=3)
             if (getBtn(0)) this.evented['gp_1'] = this.evented['gp_1'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_1'];
 
@@ -200,6 +211,27 @@ class engine {
 
             if (getBtn(3)) this.evented['gp_4'] = this.evented['gp_4'] == undefined ? {init:true} : {init:false};
             else delete this.evented['gp_4'];
+
+            // Shoulder buttons (L1=4, R1=5)
+            if (getBtn(4)) this.evented['gp_l1'] = this.evented['gp_l1'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_l1'];
+
+            if (getBtn(5)) this.evented['gp_r1'] = this.evented['gp_r1'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_r1'];
+
+            // Trigger buttons (L2=6, R2=7)
+            if (getBtn(6)) this.evented['gp_l2'] = this.evented['gp_l2'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_l2'];
+
+            if (getBtn(7)) this.evented['gp_r2'] = this.evented['gp_r2'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_r2'];
+
+            // Select/Back (8) and Start (9)
+            if (getBtn(8)) this.evented['gp_select'] = this.evented['gp_select'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_select'];
+
+            if (getBtn(9)) this.evented['gp_start'] = this.evented['gp_start'] == undefined ? {init:true} : {init:false};
+            else delete this.evented['gp_start'];
         } else {
             delete this.evented['gp_j0'];
             delete this.evented['gp_j1'];
@@ -211,6 +243,12 @@ class engine {
             delete this.evented['gp_2'];
             delete this.evented['gp_3'];
             delete this.evented['gp_4'];
+            delete this.evented['gp_l1'];
+            delete this.evented['gp_r1'];
+            delete this.evented['gp_l2'];
+            delete this.evented['gp_r2'];
+            delete this.evented['gp_select'];
+            delete this.evented['gp_start'];
         }
         this.time_last = new Date();
         this.ctx.drawImage(this.buf, 0, 0);
