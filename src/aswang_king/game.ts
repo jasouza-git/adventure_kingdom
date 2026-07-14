@@ -1053,19 +1053,58 @@ main.scene('level', (t, dt) => {
                 main.btx.textBaseline = 'top';
                 main.btx.fillText('>', menuX, itemY);
             }
+
+            // Draw Item Icon in the list
+            let iconAsset = '';
+            if (i === 0) iconAsset = 'CrossIcon.png';
+            else if (i === 1) iconAsset = 'Asin Pouch.png';
+            else if (i === 2) iconAsset = 'Food Icon Chicken and Rice.png';
+
+            if (iconAsset) {
+                if (!selected) {
+                    main.btx.filter = 'opacity(0.5) brightness(0.7)';
+                }
+                main.sprites(iconAsset, [menuX + 12, itemY - 1], [0, 0, 0, 0, 16, 16]);
+                if (!selected) {
+                    main.btx.filter = 'none';
+                }
+            } else if (i === 3) {
+                // Exit shop visual
+                main.btx.font = '8px arcade';
+                main.btx.textAlign = 'center';
+                main.btx.textBaseline = 'top';
+                main.btx.fillStyle = selected ? '#FF5555' : '#884444';
+                main.btx.fillText('X', menuX + 20, itemY + 1);
+            }
+
             main.btx.font = '7px arcade';
             main.btx.textAlign = 'left';
             main.btx.textBaseline = 'top';
             main.btx.fillStyle = selected ? '#FFFFFF' : '#888888';
-            main.btx.fillText(shop_items[i], menuX + 10, itemY);
+            main.btx.fillText(shop_items[i], menuX + 32, itemY + 1);
         }
 
-        // Draw Highlighted Item Preview on the Right
+        // Draw Highlighted Item Preview on the Right (Detailed frame)
         if (shop_sel >= 0 && shop_sel < 3) {
-            // Draw Icon Box
+            // Draw visual preview frame block
+            let frameX = sBoardX + 125;
+            let frameY = sBoardY + 36;
+            let frameW = 100;
+            let frameH = 82;
+
+            main.btx.fillStyle = 'rgba(30, 20, 15, 0.85)';
+            main.btx.fillRect(frameX, frameY, frameW, frameH);
+            main.btx.strokeStyle = '#5C4010';
+            main.btx.lineWidth = 1.5;
+            main.btx.strokeRect(frameX, frameY, frameW, frameH);
+            main.btx.strokeStyle = '#D4A830';
+            main.btx.lineWidth = 0.5;
+            main.btx.strokeRect(frameX + 2, frameY + 2, frameW - 4, frameH - 4);
+
+            // Draw Icon Box inside the preview frame
             let boxSize = 32;
             let boxX = previewCenterX - boxSize / 2;
-            let boxY = sBoardY + 40;
+            let boxY = sBoardY + 42;
             main.sprites('Icon Box.png', [boxX, boxY, 2, 2], [0, 0, 0, 0, 16, 16]);
 
             // Draw Item Icon inside box
@@ -1080,58 +1119,74 @@ main.scene('level', (t, dt) => {
 
             // Draw Price
             let cost = (shop_sel === 0 || shop_sel === 2) ? 3 : 2;
-            main.btx.font = '7px arcade';
+            main.btx.font = '6px arcade';
             main.btx.textAlign = 'center';
-            main.btx.fillStyle = '#FFD700';
-            main.btx.fillText(cost + ' ESSENCE', previewCenterX, boxY + 42);
+            main.btx.fillStyle = '#FFE066';
+            main.btx.fillText(cost + ' ASWANG ESSENCE', previewCenterX, boxY + 40);
 
-            // Draw Description
+            // Draw Detailed Descriptions
             main.btx.font = '5px arcade';
             main.btx.fillStyle = '#CCCCCC';
             let descLines: string[] = [];
             if (shop_sel === 0) {
-                descLines = ['5 CHARGES', 'CROSS SHIELD'];
+                descLines = ['AGUA BENDITA', 'A HOLY WATER BOTTLE.', 'CREATES A CROSS SHIELD', 'TO BLOCK INCOMING', 'DAMAGE & POISONS.'];
             } else if (shop_sel === 1) {
-                descLines = ['10 CHARGES', 'ASIN AMMO'];
+                descLines = ['SALT POUCH', 'CRUSHED ROCK SALT.', 'USED AS PROJECTILE TO', 'ATTACK ASWANGS', 'FROM A DISTANCE.'];
             } else if (shop_sel === 2) {
-                descLines = ['RECOVERY OF', '+2 HEARTS'];
+                descLines = ['HEALING FOOD', 'WARM CHICKEN & RICE.', 'RESTORES 2 HEARTS', 'TO REGAIN STRENGTH', 'AND VITALITY.'];
             }
 
             descLines.forEach((line, idx) => {
-                main.btx.fillText(line, previewCenterX, boxY + 54 + idx * 7);
+                let color = idx === 0 ? '#FFD700' : '#CCCCCC';
+                main.btx.fillStyle = color;
+                main.btx.fillText(line, previewCenterX, boxY + 50 + idx * 6.5);
             });
         } else if (shop_sel === 3) {
-            // Draw Exit Sign
-            main.btx.font = '6px arcade';
+            // Draw Exit Sign frame
+            let frameX = sBoardX + 125;
+            let frameY = sBoardY + 36;
+            let frameW = 100;
+            let frameH = 82;
+
+            main.btx.fillStyle = 'rgba(40, 15, 15, 0.85)';
+            main.btx.fillRect(frameX, frameY, frameW, frameH);
+            main.btx.strokeStyle = '#8B0000';
+            main.btx.lineWidth = 1.5;
+            main.btx.strokeRect(frameX, frameY, frameW, frameH);
+
+            main.btx.font = '7px arcade';
             main.btx.textAlign = 'center';
             main.btx.fillStyle = '#FF5555';
-            main.btx.fillText('EXIT TO FOREST', previewCenterX, sBoardY + 70);
+            main.btx.fillText('EXIT SHOP', previewCenterX, sBoardY + 70);
+            main.btx.font = '5px arcade';
+            main.btx.fillStyle = '#AAAAAA';
+            main.btx.fillText('RETURN TO THE FOREST', previewCenterX, sBoardY + 82);
         }
 
         // Draw Button Guide at the bottom of the board (shortened to prevent overflow)
         main.btx.font = '5px arcade';
         main.btx.textAlign = 'center';
         main.btx.fillStyle = '#888888';
-        main.btx.fillText('W/S OR ARROWS: CHOOSE  -  ENTER: BUY', main.w / 2, sBoardY + sBoardH - 8);
+        main.btx.fillText('D-PAD / W/S: CHOOSE  -  A / ENTER: BUY', main.w / 2, sBoardY + sBoardH - 8);
 
         main.btx.restore();
 
         player.m[0] = 0;
 
-        main.on('w,W,ArrowUp', e => {
+        main.on('w,W,ArrowUp,gp_n', e => {
             if (e.init && shop_cooldown <= 0) {
                 shop_sel = (shop_sel - 1 + shop_items.length) % shop_items.length;
                 shop_cooldown = 150;
             }
         });
-        main.on('s,S,ArrowDown', e => {
+        main.on('s,S,ArrowDown,gp_s', e => {
             if (e.init && shop_cooldown <= 0) {
                 shop_sel = (shop_sel + 1) % shop_items.length;
                 shop_cooldown = 150;
             }
         });
 
-        main.on('Enter', e => {
+        main.on('Enter,gp_1', e => {
             if (e.init && shop_cooldown <= 0) {
                 shop_cooldown = 300;
                 if (shop_sel === 3) {
