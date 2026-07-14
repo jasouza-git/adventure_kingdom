@@ -42,6 +42,8 @@ function startLevel(level_num: number, use_checkpoint: boolean = false) {
     player.points = 0;
     player.total_essence = 0;
     player.farthest_checkpoint_x = -1;
+    player.knockback_timer = 0;
+    player.knockback_vel_x = 0;
     if (player.weapons) {
         player.weapons[0].durability = 1000000;
         player.weapons[1].durability = 0;
@@ -1560,37 +1562,42 @@ main.scene('level', (t, dt) => {
         main.on('Enter', e => {
             if (e.init) {
                 player.highscore = algo.score(player);
-                player.points = 0;
                 menu.over = false;
-                player.lives = [3, 3];
-                player.player_lives = 3;
-                player.max_x = player.x = 30;
-                player.y = 195;
-                player.farthest_checkpoint_x = -1;
                 player.dead = -1;
                 player.m = [0, 0];
                 player.climb = player.poisoned = -1;
                 player.canclimb = false;
                 bg.night = false;
                 bg.day = 1;
-                player.total_essence = 0;
-                main.camera = [-160, 0];
-                if (player.weapons) {
-                    player.weapons[0].durability = 1000000;
-                    player.weapons[1].durability = 0;
-                    player.weapons[2].durability = 0;
-                    player.cur_weapon = 0;
-                }
-                platforms = setupPlatforms();
-                lv = level(main);
-                adjustLevelEssenceCount(lv);
-                current_level = 0;
                 king_defeated = false;
                 partner_spawned = false;
                 ending_active = false;
-                menu_sel = 0;
-                menu_sub = -1;
-                main.scene('main_menu');
+                
+                if (player_record && player_record.saved_checkpoint) {
+                    startLevel(player_record.saved_checkpoint.level, true);
+                } else {
+                    player.points = 0;
+                    player.total_essence = 0;
+                    player.lives = [3, 3];
+                    player.player_lives = 3;
+                    player.max_x = player.x = 30;
+                    player.y = 195;
+                    player.farthest_checkpoint_x = -1;
+                    main.camera = [-160, 0];
+                    if (player.weapons) {
+                        player.weapons[0].durability = 1000000;
+                        player.weapons[1].durability = 0;
+                        player.weapons[2].durability = 0;
+                        player.cur_weapon = 0;
+                    }
+                    platforms = setupPlatforms();
+                    lv = level(main);
+                    adjustLevelEssenceCount(lv);
+                    current_level = 0;
+                    menu_sel = 0;
+                    menu_sub = -1;
+                    main.scene('main_menu');
+                }
             }
         });
         return;
@@ -1704,14 +1711,20 @@ main.scene('level', (t, dt) => {
 
     if (main.on(' ,ArrowUp,gp_2') && player.ground != -1) {
         player.m[1] = 20 * (!player.protection && player.poisoned >= 0 ? 0.75 : 1);
-    } else if (main.on('s,S,ArrowDown,gp_s')) {
-        player.crouch = true;
-        player.m[0] = 0;
-    } else if (player.crouch) {
-        player.crouch = player.jumping = false;
-    } else if (main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8 * player.speed_rate;
-    else if (main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8 * player.speed_rate;
-    else player.m[0] = 0;
+    } else {
+        if (player.knockback_timer === undefined) player.knockback_timer = 0;
+        if (player.knockback_timer > 0) {
+            player.knockback_timer -= dt;
+            player.m[0] = player.knockback_vel_x;
+        } else if (main.on('s,S,ArrowDown,gp_s')) {
+            player.crouch = true;
+            player.m[0] = 0;
+        } else if (player.crouch) {
+            player.crouch = player.jumping = false;
+        } else if (main.on('d,D,ArrowRight,gp_e')) player.m[0] = 8 * player.speed_rate;
+        else if (main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8 * player.speed_rate;
+        else player.m[0] = 0;
+    }
 
     // === Level Title Overlay ===
     let active_lv = 1;

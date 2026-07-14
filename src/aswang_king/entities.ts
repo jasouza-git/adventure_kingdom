@@ -71,6 +71,8 @@ let entities:entities_type = {
             total_essence: 0,   // Total essence collected
             heal_ticks: 0,      // Remaining heal ticks
             heal_timer: 0,      // Timer between heal ticks
+            knockback_timer: 0, // Player knockback duration
+            knockback_vel_x: 0, // Player knockback velocity
             highscore: 0,  // Highscore
             max_x: 0,      // Maximum distance traveled by the player
             canclimb:false,// Player can climb?
@@ -88,7 +90,7 @@ let entities:entities_type = {
         },
         update: (d, o, t, dt) => {
             if (d.damage === undefined || d.damage === null) {
-                d.damage = (amount: number = 1) => {
+                d.damage = (amount: number = 1, sourceX?: number) => {
                     if (d.cur_body_t > 0 || d.dead != -1) return;
                     if (d.weapons[2].durability > 0 && d.protection == true) {
                         d.weapons[2].durability--;
@@ -105,6 +107,11 @@ let entities:entities_type = {
                         d.dead = 0; // Trigger dying & respawn process
                     } else {
                         d.cur_body_t = d.body_t; // Only set invincibility if still alive
+                        if (sourceX !== undefined) {
+                            d.knockback_timer = 200;
+                            d.knockback_vel_x = (sourceX < d.x) ? 6 : -6;
+                            d.m[1] = 8;
+                        }
                     }
                 };
             }
@@ -504,7 +511,7 @@ let entities:entities_type = {
             }
             // Arrow hits player
             if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
-                if (o.player.damage) o.player.damage(1);
+                if (o.player.damage) o.player.damage(1, d.x);
                 o.play('sfx/arrow hit.mp3', true);
             }
             // Arrow is in air or ground
@@ -845,6 +852,15 @@ let entities:entities_type = {
                     if (h > 350) d.target = false;
                     else if (h > 20) d.m = [Math.cos(a)*d.speed, Math.sin(a)*d.speed];
                     else d.m = [0, 0];
+
+                    // Prevent overlap with player
+                    if (Math.abs(o.player.y - d.y) < 20) {
+                        let dist = o.player.x - d.x;
+                        if (Math.abs(dist) < 18) {
+                            if (dist > 0 && d.m[0] > 0) d.m[0] = 0;
+                            else if (dist < 0 && d.m[0] < 0) d.m[0] = 0;
+                        }
+                    }
                 }
                 let v = Math.min(Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.hypot(d.p[2]-d.x, d.p[3]-d.y));
                 if (v > 200 && (Math.min(d.p[0],d.p[2]) > d.x || Math.max(d.p[0],d.p[2]) < d.x)) {
@@ -875,7 +891,7 @@ let entities:entities_type = {
                     }
                 }
                 if (algo.rectint(d.hitbox,d.follow.hitbox)) {
-                    if (d.follow.damage) d.follow.damage(1);
+                    if (d.follow.damage) d.follow.damage(1, d.x);
                 }
             }
             
@@ -1307,7 +1323,8 @@ let entities:entities_type = {
     text: {
         default: {x: 10, y: 20, z:10, text:'', title:'', color: '#FFF'},
         update: (d, o, t, dt) => {
-            let txt = d.text || d.title || '';
+            if (d.title) return; // Remove the level title in background
+            let txt = d.text || '';
             o.btx.font = `${d.z*o.z}px arcade`;
             o.btx.fillStyle = d.color;
             o.btx.fillText(txt, d.x-o.camera[0], d.y-o.camera[1]);
@@ -1441,7 +1458,7 @@ let entities:entities_type = {
                 d.hitbox = d.hitbox.concat(d.attackBox);
                 if (d.follow != undefined) {
                     if (algo.rectint(d.attackBox, d.follow.hitbox)) {
-                        if (d.follow.damage) d.follow.damage(1);
+                        if (d.follow.damage) d.follow.damage(1, d.x);
                     }
                     let fire = false;
                     d.cur_cooldown -= dt;
@@ -1924,7 +1941,7 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             else d.m[0] = (d.follow.x == d.x) ? 0 : ((d.follow.x > d.x) ? d.s : -d.s);
             printLog(d.hitbox, o.player.hitbox, 836);
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
-                if (o.player.damage) o.player.damage(1);
+                if (o.player.damage) o.player.damage(1, d.x);
             }
             
             if (o.interacts[o.player.ground] != undefined) {
@@ -1938,6 +1955,15 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             if (d.m[0] == 0) d.m[0] = -d.s/2;
             if (d.x <= d.p[0]) d.m[0] = d.s/2;
             else if (d.x >= d.p[2]) d.m[0] = -d.s/2;
+        }
+
+        // Prevent overlap with player
+        if (d.knockback_timer <= 0 && d.follow === o.player && Math.abs(o.player.y - d.y) < 20) {
+            let dist = o.player.x - d.x;
+            if (Math.abs(dist) < 18) {
+                if (dist > 0 && d.m[0] > 0) d.m[0] = 0;
+                else if (dist < 0 && d.m[0] < 0) d.m[0] = 0;
+            }
         }
         // Movement
         if (d.knockback_timer <= 0) {
