@@ -186,10 +186,10 @@ let entities:entities_type = {
                         }
                     }
                     d.plswing = true;
-                    d.swinging += (1-d.swinging)*dt/160;
+                    d.swinging += (1-d.swinging)*dt/100;
                     if (d.swinging > 0.9) d.swing = false;
                 } else {
-                    d.swinging -= d.swinging*dt/160;
+                    d.swinging -= d.swinging*dt/100;
                     d.plswing = false;
                 }
 
@@ -210,7 +210,7 @@ let entities:entities_type = {
                     if (d.swing) {
                         let hb = offsetRectWithFright(d.lockedHitbox, [0 , (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8, 0, 16, 32], d.lockedFright);
                         d.hitbox.push(...hb);
-                        let vr = Math.round(v);
+                        let vr = Math.min(Math.round(v), 2);
                         let ps = [96, 132, 175];
                         o.sprites('TakeoutSalt.png', [0, 0], hb.slice(1, 3).concat([ps[vr], 0, 16, 32]));
                     }

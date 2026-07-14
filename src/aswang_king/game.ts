@@ -1625,6 +1625,8 @@ main.scene('level', (t, dt) => {
         bg_song[i] += (i == bg_song_fade_to ? 1 - bg_song[i] : -bg_song[i]) * dt / 1000;
         main.play(bg_songs[i], false, bg_song[i]);
     }
+    if (player.attack_cooldown === undefined) player.attack_cooldown = 0;
+    if (player.attack_cooldown > 0) player.attack_cooldown -= dt;
 
 
     // Developer Tools
@@ -1656,7 +1658,17 @@ main.scene('level', (t, dt) => {
         player.camera = 100;
     });
     main.on('j,J,gp_1', e => {
-        if (e.init && player.swinging < 0.1) player.swing = true;
+        if (e.init && player.swinging < 0.1) {
+            if (player.cur_weapon === 0) { // Sword
+                if (player.attack_cooldown === undefined) player.attack_cooldown = 0;
+                if (player.attack_cooldown <= 0) {
+                    player.swing = true;
+                    player.attack_cooldown = 450; // 450ms cooldown for sword
+                }
+            } else { // Asin / Shield
+                player.swing = true;
+            }
+        }
     });
     main.on('r,R,gp_3', e => {
         if (e.init) player.cur_weapon = (player.cur_weapon + 1) % player.weapons.length
