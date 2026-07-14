@@ -638,7 +638,7 @@ main.scene('main_menu', (t, dt) => {
                     if (current_player_name.length > 0) {
                         current_player_name = current_player_name.slice(0, -1);
                     }
-                } else if (key === 'Enter') {
+                } else if (key === 'Enter' || key === 'j' || key === 'J') {
                     if (current_player_name.trim().length > 0) {
                         let record = JSON.parse(localStorage.getItem('aswang_leaderboard_' + current_player_name) || '{"maxLevel": 1, "highScore": 0}');
                         player_record = record;
@@ -854,7 +854,7 @@ main.scene('into', (t, dt) => {
         v.play();
         v.addEventListener('ended', load_level);
     }
-    main.on('Enter', e => {
+    main.on('Enter,j,J,gp_1', e => {
         if (e.init) load_level();
     });
 });
@@ -981,7 +981,7 @@ main.scene('level', (t, dt) => {
 
         player.m[0] = 0;
 
-        main.on('Enter', e => {
+        main.on('Enter,j,J,gp_1', e => {
             if (e.init && dialogue_cooldown <= 0) {
                 dialogue_cooldown = 200;
                 dialogue_index++;
@@ -1261,7 +1261,7 @@ main.scene('level', (t, dt) => {
 
         main.btx.restore();
 
-        main.on('Enter', e => {
+        main.on('Enter,j,J,gp_1', e => {
             if (e.init) {
                 if (current_player_name) {
                     if (player_record && player_record.maxLevel < 3) {
@@ -1559,7 +1559,7 @@ main.scene('level', (t, dt) => {
     if (player.player_lives <= 0) {
         menu.over = true;
         main.add(menu);
-        main.on('Enter', e => {
+        main.on('Enter,j,J,gp_1', e => {
             if (e.init) {
                 player.highscore = algo.score(player);
                 menu.over = false;
