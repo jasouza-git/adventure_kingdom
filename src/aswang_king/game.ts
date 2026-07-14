@@ -1665,15 +1665,15 @@ main.scene('level', (t, dt) => {
         player.camera = 100;
     });
     main.on('j,J,gp_1', e => {
-        if (e.init && player.swinging < 0.1) {
+        if (e.init) {
             if (player.cur_weapon === 0) { // Sword
                 if (player.attack_cooldown === undefined) player.attack_cooldown = 0;
-                if (player.attack_cooldown <= 0) {
+                if (player.attack_cooldown <= 0 && player.swinging < 0.1) {
                     player.swing = true;
                     player.attack_cooldown = 450; // 450ms cooldown for sword
                 }
             } else { // Asin / Shield
-                player.swing = true;
+                if (player.swinging < 0.1) player.swing = true;
             }
         }
     });
@@ -1725,6 +1725,10 @@ main.scene('level', (t, dt) => {
         else if (main.on('a,A,ArrowLeft,gp_w')) player.m[0] = -8 * player.speed_rate;
         else player.m[0] = 0;
     }
+
+    // Decrement attack cooldown
+    if (player.attack_cooldown === undefined) player.attack_cooldown = 0;
+    if (player.attack_cooldown > 0) player.attack_cooldown -= dt;
 
     // === Level Title Overlay ===
     let active_lv = 1;

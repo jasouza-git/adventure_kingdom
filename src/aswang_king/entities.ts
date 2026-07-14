@@ -213,13 +213,20 @@ let entities:entities_type = {
                     // Sword attack
                     if (s > 0) d.hitbox.push(...offsetRectWithFright(d.hitbox, [0, d.hitbox[3], 0, weap.attack_range[0], weap.attack_range[1]], d.fright));
                 } else if (d.cur_weapon == 1) {
-                    // Asin attack effect
+                    // Asin attack effect: use a progressive sweep hitbox covering full range
                     if (d.swing) {
-                        let hb = offsetRectWithFright(d.lockedHitbox, [0 , (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8, 0, 16, 32], d.lockedFright);
-                        d.hitbox.push(...hb);
+                        // Visual tip at current swept position
+                        let tip = offsetRectWithFright(d.lockedHitbox, [0, (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8, 0, 16, 32], d.lockedFright);
                         let vr = Math.min(Math.round(v), 2);
                         let ps = [96, 132, 175];
-                        o.sprites('TakeoutSalt.png', [0, 0], hb.slice(1, 3).concat([ps[vr], 0, 16, 32]));
+                        o.sprites('TakeoutSalt.png', [0, 0], tip.slice(1, 3).concat([ps[vr], 0, 16, 32]));
+
+                        // Damage hitbox: covers from player outward to current tip (so nearby enemies are never missed)
+                        let swept = Math.max(0, (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8);
+                        let hb_w = Math.round(swept) + 16;
+                        let hb_x = d.lockedFright ? d.lockedHitbox[1] : d.lockedHitbox[1] + d.lockedHitbox[3] - hb_w;
+                        let hb = [0, hb_x, d.lockedHitbox[2] - 3, hb_w, 32];
+                        d.hitbox.push(...hb);
                     }
                 }
                 
@@ -890,7 +897,9 @@ let entities:entities_type = {
                         }
                     }
                 }
-                if (d.hitbox.length > 0 && algo.rectint(d.hitbox, d.follow.hitbox) && o.player.cur_body_t <= 0) {
+                // Refresh body hitbox after physics for accurate weapon collision
+                let body_hbox = [0, d.x, d.y + 8, 32, 24];
+                if (d.hitbox.length > 0 && algo.rectint(body_hbox, d.follow.hitbox) && o.player.cur_body_t <= 0) {
                     if (d.contact_cooldown === undefined) d.contact_cooldown = 0;
                     if (d.contact_cooldown <= 0) {
                         if (d.follow.damage) d.follow.damage(1, d.x);
@@ -907,6 +916,29 @@ let entities:entities_type = {
                     if (Math.abs(dy) < 20 && Math.abs(dx) < 24) {
                         if (dx > 0 && d.m[0] > 0) d.m[0] = 0;
                         else if (dx < 0 && d.m[0] < 0) d.m[0] = 0;
+                    }
+                }
+
+                // Weapon hit check: use updated positions after physics
+                if (o.player.hitbox.slice(5).length == 5) {
+                    if (algo.rectint(body_hbox, o.player.hitbox.slice(5))) {
+                        if (d.hit_cooldown <= 0) {
+                            d.hit_cooldown = 400;
+                            if (d.lives === undefined) d.lives = [2, 2];
+                            d.lives[0] -= 1;
+                            o.play('sfx/arrow hit.mp3', true);
+                            d.bind.push(o.entity('damage_indicator', {x: d.x + 16, y: d.y}));
+                            if (d.lives[0] <= 0) {
+                                d.dead = 0;
+                                o.player.points += 50;
+                                o.player.total_essence += 1;
+                                return;
+                            } else {
+                                d.knockback_timer = 200;
+                                d.knockback_vel_x = (o.player.x < d.x) ? 6 : -6;
+                                d.knockback_vel_y = (o.player.y < d.y) ? 4 : -4;
+                            }
+                        }
                     }
                 }
             }
