@@ -33,7 +33,9 @@ let required_files:string[] = [
     // Aswangs
     'White Ladyv3.png', 'Tikbalangv2.png', 'Tiyanakv2.png', 'Mananangalv3.png',
     // Weapon icons
-    'Asin pouch.png', 'Sword.png', 'CrossIcon.png', 'Protection2.png',
+    'Asin Pouch.png', 'Sword.png', 'CrossIcon.png', 'Protection2.png',
+    // New assets
+    'Animated Essence Spritesheet.png', 'Food Icon Chicken and Rice.png',
     // SFX
     'sfx/Dying.mp3', 'sfx/arrow hit.mp3', 'sfx/gameover.mp3', 'sfx/arrow shoot.mp3', 'sfx/sword attack 1.mp3', 'sfx/sword attack 2.mp3',
     'sfx/pressure plate activated.mp3', 'sfx/blab_drop.mp3', 'sfx/asin throw (temporary) .mp3', 'sfx/Picked Up Something Good.mp3',
@@ -80,7 +82,7 @@ let entities:entities_type = {
             bind: [],
             weapons: [      // all weapons the pinoy has. sword, asin and cross protection
                 {name: "sword", durability: 1000000, attack_range: [20, 29], asset_name: 'Sword.png',},     // no limited durability, but small range attack
-                {name: "asin", durability: 20, attack_range: [168, 29], asset_name: 'Asin pouch.png'},      // limited durability, but large range attack
+                {name: "asin", durability: 20, attack_range: [168, 29], asset_name: 'Asin Pouch.png'},      // limited durability, but large range attack
                 {name: "cross", durability: 5, attack_range: [0, 0], asset_name: 'CrossIcon.png'},          // limited durability, used to block damage and poison, no damange for aswang.
             ],
         },
@@ -730,7 +732,7 @@ let entities:entities_type = {
                 let textW = o.btx.measureText(essStr).width;
                 let iconX = o.w - 2 - textW - 10;
                 o.btx.filter = 'brightness(1.5)';
-                o.sprites('Aswang Essencecorrected.png', [iconX, 14], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8, 0, 0, 0, 0, 0, 0]);
+                o.sprites('Animated Essence Spritesheet.png', [iconX, 14], [0, 0, Math.floor(t / 120 % 5) * 8, 0, 8, 8, 0, 0, 0, 0, 0, 0]);
                 o.btx.filter = 'none';
                 // Plus points
                 if (o.player.points != d.points) {
@@ -776,7 +778,12 @@ let entities:entities_type = {
             speed: 5,
             target: false,
             fright: true,
-            nofollow: false
+            nofollow: false,
+            lives: [2, 2],
+            hit_cooldown: 0,
+            knockback_timer: 0,
+            knockback_vel_x: 0,
+            knockback_vel_y: 0
         },
         update: (d, o, t, dt) => {
             if (d.removed) return;
@@ -793,20 +800,30 @@ let entities:entities_type = {
                     return;
                 }
             } else {
+                if (d.hit_cooldown === undefined) d.hit_cooldown = 0;
+                if (d.hit_cooldown > 0) d.hit_cooldown -= dt;
+
+                if (d.knockback_timer === undefined) d.knockback_timer = 0;
+                if (d.knockback_timer > 0) d.knockback_timer -= dt;
+
+                // Buffed detection box: wider and taller range
                 d.hitbox = [0,
                     d.x, d.y+8,
                     32, 24,
                             0,
-                    d.x+(d.fright?0:-128), d.y-16,
-                    d.nofollow ? 0 : 128+32, 72
+                    d.x+(d.fright?0:-256), d.y-48,
+                    d.nofollow ? 0 : 256+32, 120
                 ];
                 algo.physics(dt, d, o);
-                d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+                if (d.knockback_timer <= 0) {
+                    d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+                }
 
                 let center = false;
                 // AI
-                // Should follow path?
-                if (!d.target && d.p != undefined) {
+                if (d.knockback_timer > 0) {
+                    d.m = [d.knockback_vel_x, d.knockback_vel_y];
+                } else if (!d.target && d.p != undefined) {
                     // Find vector to current point (d.pn) given magnitude and angle
                     let v = d.pn == 0 ? [Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.atan2(d.y-d.p[1], d.p[0]-d.x)]
                                     : [Math.hypot(d.p[2]-d.x, d.p[3]-d.y), Math.atan2(d.y-d.p[3], d.p[2]-d.x)];
@@ -824,22 +841,38 @@ let entities:entities_type = {
                     // Get hypotenus and angle to player
                     let h = Math.hypot(o.player.x - d.x, o.player.y - d.y);
                     let a = Math.atan2(d.y-o.player.y, o.player.x-d.x);
-                    // Chase player if far enough else stay
-                    if (h > 200) d.target = false;
+                    // Chase player if far enough else stay (Buffed chase check up to 350)
+                    if (h > 350) d.target = false;
                     else if (h > 20) d.m = [Math.cos(a)*d.speed, Math.sin(a)*d.speed];
                     else d.m = [0, 0];
                 }
                 let v = Math.min(Math.hypot(d.p[0]-d.x, d.p[1]-d.y), Math.hypot(d.p[2]-d.x, d.p[3]-d.y));
-                if (v > 100 && (Math.min(d.p[0],d.p[2]) > d.x || Math.max(d.p[0],d.p[2]) < d.x)) {
+                if (v > 200 && (Math.min(d.p[0],d.p[2]) > d.x || Math.max(d.p[0],d.p[2]) < d.x)) {
                     d.target = false;
                     d.nofollow = true;
                 } else if(v < 50) d.nofollow = false;
-                //console.log(d.hitbox.slice(0,5),o.player.hitbox.slice(5));
+                
+                // Weapon damage & knockback logic
                 if (o.player.hitbox.slice(5).length == 5) {
-                    //printLog(d.hitbox.slice(0, 5), o.player.hitbox.slice(5), 553);
-                    if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) d.dead = 0;
+                    if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
+                        if (d.hit_cooldown <= 0) {
+                            d.hit_cooldown = 400;
+                            if (d.lives === undefined) d.lives = [2, 2];
+                            d.lives[0] -= 1;
+                            o.play('sfx/arrow hit.mp3', true);
+                            if (d.lives[0] <= 0) {
+                                d.dead = 0;
+                                o.player.points += 50;
+                                o.player.total_essence += 1;
+                                return;
+                            } else {
+                                d.knockback_timer = 200;
+                                d.knockback_vel_x = (o.player.x < d.x) ? 6 : -6;
+                                d.knockback_vel_y = (o.player.y < d.y) ? 4 : -4;
+                            }
+                        }
+                    }
                 }
-                //printLog(d.hitbox, d.follow.hitbox, 556);
                 if (algo.rectint(d.hitbox,d.follow.hitbox)) {
                     if (d.follow.damage) d.follow.damage(1);
                 }
@@ -855,7 +888,14 @@ let entities:entities_type = {
             ] ;
             let tng = Math.floor(d.t*4);
             if (tng > 0) c.push([d.m[0] < 0 ? -7 : 7, 8, Math.floor(t/100)%3*32, 32*3, 32, 32, 1-d.fright, 0, 0]);
-            o.sprites('Mananangalv3.png', [d.x, d.y+Math.sin(t/200)*0.5*dr], ...c);
+            
+            if (d.hit_cooldown > 0 && Math.floor(t / 100) % 2 === 0) {
+                o.btx.filter = 'brightness(1.8)';
+                o.sprites('Mananangalv3.png', [d.x, d.y+Math.sin(t/200)*0.5*dr], ...c);
+                o.btx.filter = 'none';
+            } else {
+                o.sprites('Mananangalv3.png', [d.x, d.y+Math.sin(t/200)*0.5*dr], ...c);
+            }
         }
     },
     shooter: {
@@ -951,33 +991,75 @@ let entities:entities_type = {
         }
     },
     atropa_belladonna: {
-        default: {x: 0, y: 0},
+        default: {x: 0, y: 0, lives: [2, 2], hit_cooldown: 0, dead: -1, removed: false},
         update: (d, o, t, dt) => {
+            if (d.removed) return;
+            if (d.hit_cooldown === undefined) d.hit_cooldown = 0;
+            if (d.hit_cooldown > 0) d.hit_cooldown -= dt;
+
             d.hitbox = [0,
                 d.x, d.y,
                 22, 22
-            ]
-            //printLog(d.hitbox, o.player.hitbox, 668);
-            // console.log(t, dt);
-            // console.log(o.player, o.player.hitbox)
+            ];
+
+            // Check if player weapon hits the plant
+            if (o.player.hitbox.slice(5).length == 5 && d.hit_cooldown <= 0) {
+                if (algo.rectint(d.hitbox, o.player.hitbox.slice(5))) {
+                    d.hit_cooldown = 400;
+                    d.lives[0] -= 1;
+                    o.play('sfx/arrow hit.mp3', true);
+                    if (d.lives[0] <= 0) {
+                        d.removed = true;
+                        o.player.points += 10;
+                        o.player.total_essence += 1;
+                        return;
+                    }
+                }
+            }
+
             if (algo.rectint(d.hitbox, o.player.hitbox)) {
                 o.player.poisoned = 0;
                 o.player.poison_duration = 5000;
                 o.player.in_area_time += dt;
             }
-            o.sprites('Atropa Belladona and Lagablab.png', [d.x, d.y], [0, 0, 4, 8, 25, 24])
+
+            if (d.hit_cooldown > 0 && Math.floor(t / 100) % 2 === 0) {
+                o.btx.filter = 'brightness(1.8)';
+                o.sprites('Atropa Belladona and Lagablab.png', [d.x, d.y], [0, 0, 4, 8, 25, 24]);
+                o.btx.filter = 'none';
+            } else {
+                o.sprites('Atropa Belladona and Lagablab.png', [d.x, d.y], [0, 0, 4, 8, 25, 24]);
+            }
         }
     },
     lagablab: {
-        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 3000, n: 3, bind:[], s:10, min_a: 0, max_a: Math.PI * 0.5},
+        default: {x: 0, y: 0, cooldowntmp: 0, cooldown: 3000, n: 3, bind:[], s:10, min_a: 0, max_a: Math.PI * 0.5, lives: [3, 3], hit_cooldown: 0, dead: -1, removed: false},
         update(d, o, t, dt) {
+            if (d.removed) return;
+            if (d.hit_cooldown === undefined) d.hit_cooldown = 0;
+            if (d.hit_cooldown > 0) d.hit_cooldown -= dt;
+
+            let plant_hitbox = [0, d.x, d.y, 32, 16];
+
+            // Check if player weapon hits the plant
+            if (o.player.hitbox.slice(5).length == 5 && d.hit_cooldown <= 0) {
+                if (algo.rectint(plant_hitbox, o.player.hitbox.slice(5))) {
+                    d.hit_cooldown = 400;
+                    d.lives[0] -= 1;
+                    o.play('sfx/arrow hit.mp3', true);
+                    if (d.lives[0] <= 0) {
+                        d.removed = true;
+                        o.player.points += 20;
+                        o.player.total_essence += 1;
+                        return;
+                    }
+                }
+            }
+
             let ofs = 0;
             d.cooldowntmp -= dt;
             if (d.colldowntmp < 1000) ofs = 2;
             if (d.cooldowntmp <= 0) {
-                // if (d.bind.length > d.n * 3) {
-                //     d.bind = d.bind.slice(d.bind.length - d.n * 2, d.bind.length - 1);
-                // }
                 d.bind = [];
                 for (let i = 0; i < d.n; i ++) {
                     let a: number = d.min_a + Math.random() * (d.max_a - d.min_a);
@@ -985,12 +1067,23 @@ let entities:entities_type = {
                 }
                 d.cooldowntmp = d.cooldown;
             }
-            o.sprites('Atropa Belladona and Lagablab.png', [d.x, d.y], [0, 0, 32, 16, 32, 16])
+
+            if (d.hit_cooldown > 0 && Math.floor(t / 100) % 2 === 0) {
+                o.btx.filter = 'brightness(1.8)';
+                o.sprites('Atropa Belladona and Lagablab.png', [d.x, d.y], [0, 0, 32, 16, 32, 16]);
+                o.btx.filter = 'none';
+            } else {
+                o.sprites('Atropa Belladona and Lagablab.png', [d.x, d.y], [0, 0, 32, 16, 32, 16]);
+            }
         },
     },
     blab: {
-        default: {x:0, y:0, m:[0,0], nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 3000, bind:[], area_w: 2},
+        default: {x:0, y:0, m:[0,0], nocollide:[], ground:-1, hitbox:[], parent:undefined, duration: 3000, bind:[], area_w: 2, removed: false},
         update: (d, o, t, dt) => {
+            if (d.removed) {
+                d.hitbox = [];
+                return;
+            }
             if (d.duration <= 0) {
                 d.hitbox = [];
                 return;
@@ -999,6 +1092,18 @@ let entities:entities_type = {
                 d.x, d.y,
                 9, 9
             ];
+
+            // Check if player weapon hits the projectile
+            if (o.player.hitbox.slice(5).length == 5) {
+                if (algo.rectint(d.hitbox, o.player.hitbox.slice(5))) {
+                    d.duration = -1;
+                    d.removed = true;
+                    d.hitbox = [];
+                    o.play('sfx/arrow hit.mp3', true, 0.5);
+                    return;
+                }
+            }
+
             algo.physics(dt, d, o);
             if (Math.hypot(d.m[0],d.m[1]) > 1 && algo.rectint(d.hitbox, o.player.hitbox) && o.player.dead == -1) {
                 o.player.poisoned = 0;
@@ -1066,7 +1171,7 @@ let entities:entities_type = {
                 o.play('sfx/Picked Up Something Good.mp3', true);
             }
             o.btx.filter = 'brightness(1.5)';
-            o.sprites('Aswang Essencecorrected.png', [d.x, d.y], [0, 0, Math.floor(t / 500 % 2) * 8, 0, 8, 8]);
+            o.sprites('Animated Essence Spritesheet.png', [d.x, d.y], [0, 0, Math.floor(t / 120 % 5) * 8, 0, 8, 8]);
             o.btx.filter = 'none';
         }
     },
@@ -1115,7 +1220,7 @@ let entities:entities_type = {
     //     }
     // },
     white_lady: {
-        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 4, dead: -1, removed: false},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 4, dead: -1, removed: false, lives: [2, 2], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0},
         update: (d, o, t, dt) => {
             if (d.removed) return;
             let hitboxSize = [21, 27];
@@ -1131,7 +1236,7 @@ let entities:entities_type = {
         }
     },
     tikbalang: {
-        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 6, dead: -1, removed: false},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 6, dead: -1, removed: false, lives: [3, 3], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0},
         update: (d, o, t, dt) => {
             if (d.removed) return;
             let hitboxSize = [17, 32];
@@ -1147,7 +1252,7 @@ let entities:entities_type = {
         }
     },
     tiyanak: {
-        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 10, dead: -1, removed: false},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 10, dead: -1, removed: false, lives: [1, 1], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0},
         update: (d, o, t, dt) => {
             if (d.removed) return;
             let hitboxSize = [10, 14];
@@ -1759,6 +1864,13 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
         if (d.timer <= 0) d.removed = true;
         return;
     } else {
+        // Hit cooldown and knockback timers
+        if (d.hit_cooldown === undefined) d.hit_cooldown = 0;
+        if (d.hit_cooldown > 0) d.hit_cooldown -= dt;
+
+        if (d.knockback_timer === undefined) d.knockback_timer = 0;
+        if (d.knockback_timer > 0) d.knockback_timer -= dt;
+
         // Hitbox
         d.timer = dead_time;
         d.hitbox = [ 15,
@@ -1766,7 +1878,9 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             hitboxSize[0], hitboxSize[1],
         ];
         // Follow AI
-        if (d.follow != undefined && d.follow.dead == -1) {
+        if (d.knockback_timer > 0) {
+            d.m[0] = d.knockback_vel_x;
+        } else if (d.follow != undefined && d.follow.dead == -1) {
             let dist = Math.hypot(d.x - d.follow.x, d.y - d.follow.y);
             printLog(d.actionRange, d.follow.hitbox, 833);
             if (!algo.rectint(d.actionRange, d.follow.hitbox)) d.follow = undefined;
@@ -1789,7 +1903,9 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             else if (d.x >= d.p[2]) d.m[0] = -d.s/2;
         }
         // Movement
-        d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+        if (d.knockback_timer <= 0) {
+            d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
+        }
         d.detectBox = [
             0,
             d.fright ? d.x : d.x - (detectSize[0] - d.hitbox[3]),d.y - (detectSize[1] - d.hitbox[4]), 
@@ -1807,10 +1923,22 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
         if (o.player.hitbox.slice(5).length == 5) {
             printLog(d.hitbox.slice(0,5),o.player.hitbox.slice(5), 861);
             if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
-                d.dead = 0;
-                o.player.points += 50;
-                o.player.total_essence += 1;
-                return;
+                if (d.hit_cooldown <= 0) {
+                    d.hit_cooldown = 400;
+                    if (d.lives === undefined) d.lives = [2, 2];
+                    d.lives[0] -= 1;
+                    o.play('sfx/arrow hit.mp3', true);
+                    if (d.lives[0] <= 0) {
+                        d.dead = 0;
+                        o.player.points += 50;
+                        o.player.total_essence += 1;
+                        return;
+                    } else {
+                        d.knockback_timer = 200;
+                        d.knockback_vel_x = (o.player.x < d.x) ? 6 : -6;
+                        d.m[1] = 10;
+                    }
+                }
             }
         }
         algo.physics(dt, d, o);
@@ -1820,7 +1948,13 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
         }
         // Render
         let v = (Math.abs(d.m[0])>0.15?1+Math.floor(t/100)%(origins.length - 1):0);
-        o.sprites(asset_name, [d.x, d.y], [0, 0, origins[v][0], origins[v][1], sizes[v][0], sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
+        if (d.hit_cooldown > 0 && Math.floor(t / 100) % 2 === 0) {
+            o.btx.filter = 'brightness(1.8)';
+            o.sprites(asset_name, [d.x, d.y], [0, 0, origins[v][0], origins[v][1], sizes[v][0], sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
+            o.btx.filter = 'none';
+        } else {
+            o.sprites(asset_name, [d.x, d.y], [0, 0, origins[v][0], origins[v][1], sizes[v][0], sizes[v][1], 1- (fright_reverse ? !d.fright : d.fright)]);
+        }
     }
 }
 

@@ -1071,8 +1071,8 @@ main.scene('level', (t, dt) => {
             // Draw Item Icon inside box
             let iconAsset = '';
             if (shop_sel === 0) iconAsset = 'CrossIcon.png';
-            else if (shop_sel === 1) iconAsset = 'Asin pouch.png';
-            else if (shop_sel === 2) iconAsset = 'Healing Plant Icon.png';
+            else if (shop_sel === 1) iconAsset = 'Asin Pouch.png';
+            else if (shop_sel === 2) iconAsset = 'Food Icon Chicken and Rice.png';
 
             if (iconAsset) {
                 main.sprites(iconAsset, [boxX + 8, boxY + 8], [0, 0, 0, 0, 16, 16]);
