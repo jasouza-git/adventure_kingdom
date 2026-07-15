@@ -71,15 +71,19 @@ function startLevel(level_num: number, use_checkpoint: boolean = false) {
         if (level_num === 1) {
             player.x = 30;
             player.y = 195;
+            player.farthest_checkpoint_x = -1;
         } else if (level_num === 2) {
             player.x = 8032;
             player.y = 160;
+            player.farthest_checkpoint_x = 8032;
         } else if (level_num === 3) {
             player.x = 16048;
             player.y = 160;
+            player.farthest_checkpoint_x = 16048;
         } else if (level_num === 4) {
             player.x = 20064;
             player.y = 112;
+            player.farthest_checkpoint_x = 20064;
         }
     }
     player.max_x = player.x;
