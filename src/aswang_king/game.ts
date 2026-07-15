@@ -1807,44 +1807,73 @@ mobileStyle.innerHTML = `
     }
     .mobile-btn {
         position: absolute;
-        width: 46px;
-        height: 46px;
-        background: rgba(26, 10, 10, 0.4);
+        width: 48px;
+        height: 48px;
+        background-image: url('asset/Controls.png');
+        background-size: 720px 720px;
+        background-repeat: no-repeat;
+        image-rendering: pixelated;
+        background-color: rgba(26, 10, 10, 0.45);
         border: 2px solid #8B6914;
         border-radius: 50%;
+        pointer-events: auto;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.6), inset 0 0 4px rgba(212, 168, 48, 0.2);
+        transition: background-color 0.1s, border-color 0.1s, transform 0.05s;
+        touch-action: none;
+    }
+    .mobile-btn:active {
+        background-color: rgba(212, 168, 48, 0.7) !important;
+        border-color: #FFD700;
+        box-shadow: 0 0 12px #FFD700, inset 0 0 4px rgba(255, 255, 255, 0.5);
+        transform: scale(0.9);
+    }
+    
+    /* D-PAD (Left Side) */
+    #btn-left { left: 15px; bottom: 55px; background-position: -96px -48px; }
+    #btn-right { left: 85px; bottom: 55px; background-position: 0px -48px; }
+    #btn-up { left: 50px; bottom: 95px; background-position: -48px -48px; }
+    #btn-down { left: 50px; bottom: 15px; background-position: -144px -48px; }
+    
+    /* Actions (Right Side) */
+    #btn-jump { right: 15px; bottom: 55px; background-position: -96px -144px; border-color: #FFD700; }
+    #btn-attack { right: 75px; bottom: 55px; background-position: -192px -144px; }
+    #btn-swap { right: 75px; bottom: 110px; background-position: -240px -144px; }
+    #btn-shield { right: 20px; bottom: 115px; background-position: -144px -144px; }
+    
+    /* Utilities (Top Side) - Custom Text Buttons */
+    #btn-pause {
+        right: 15px;
+        top: 15px;
+        width: 56px;
+        height: 26px;
+        border-radius: 4px;
+        background-image: none;
+        background-color: rgba(0,0,0,0.6);
         color: #FFFFFF;
         font-family: 'arcade', monospace;
         font-size: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
-        pointer-events: auto;
-        box-shadow: 0 0 8px rgba(0,0,0,0.5), inset 0 0 4px rgba(212, 168, 48, 0.2);
-        transition: background 0.1s, border-color 0.1s, transform 0.05s;
-        touch-action: none;
+        border: 1.5px solid #8B6914;
     }
-    .mobile-btn:active {
-        background: rgba(212, 168, 48, 0.7);
-        border-color: #FFD700;
-        box-shadow: 0 0 12px #FFD700, inset 0 0 4px rgba(255, 255, 255, 0.5);
-        transform: scale(0.95);
+    #btn-enter {
+        left: 50%;
+        transform: translateX(-50%);
+        top: 15px;
+        width: 70px;
+        height: 26px;
+        border-radius: 4px;
+        background-image: none;
+        background-color: rgba(0,0,0,0.6);
+        color: #FFFFFF;
+        font-family: 'arcade', monospace;
+        font-size: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid #8B6914;
     }
-    
-    /* D-PAD (Left Side) */
-    #btn-left { left: 15px; bottom: 55px; }
-    #btn-right { left: 85px; bottom: 55px; }
-    #btn-up { left: 50px; bottom: 95px; }
-    #btn-down { left: 50px; bottom: 15px; }
-    
-    /* Actions (Right Side) */
-    #btn-jump { right: 15px; bottom: 55px; width: 50px; height: 50px; font-size: 10px; font-weight: bold; border-color: #FFD700; }
-    #btn-attack { right: 75px; bottom: 55px; }
-    #btn-swap { right: 75px; bottom: 110px; width: 40px; height: 40px; }
-    #btn-shield { right: 20px; bottom: 115px; width: 40px; height: 40px; }
-    
-    /* Utilities (Top Side) */
-    #btn-pause { right: 15px; top: 15px; width: 56px; height: 26px; border-radius: 4px; font-size: 8px; }
-    #btn-enter { left: 50%; transform: translateX(-50%); top: 15px; width: 70px; height: 26px; border-radius: 4px; font-size: 8px; }
 `;
 document.head.appendChild(mobileStyle);
 
@@ -1852,16 +1881,16 @@ const mobileContainer = document.createElement('div');
 mobileContainer.id = 'mobile-controls-container';
 mobileContainer.innerHTML = `
     <!-- D-PAD -->
-    <div id="btn-up" class="mobile-btn">UP</div>
-    <div id="btn-left" class="mobile-btn">LEFT</div>
-    <div id="btn-right" class="mobile-btn">RIGHT</div>
-    <div id="btn-down" class="mobile-btn">DOWN</div>
+    <div id="btn-up" class="mobile-btn"></div>
+    <div id="btn-left" class="mobile-btn"></div>
+    <div id="btn-right" class="mobile-btn"></div>
+    <div id="btn-down" class="mobile-btn"></div>
 
     <!-- Action Buttons -->
-    <div id="btn-jump" class="mobile-btn">JUMP</div>
-    <div id="btn-attack" class="mobile-btn">ATK</div>
-    <div id="btn-swap" class="mobile-btn">SWAP</div>
-    <div id="btn-shield" class="mobile-btn">SHLD</div>
+    <div id="btn-jump" class="mobile-btn"></div>
+    <div id="btn-attack" class="mobile-btn"></div>
+    <div id="btn-swap" class="mobile-btn"></div>
+    <div id="btn-shield" class="mobile-btn"></div>
 
     <!-- Utility Buttons -->
     <div id="btn-pause" class="mobile-btn">PAUSE</div>
