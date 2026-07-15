@@ -1761,23 +1761,33 @@ main.scene('level', (t, dt) => {
 });
 main.render();
 
-main.filter = d => {
-    var w = main.w * main.z;
-    var h = main.h * main.z;
-    var t = ((new Date()).getTime() - main.time_init.getTime()) * 10;
-    for (var y = 0; y < h; y++) {
-        for (var x = 0; x < w; x++) {
-            var p = (x + y * w) * 4;
-            var o = 255 - 255 * Math.max(Math.hypot(x - w / 2, y - h / 2) - 7 * w / 20, 0) / Math.min(w, h);
-            if (y % 2 == 0) o *= (w * y / 2 + x - t) * 0.000001 % 0.02 + 0.98;
-            if (off != 0) {
-                d.data[p + 1] = d.data[p + 1 + off * 4];
-                d.data[p + 3] = d.data[p + 3 + off * 4];
+const isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0 || /Mobi|Android|iPhone/i.test(navigator.userAgent));
+
+if (isMobile) {
+    main.filter = undefined;
+    // Add a GPU-accelerated CSS vignette overlay instead of heavy CPU loops
+    const vignette = document.createElement('div');
+    vignette.setAttribute('style', 'position:fixed;left:0;top:0;width:100%;height:100%;z-index:2;pointer-events:none;background:radial-gradient(circle, transparent 50%, rgba(0,0,0,0.55) 100%);');
+    document.body.appendChild(vignette);
+} else {
+    main.filter = d => {
+        var w = main.w * main.z;
+        var h = main.h * main.z;
+        var t = ((new Date()).getTime() - main.time_init.getTime()) * 10;
+        for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+                var p = (x + y * w) * 4;
+                var o = 255 - 255 * Math.max(Math.hypot(x - w / 2, y - h / 2) - 7 * w / 20, 0) / Math.min(w, h);
+                if (y % 2 == 0) o *= (w * y / 2 + x - t) * 0.000001 % 0.02 + 0.98;
+                if (off != 0) {
+                    d.data[p + 1] = d.data[p + 1 + off * 4];
+                    d.data[p + 3] = d.data[p + 3 + off * 4];
+                }
+                d.data[p + 3] = Math.floor(o);
             }
-            d.data[p + 3] = Math.floor(o);
         }
+        return d;
     }
-    return d;
 }
 
 // === Mobile Controls Overlay ===
