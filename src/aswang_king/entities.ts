@@ -109,8 +109,9 @@ let entities:entities_type = {
                         d.cur_body_t = d.body_t; // Only set invincibility if still alive
                         if (sourceX !== undefined) {
                             d.knockback_timer = 200;
-                            d.knockback_vel_x = (sourceX < d.x) ? 6 : -6;
+                            d.knockback_vel_x = (sourceX < d.x) ? 14 : -14;
                             d.m[1] = 8;
+                            d.climb = -1;
                         }
                     }
                 };
@@ -156,6 +157,11 @@ let entities:entities_type = {
                 // Movement
                 if (!d.canclimb) d.climb = -1;
                 if (d.climb == -1) {
+                    if (d.knockback_timer === undefined) d.knockback_timer = 0;
+                    if (d.knockback_timer > 0) {
+                        d.knockback_timer -= dt;
+                        d.m[0] = d.knockback_vel_x;
+                    }
                     d.fright = d.m[0] > 0 ? true : d.m[0] < 0 ? false : d.fright;
                     let cols = algo.physics(dt, d, o);
                     if (d.crouch && !d.jumping) cols.forEach(c => {
@@ -203,30 +209,35 @@ let entities:entities_type = {
                 let s = d.swing ? Math.round(d.swinging*2.4) : 0;
                 let v = d.swing ? d.swinging * 3.4 : 0;
 
+                // Auto-switch away from empty weapons (skip weapon actions but keep rendering)
                 if (weap.durability <= 0) {
                     if (d.cur_weapon == 2) d.protection = false;
+                    d.swing = false;
+                    d.swinging = 0;
                     d.cur_weapon = (d.cur_weapon + 1) % d.weapons.length;
-                    return;
+                    weap = d.weapons[d.cur_weapon];
                 }
 
-                if (d.cur_weapon == 0) {
-                    // Sword attack
-                    if (s > 0) d.hitbox.push(...offsetRectWithFright(d.hitbox, [0, d.hitbox[3], 0, weap.attack_range[0], weap.attack_range[1]], d.fright));
-                } else if (d.cur_weapon == 1) {
-                    // Asin attack effect: use a progressive sweep hitbox covering full range
-                    if (d.swing) {
-                        // Visual tip at current swept position
-                        let tip = offsetRectWithFright(d.lockedHitbox, [0, (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8, 0, 16, 32], d.lockedFright);
-                        let vr = Math.min(Math.round(v), 2);
-                        let ps = [96, 132, 175];
-                        o.sprites('TakeoutSalt.png', [0, 0], tip.slice(1, 3).concat([ps[vr], 0, 16, 32]));
+                if (weap.durability > 0) {
+                    if (d.cur_weapon == 0) {
+                        // Sword attack
+                        if (s > 0) d.hitbox.push(...offsetRectWithFright(d.hitbox, [0, d.hitbox[3], 0, weap.attack_range[0], weap.attack_range[1]], d.fright));
+                    } else if (d.cur_weapon == 1) {
+                        // Asin attack effect: use a progressive sweep hitbox covering full range
+                        if (d.swing) {
+                            // Visual tip at current swept position
+                            let tip = offsetRectWithFright(d.lockedHitbox, [0, (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8, 0, 16, 32], d.lockedFright);
+                            let vr = Math.min(Math.round(v), 2);
+                            let ps = [96, 132, 175];
+                            o.sprites('TakeoutSalt.png', [0, 0], tip.slice(1, 3).concat([ps[vr], 0, 16, 32]));
 
-                        // Damage hitbox: covers from player outward to current tip (so nearby enemies are never missed)
-                        let swept = Math.max(0, (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8);
-                        let hb_w = Math.round(swept) + 16;
-                        let hb_x = d.lockedFright ? d.lockedHitbox[1] : d.lockedHitbox[1] + d.lockedHitbox[3] - hb_w;
-                        let hb = [0, hb_x, d.lockedHitbox[2] - 3, hb_w, 32];
-                        d.hitbox.push(...hb);
+                            // Damage hitbox: covers from player outward to current tip (so nearby enemies are never missed)
+                            let swept = Math.max(0, (weap.attack_range[0] - d.lockedHitbox[3]) * (v - 0.6) / 2.8);
+                            let hb_w = Math.round(swept) + 16;
+                            let hb_x = d.lockedFright ? d.lockedHitbox[1] : d.lockedHitbox[1] + d.lockedHitbox[3] - hb_w;
+                            let hb = [0, hb_x, d.lockedHitbox[2] - 3, hb_w, 32];
+                            d.hitbox.push(...hb);
+                        }
                     }
                 }
                 
@@ -797,7 +808,8 @@ let entities:entities_type = {
             hit_cooldown: 0,
             knockback_timer: 0,
             knockback_vel_x: 0,
-            knockback_vel_y: 0
+            knockback_vel_y: 0,
+            bind: []
         },
         update: (d, o, t, dt) => {
             if (d.removed) return;
@@ -875,28 +887,7 @@ let entities:entities_type = {
                     d.nofollow = true;
                 } else if(v < 50) d.nofollow = false;
                 
-                // Weapon damage & knockback logic
-                if (o.player.hitbox.slice(5).length == 5) {
-                    if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
-                        if (d.hit_cooldown <= 0) {
-                            d.hit_cooldown = 400;
-                            if (d.lives === undefined) d.lives = [2, 2];
-                            d.lives[0] -= 1;
-                            o.play('sfx/arrow hit.mp3', true);
-                            d.bind.push(o.entity('damage_indicator', {x: d.x + 16, y: d.y}));
-                            if (d.lives[0] <= 0) {
-                                d.dead = 0;
-                                o.player.points += 50;
-                                o.player.total_essence += 1;
-                                return;
-                            } else {
-                                d.knockback_timer = 200;
-                                d.knockback_vel_x = (o.player.x < d.x) ? 6 : -6;
-                                d.knockback_vel_y = (o.player.y < d.y) ? 4 : -4;
-                            }
-                        }
-                    }
-                }
+
                 // Refresh body hitbox after physics for accurate weapon collision
                 let body_hbox = [0, d.x, d.y + 8, 32, 24];
                 if (d.hitbox.length > 0 && algo.rectint(body_hbox, d.follow.hitbox) && o.player.cur_body_t <= 0) {
@@ -919,24 +910,21 @@ let entities:entities_type = {
                     }
                 }
 
-                // Weapon hit check: use updated positions after physics
+                // Weapon hit check: use updated body position after physics
                 if (o.player.hitbox.slice(5).length == 5) {
                     if (algo.rectint(body_hbox, o.player.hitbox.slice(5))) {
                         if (d.hit_cooldown <= 0) {
                             d.hit_cooldown = 400;
-                            if (d.lives === undefined) d.lives = [2, 2];
                             d.lives[0] -= 1;
                             o.play('sfx/arrow hit.mp3', true);
                             d.bind.push(o.entity('damage_indicator', {x: d.x + 16, y: d.y}));
                             if (d.lives[0] <= 0) {
                                 d.dead = 0;
-                                o.player.points += 50;
-                                o.player.total_essence += 1;
                                 return;
                             } else {
-                                d.knockback_timer = 200;
-                                d.knockback_vel_x = (o.player.x < d.x) ? 6 : -6;
-                                d.knockback_vel_y = (o.player.y < d.y) ? 4 : -4;
+                                 d.knockback_timer = 200;
+                                 d.knockback_vel_x = (o.player.x < d.x) ? 14 : -14;
+                                 d.knockback_vel_y = (o.player.y < d.y) ? 8 : -8;
                             }
                         }
                     }
@@ -1022,7 +1010,8 @@ let entities:entities_type = {
     },
     wire: {
         default: {x:0, y:0, h:10, triggered: false,
-            follow:undefined
+            follow:undefined,
+            bind: []
         },
         update: (d, o, t, dt) => {
             d.hitbox = [0,
@@ -1047,7 +1036,8 @@ let entities:entities_type = {
     pressure_plate: {
         default: {x:0, y:0, w:10,
             triggered: false, // Is currently triggered?
-            pltrigger: false  // Played trigger audio?
+            pltrigger: false,  // Played trigger audio?
+            bind: []
         },
         update: (d, o, t, dt) => {
             d.hitbox = [0,
@@ -1072,7 +1062,7 @@ let entities:entities_type = {
         }
     },
     atropa_belladonna: {
-        default: {x: 0, y: 0, lives: [2, 2], hit_cooldown: 0, dead: -1, removed: false},
+        default: {x: 0, y: 0, lives: [2, 2], hit_cooldown: 0, dead: -1, removed: false, bind: []},
         update: (d, o, t, dt) => {
             if (d.removed) return;
             if (d.hit_cooldown === undefined) d.hit_cooldown = 0;
@@ -1321,7 +1311,7 @@ let entities:entities_type = {
     //     }
     // },
     white_lady: {
-        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 4, dead: -1, removed: false, lives: [2, 2], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 4, dead: -1, removed: false, lives: [2, 2], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0, bind: []},
         update: (d, o, t, dt) => {
             if (d.removed) return;
             let hitboxSize = [21, 27];
@@ -1337,7 +1327,7 @@ let entities:entities_type = {
         }
     },
     tikbalang: {
-        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 6, dead: -1, removed: false, lives: [3, 3], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 6, dead: -1, removed: false, lives: [3, 3], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0, bind: []},
         update: (d, o, t, dt) => {
             if (d.removed) return;
             let hitboxSize = [17, 32];
@@ -1353,7 +1343,7 @@ let entities:entities_type = {
         }
     },
     tiyanak: {
-        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 10, dead: -1, removed: false, lives: [1, 1], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0},
+        default: {x:0, y:0, m:[0,0], animal:0, jumping: false, ground:-1, nocollide:['pinoy'], hitbox:[], s: 10, dead: -1, removed: false, lives: [1, 1], hit_cooldown: 0, knockback_timer: 0, knockback_vel_x: 0, bind: []},
         update: (d, o, t, dt) => {
             if (d.removed) return;
             let hitboxSize = [10, 14];
@@ -1414,6 +1404,7 @@ let entities:entities_type = {
             if (is_active) {
                 if (d.anim_t === -1) {
                     d.anim_t = 0; // Start raising animation
+                    o.play('sfx/pressure plate activated.mp3', true);
                 }
                 d.anim_t += dt;
                 
@@ -1431,6 +1422,38 @@ let entities:entities_type = {
             
             let sx = frame * 34;
             o.sprites('checkpoint.png', [d.x, d.y], [0, 35, sx, 0, 32, 32]);
+
+            // Draw better raising VFX (ripples and sparkles)
+            if (is_active) {
+                // Expanding base ring ripple
+                let progress = Math.min(1, d.anim_t / 800);
+                if (progress < 1) {
+                    o.btx.save();
+                    o.btx.strokeStyle = `rgba(255, 215, 0, ${1 - progress})`;
+                    o.btx.lineWidth = 1.5;
+                    o.btx.beginPath();
+                    o.btx.ellipse(d.x + 16 - o.camera[0], d.y + 30 - o.camera[1], 24 * progress, 6 * progress, 0, 0, 2 * Math.PI);
+                    o.btx.stroke();
+                    o.btx.restore();
+                }
+
+                // Rising golden sparkles
+                o.btx.save();
+                o.btx.fillStyle = '#FFD700';
+                for (let i = 0; i < 8; i++) {
+                    let particleSeed = (i * 73.5) % 1;
+                    let particleAge = ((t / 800) + particleSeed) % 1;
+                    
+                    let px = d.x + 8 + (particleSeed * 16) - o.camera[0];
+                    let py = d.y + 24 - (particleAge * 28) - o.camera[1];
+                    let pSize = Math.max(1, (1 - particleAge) * 3);
+                    let alpha = Math.sin(particleAge * Math.PI);
+                    
+                    o.btx.globalAlpha = alpha;
+                    o.btx.fillRect(px, py, pSize, pSize);
+                }
+                o.btx.restore();
+            }
         }
     },
     king: {
@@ -1647,6 +1670,10 @@ let entities:entities_type = {
                     }
                 }
                 
+                // Constrain the boss within its room boundaries
+                if (d.x < 20224) d.x = 20224;
+                if (d.x > 20854) d.x = 20854;
+                
                 d.fre = Math.sin(t / 200);
             } else {
                 d.hitbox = [];
@@ -1796,9 +1823,9 @@ let entities:entities_type = {
                 o.btx.font = '5px arcade';
                 o.btx.fillStyle = '#FFFFFF';
                 o.btx.textAlign = 'center';
-                o.btx.fillText('PRESS ENTER TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                o.btx.fillText('PRESS ENTER/J TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
                 
-                o.on('Enter', e => {
+                o.on('Enter,j,J,gp_1', e => {
                     if (e.init && active_dialogue === null && active_shop === null) {
                         active_dialogue = [
                             { speaker: "MYSTERIOUS PERSON", text: "Turn back! This forest is ruled by the horse-headed Tikbalang." },
@@ -1831,9 +1858,9 @@ let entities:entities_type = {
                 o.btx.font = '5px arcade';
                 o.btx.fillStyle = '#FFFFFF';
                 o.btx.textAlign = 'center';
-                o.btx.fillText('PRESS ENTER TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                o.btx.fillText('PRESS ENTER/J TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
                 
-                o.on('Enter', e => {
+                o.on('Enter,j,J,gp_1', e => {
                     if (e.init && active_dialogue === null && active_shop === null) {
                         active_dialogue = [
                             { speaker: "MONSTER HUNTER", text: "Watch your step, kid. Demonic babies cry in the shadows." },
@@ -1864,9 +1891,9 @@ let entities:entities_type = {
                     o.btx.font = '5px arcade';
                     o.btx.fillStyle = '#FFFFFF';
                     o.btx.textAlign = 'center';
-                    o.btx.fillText('PRESS ENTER TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                    o.btx.fillText('PRESS ENTER/J TO TALK', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
                     
-                    o.on('Enter', e => {
+                    o.on('Enter,j,J,gp_1', e => {
                         if (e.init && active_dialogue === null && active_shop === null) {
                             active_dialogue = [
                                 { speaker: "PRIEST", text: "My child, the Aswang King has corrupted this sacred ground." },
@@ -1899,9 +1926,9 @@ let entities:entities_type = {
                 o.btx.font = '5px arcade';
                 o.btx.fillStyle = '#FFFFFF';
                 o.btx.textAlign = 'center';
-                o.btx.fillText('PRESS ENTER TO SHOP', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                o.btx.fillText('PRESS ENTER/J TO SHOP', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
                 
-                o.on('Enter', e => {
+                o.on('Enter,j,J,gp_1', e => {
                     if (e.init && active_dialogue === null && active_shop === null) {
                         active_dialogue = [
                             { speaker: "ALBULARYO", text: "Greetings, child. I am the Albularyo, healer of these lands." },
@@ -1931,9 +1958,9 @@ let entities:entities_type = {
                 o.btx.font = '5px arcade';
                 o.btx.fillStyle = '#FFFFFF';
                 o.btx.textAlign = 'center';
-                o.btx.fillText('PRESS ENTER', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
+                o.btx.fillText('PRESS ENTER/J', d.x + 16 - o.camera[0], d.y - 10 - o.camera[1]);
                 
-                o.on('Enter', e => {
+                o.on('Enter,j,J,gp_1', e => {
                     if (e.init && active_dialogue === null) {
                         active_dialogue = [
                             { speaker: "You", text: "Maria! I found you!" },
@@ -2046,7 +2073,6 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
             if (algo.rectint(d.hitbox.slice(0,5),o.player.hitbox.slice(5))) {
                 if (d.hit_cooldown <= 0) {
                     d.hit_cooldown = 400;
-                    if (d.lives === undefined) d.lives = [2, 2];
                     d.lives[0] -= 1;
                     o.play('sfx/arrow hit.mp3', true);
                     d.bind.push(o.entity('damage_indicator', {x: d.x + hitboxSize[0] / 2, y: d.y}));
@@ -2057,8 +2083,8 @@ function aswang(d, o, t, dt, hitboxSize, detectSize, actionR, dead_time, asset_n
                         return;
                     } else {
                         d.knockback_timer = 200;
-                        d.knockback_vel_x = (o.player.x < d.x) ? 6 : -6;
-                        d.m[1] = 10;
+                        d.knockback_vel_x = (o.player.x < d.x) ? 14 : -14;
+                        d.m[1] = 12;
                     }
                 }
             }

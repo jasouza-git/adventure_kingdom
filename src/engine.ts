@@ -411,14 +411,33 @@ class engine {
     // Entity
     public player:any;
     public interacts:{[index:string]:any}[] = [];
+    private deepCopy(obj: any): any {
+        if (obj === null || typeof obj !== 'object') {
+            return obj;
+        }
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.deepCopy(item));
+        }
+        let copy = {} as any;
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                copy[key] = this.deepCopy(obj[key]);
+            }
+        }
+        return copy;
+    }
+
     public entity(type:string, ...arg:any) : {[index:string]:any} {
         if (!entities.hasOwnProperty(type)) throw `Error: No such entity "${type}"`;
         let out = {};
         // @ts-ignore
         if (entities[type].hasOwnProperty('create')) out = entities[type].create(this, ...arg);
         else out = arg[0];
-        out = {'__type__':type, ...entities[type].default, ...out};
-        return out;
+        
+        let defCopy = this.deepCopy(entities[type].default);
+        let outCopy = this.deepCopy(out);
+        let merged = {'__type__':type, ...defCopy, ...outCopy};
+        return merged;
     }
     public entities(type:string, len:number, ...arg:any) : {[index:string]:any}[] {
         let out:{[index:string]:any}[] = [];
